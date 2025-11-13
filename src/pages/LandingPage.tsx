@@ -33,20 +33,20 @@ export const LandingPage: React.FC = () => {
             <img src={domlyLogo} alt="Domly AI" className="h-8" />
           </div>
           
-          <nav className="hidden md:flex items-center gap-8 text-sm">
-            <a href="#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">
+          <nav className="hidden md:flex items-center gap-8 text-sm font-bold">
+            <a href="#how-it-works" className="text-black hover:text-primary transition-colors">
               How it Works
             </a>
-            <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">
+            <a href="#features" className="text-black hover:text-primary transition-colors">
               Features
             </a>
-            <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">
+            <a href="#pricing" className="text-black hover:text-primary transition-colors">
               Pricing
             </a>
-            <a href="#testimonials" className="text-muted-foreground hover:text-foreground transition-colors">
+            <a href="#testimonials" className="text-black hover:text-primary transition-colors">
               Testimonials
             </a>
-            <a href="#faq" className="text-muted-foreground hover:text-foreground transition-colors">
+            <a href="#faq" className="text-black hover:text-primary transition-colors">
               FAQ
             </a>
           </nav>
