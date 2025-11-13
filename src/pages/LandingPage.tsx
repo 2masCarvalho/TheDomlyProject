@@ -1,21 +1,31 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Building2, FileText, TrendingUp, MessageSquare, Upload, Sparkles, LayoutDashboard, Star, Check, ChevronDown, Linkedin, Twitter, Facebook, Instagram } from 'lucide-react';
-import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import dashboardMockup from '@/assets/dashboard-mockup.png';
-import domlyLogo from '@/assets/domly-logo.png';
-import { useScrollReveal } from '@/hooks/useScrollReveal';
+  Building2,
+  FileText,
+  TrendingUp,
+  MessageSquare,
+  Upload,
+  Sparkles,
+  LayoutDashboard,
+  Star,
+  Check,
+  ChevronDown,
+  Linkedin,
+  Twitter,
+  Facebook,
+  Instagram,
+} from "lucide-react";
+import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import dashboardMockup from "@/assets/dashboard-mockup.png";
+import domlyLogo from "@/assets/domly-logo.png";
+import { useScrollReveal } from "@/hooks/useScrollReveal";
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
-  
+
   // Refs for scroll animations
   const trustRef = useScrollReveal();
   const featuresRef = useScrollReveal();
@@ -32,8 +42,8 @@ export const LandingPage: React.FC = () => {
           <div className="flex items-center gap-2">
             <img src={domlyLogo} alt="Domly AI" className="h-8" />
           </div>
-          
-          <nav className="hidden md:flex items-center gap-8 text-sm font-bold">
+
+          <nav className="hidden md:flex items-center gap-8 text-sm ">
             <a href="#how-it-works" className="text-black hover:text-primary transition-colors">
               How it Works
             </a>
@@ -52,10 +62,10 @@ export const LandingPage: React.FC = () => {
           </nav>
 
           <div className="flex gap-3 items-center">
-            <Button variant="ghost" onClick={() => navigate('/login')} className="text-sm">
+            <Button variant="ghost" onClick={() => navigate("/login")} className="text-sm">
               Login
             </Button>
-            <Button onClick={() => navigate('/signup')} className="text-sm">
+            <Button onClick={() => navigate("/signup")} className="text-sm">
               Start Free Trial
             </Button>
           </div>
@@ -67,19 +77,23 @@ export const LandingPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="text-left animate-fade-in">
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-              <span className="text-primary">Automate</span> Your<br />
-              Property<br />
-              Management with<br />
+              <span className="text-primary">Automate</span> Your
+              <br />
+              Property
+              <br />
+              Management with
+              <br />
               AI.
             </h1>
             <p className="text-lg text-muted-foreground mb-8 max-w-xl">
-              Domly centralizes all your documents, maintenance, and resident communication into one simple, intelligent platform. End administrative chaos and gain full visibility of your properties.
+              Domly centralizes all your documents, maintenance, and resident communication into one simple, intelligent
+              platform. End administrative chaos and gain full visibility of your properties.
             </p>
             <div className="flex flex-wrap gap-4">
-              <Button size="lg" onClick={() => navigate('/signup')} className="btn-hover-lift btn-hover-glow">
+              <Button size="lg" onClick={() => navigate("/signup")} className="btn-hover-lift btn-hover-glow">
                 Start Free Trial
               </Button>
-              <Button size="lg" variant="outline" onClick={() => navigate('/signup')} className="btn-hover-lift">
+              <Button size="lg" variant="outline" onClick={() => navigate("/signup")} className="btn-hover-lift">
                 Book a Demo
               </Button>
             </div>
@@ -87,11 +101,7 @@ export const LandingPage: React.FC = () => {
 
           <div className="relative animate-scale-in">
             <div className="relative z-10 rounded-2xl overflow-hidden shadow-2xl">
-              <img 
-                src={dashboardMockup} 
-                alt="Domly Dashboard Interface" 
-                className="w-full h-auto"
-              />
+              <img src={dashboardMockup} alt="Domly Dashboard Interface" className="w-full h-auto" />
             </div>
             <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent rounded-2xl blur-3xl -z-10 transform translate-y-8"></div>
           </div>
@@ -119,7 +129,7 @@ export const LandingPage: React.FC = () => {
               "Riverside Management",
               "City Heights Group",
               "Coastal Property Partners",
-              "Downtown Residences"
+              "Downtown Residences",
             ].map((partner, index) => (
               <CarouselItem key={index} className="basis-1/2 md:basis-1/3 lg:basis-1/4">
                 <div className="flex items-center justify-center p-6">
@@ -137,9 +147,7 @@ export const LandingPage: React.FC = () => {
       {/* Features Section */}
       <section ref={featuresRef} id="features" className="container mx-auto px-4 py-20 md:py-32 scroll-reveal">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-            Why Property Managers Choose Domly
-          </h2>
+          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">Why Property Managers Choose Domly</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Transform chaos into clarity with intelligent automation
           </p>
@@ -150,11 +158,10 @@ export const LandingPage: React.FC = () => {
             <div className="bg-primary/10 w-14 h-14 rounded-lg flex items-center justify-center mb-6">
               <FileText className="h-7 w-7 text-primary" />
             </div>
-            <h3 className="text-2xl font-bold text-foreground mb-3">
-              Automate Document Chaos
-            </h3>
+            <h3 className="text-2xl font-bold text-foreground mb-3">Automate Document Chaos</h3>
             <p className="text-muted-foreground leading-relaxed">
-              Our AI uses OCR to read, categorize, and organize all your documents—from insurance to invoices. It automatically sets renewal alerts so you never miss a critical deadline.
+              Our AI uses OCR to read, categorize, and organize all your documents—from insurance to invoices. It
+              automatically sets renewal alerts so you never miss a critical deadline.
             </p>
           </div>
 
@@ -162,11 +169,10 @@ export const LandingPage: React.FC = () => {
             <div className="bg-primary/10 w-14 h-14 rounded-lg flex items-center justify-center mb-6">
               <TrendingUp className="h-7 w-7 text-primary" />
             </div>
-            <h3 className="text-2xl font-bold text-foreground mb-3">
-              Gain Total Financial & Operational Control
-            </h3>
+            <h3 className="text-2xl font-bold text-foreground mb-3">Gain Total Financial & Operational Control</h3>
             <p className="text-muted-foreground leading-relaxed">
-              See all costs, maintenance schedules, and asset statuses in one intuitive dashboard. Stop guessing and start making data-driven decisions.
+              See all costs, maintenance schedules, and asset statuses in one intuitive dashboard. Stop guessing and
+              start making data-driven decisions.
             </p>
           </div>
 
@@ -174,11 +180,10 @@ export const LandingPage: React.FC = () => {
             <div className="bg-primary/10 w-14 h-14 rounded-lg flex items-center justify-center mb-6">
               <MessageSquare className="h-7 w-7 text-primary" />
             </div>
-            <h3 className="text-2xl font-bold text-foreground mb-3">
-              Unify Resident & Manager Communication
-            </h3>
+            <h3 className="text-2xl font-bold text-foreground mb-3">Unify Resident & Manager Communication</h3>
             <p className="text-muted-foreground leading-relaxed">
-              Empower residents to report incidents (with photos) via the mobile app. Track resolutions in real-time and manage all communications in one place.
+              Empower residents to report incidents (with photos) via the mobile app. Track resolutions in real-time and
+              manage all communications in one place.
             </p>
           </div>
         </div>
@@ -188,12 +193,8 @@ export const LandingPage: React.FC = () => {
       <section ref={howItWorksRef} id="how-it-works" className="bg-background py-20 md:py-32 scroll-reveal-left">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-              How it Works?
-            </h2>
-            <p className="text-lg text-muted-foreground">
-              Get started in three simple steps
-            </p>
+            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">How it Works?</h2>
+            <p className="text-lg text-muted-foreground">Get started in three simple steps</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-5xl mx-auto">
@@ -201,9 +202,7 @@ export const LandingPage: React.FC = () => {
               <div className="bg-primary text-primary-foreground w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-6">
                 1
               </div>
-              <h3 className="text-2xl font-bold text-foreground mb-4">
-                Upload Your Data
-              </h3>
+              <h3 className="text-2xl font-bold text-foreground mb-4">Upload Your Data</h3>
               <p className="text-muted-foreground">
                 Automatically build your entire condominium and asset portfolio by uploading a simple Excel/CSV file.
               </p>
@@ -213,11 +212,10 @@ export const LandingPage: React.FC = () => {
               <div className="bg-primary text-primary-foreground w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-6">
                 2
               </div>
-              <h3 className="text-2xl font-bold text-foreground mb-4">
-                Let the AI Organize
-              </h3>
+              <h3 className="text-2xl font-bold text-foreground mb-4">Let the AI Organize</h3>
               <p className="text-muted-foreground">
-                Drag and drop your existing documents. Domly's AI scans, tags, and organizes them, creating automatic maintenance and renewal alerts.
+                Drag and drop your existing documents. Domly's AI scans, tags, and organizes them, creating automatic
+                maintenance and renewal alerts.
               </p>
             </div>
 
@@ -225,11 +223,10 @@ export const LandingPage: React.FC = () => {
               <div className="bg-primary text-primary-foreground w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-6">
                 3
               </div>
-              <h3 className="text-2xl font-bold text-foreground mb-4">
-                Manage with Clarity
-              </h3>
+              <h3 className="text-2xl font-bold text-foreground mb-4">Manage with Clarity</h3>
               <p className="text-muted-foreground">
-                Use your central dashboard to track maintenance, monitor costs, and communicate with residents. All from a single platform.
+                Use your central dashboard to track maintenance, monitor costs, and communicate with residents. All from
+                a single platform.
               </p>
             </div>
           </div>
@@ -239,21 +236,15 @@ export const LandingPage: React.FC = () => {
       {/* Pricing Section */}
       <section ref={pricingRef} id="pricing" className="container mx-auto px-4 py-20 md:py-32 scroll-reveal-right">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-            Simple, Transparent Pricing
-          </h2>
-          <p className="text-lg text-muted-foreground">
-            Choose the plan that fits your property portfolio
-          </p>
+          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">Simple, Transparent Pricing</h2>
+          <p className="text-lg text-muted-foreground">Choose the plan that fits your property portfolio</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {/* Starter Plan */}
           <div className="bg-card border rounded-2xl p-8 hover:shadow-lg transition-all duration-300 hover:-translate-y-2">
             <h3 className="text-2xl font-bold text-foreground mb-2">Starter</h3>
-            <p className="text-sm text-muted-foreground mb-6">
-              For small, self-managed condominiums
-            </p>
+            <p className="text-sm text-muted-foreground mb-6">For small, self-managed condominiums</p>
             <div className="mb-6">
               <span className="text-5xl font-bold text-foreground">$49</span>
               <span className="text-muted-foreground">/month</span>
@@ -280,7 +271,7 @@ export const LandingPage: React.FC = () => {
                 <span className="text-foreground">Email Support</span>
               </li>
             </ul>
-            <Button variant="outline" className="w-full btn-hover-lift" onClick={() => navigate('/signup')}>
+            <Button variant="outline" className="w-full btn-hover-lift" onClick={() => navigate("/signup")}>
               Get Started
             </Button>
           </div>
@@ -291,9 +282,7 @@ export const LandingPage: React.FC = () => {
               Most Popular
             </div>
             <h3 className="text-2xl font-bold mb-2">Pro</h3>
-            <p className="text-sm text-primary-foreground/80 mb-6">
-              For professional property managers
-            </p>
+            <p className="text-sm text-primary-foreground/80 mb-6">For professional property managers</p>
             <div className="mb-6">
               <span className="text-5xl font-bold">$149</span>
               <span className="text-primary-foreground/80">/month</span>
@@ -324,7 +313,11 @@ export const LandingPage: React.FC = () => {
                 <span>Priority Support</span>
               </li>
             </ul>
-            <Button variant="secondary" className="w-full bg-background text-foreground hover:bg-background/90 btn-hover-lift btn-hover-glow" onClick={() => navigate('/signup')}>
+            <Button
+              variant="secondary"
+              className="w-full bg-background text-foreground hover:bg-background/90 btn-hover-lift btn-hover-glow"
+              onClick={() => navigate("/signup")}
+            >
               Get Started
             </Button>
           </div>
@@ -332,9 +325,7 @@ export const LandingPage: React.FC = () => {
           {/* Enterprise Plan */}
           <div className="bg-card border rounded-2xl p-8 hover:shadow-lg transition-all duration-300 hover:-translate-y-2">
             <h3 className="text-2xl font-bold text-foreground mb-2">Enterprise</h3>
-            <p className="text-sm text-muted-foreground mb-6">
-              For large management portfolios
-            </p>
+            <p className="text-sm text-muted-foreground mb-6">For large management portfolios</p>
             <div className="mb-6">
               <span className="text-5xl font-bold text-foreground">Custom</span>
             </div>
@@ -378,9 +369,7 @@ export const LandingPage: React.FC = () => {
             <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
               Loved by Property Managers and Residents
             </h2>
-            <p className="text-lg text-muted-foreground">
-              See what our customers have to say
-            </p>
+            <p className="text-lg text-muted-foreground">See what our customers have to say</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -413,7 +402,8 @@ export const LandingPage: React.FC = () => {
                 ))}
               </div>
               <p className="text-foreground mb-6 italic">
-                "We finally have true visibility into our costs. The financial dashboard is transparent and a game-changer for budgeting."
+                "We finally have true visibility into our costs. The financial dashboard is transparent and a
+                game-changer for budgeting."
               </p>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
@@ -453,12 +443,8 @@ export const LandingPage: React.FC = () => {
       {/* FAQ Section */}
       <section ref={faqRef} id="faq" className="container mx-auto px-4 py-20 md:py-32 scroll-reveal">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-            Frequently Asked Questions
-          </h2>
-          <p className="text-lg text-muted-foreground">
-            Everything you need to know about Domly
-          </p>
+          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">Frequently Asked Questions</h2>
+          <p className="text-lg text-muted-foreground">Everything you need to know about Domly</p>
         </div>
 
         <div className="max-w-3xl mx-auto">
@@ -468,7 +454,8 @@ export const LandingPage: React.FC = () => {
                 How long does implementation take?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Most customers are up and running within 48 hours. Our rapid implementation process includes data import assistance and a personalized onboarding session.
+                Most customers are up and running within 48 hours. Our rapid implementation process includes data import
+                assistance and a personalized onboarding session.
               </AccordionContent>
             </AccordionItem>
 
@@ -477,7 +464,8 @@ export const LandingPage: React.FC = () => {
                 Is my data secure?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Absolutely. We use bank-level encryption, regular security audits, and comply with GDPR and SOC 2 standards. Your data is stored in secure, redundant cloud infrastructure.
+                Absolutely. We use bank-level encryption, regular security audits, and comply with GDPR and SOC 2
+                standards. Your data is stored in secure, redundant cloud infrastructure.
               </AccordionContent>
             </AccordionItem>
 
@@ -486,7 +474,8 @@ export const LandingPage: React.FC = () => {
                 How does the AI and OCR work?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Our AI uses advanced optical character recognition to scan and extract information from documents. It learns from your data to automatically categorize files, set reminders, and flag important dates.
+                Our AI uses advanced optical character recognition to scan and extract information from documents. It
+                learns from your data to automatically categorize files, set reminders, and flag important dates.
               </AccordionContent>
             </AccordionItem>
 
@@ -495,7 +484,8 @@ export const LandingPage: React.FC = () => {
                 Is there a mobile app for residents?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Yes! Residents can download our mobile app for iOS and Android to report maintenance issues, view announcements, and communicate with property management directly.
+                Yes! Residents can download our mobile app for iOS and Android to report maintenance issues, view
+                announcements, and communicate with property management directly.
               </AccordionContent>
             </AccordionItem>
 
@@ -504,7 +494,8 @@ export const LandingPage: React.FC = () => {
                 What kind of support is included?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                All plans include email support and access to our knowledge base. Pro and Enterprise plans get priority support with faster response times and dedicated account management.
+                All plans include email support and access to our knowledge base. Pro and Enterprise plans get priority
+                support with faster response times and dedicated account management.
               </AccordionContent>
             </AccordionItem>
           </Accordion>
@@ -520,11 +511,11 @@ export const LandingPage: React.FC = () => {
           <p className="text-lg text-primary-foreground/90 mb-8 max-w-3xl mx-auto">
             Get started with Domly's AI-powered platform today and turn administrative chaos into automated efficiency.
           </p>
-          <Button 
-            size="lg" 
-            variant="secondary" 
+          <Button
+            size="lg"
+            variant="secondary"
             className="bg-background text-foreground hover:bg-background/90 mb-4 btn-hover-lift btn-hover-glow"
-            onClick={() => navigate('/signup')}
+            onClick={() => navigate("/signup")}
           >
             Start Your Free Trial Now
           </Button>
@@ -627,41 +618,39 @@ export const LandingPage: React.FC = () => {
 
           {/* Bottom Bar */}
           <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-gray-400">
-              © 2024 Domly. All rights reserved.
-            </p>
-            
+            <p className="text-sm text-gray-400">© 2024 Domly. All rights reserved.</p>
+
             <div className="flex gap-6">
-              <a 
-                href="https://linkedin.com" 
-                target="_blank" 
+              <a
+                href="https://linkedin.com"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-400 hover:text-white transition-colors"
                 aria-label="LinkedIn"
               >
                 <Linkedin className="h-5 w-5" />
               </a>
-              <a 
-                href="https://twitter.com" 
-                target="_blank" 
+              <a
+                href="https://twitter.com"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-400 hover:text-white transition-colors"
                 aria-label="Twitter"
               >
                 <Twitter className="h-5 w-5" />
               </a>
-              <a 
-                href="https://facebook.com" 
-                target="_blank" 
+              <a
+                href="https://facebook.com"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-400 hover:text-white transition-colors"
                 aria-label="Facebook"
               >
                 <Facebook className="h-5 w-5" />
               </a>
-              <a 
-                href="https://instagram.com" 
-                target="_blank" 
+              <a
+                href="https://instagram.com"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-400 hover:text-white transition-colors"
                 aria-label="Instagram"
