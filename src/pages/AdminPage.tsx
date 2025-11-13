@@ -7,24 +7,35 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
-import { Trash2, UserPlus, LogOut } from 'lucide-react';
+import { Trash2, UserPlus, LogOut, Pencil } from 'lucide-react';
 import { z } from 'zod';
 
 const userSchema = z.object({
   email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: z.string().min(6, 'Password must be at least 6 characters').optional(),
   nome: z.string().min(2, 'Name must be at least 2 characters'),
   empresa: z.string().optional(),
   role: z.enum(['admin', 'user']),
 });
 
+type User = {
+  id: string;
+  nome: string;
+  email: string;
+  empresa: string | null;
+  created_at: string;
+  user_roles: { role: string }[];
+};
+
 export default function AdminPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -33,6 +44,13 @@ export default function AdminPage() {
     role: 'user' as 'admin' | 'user',
   });
   const [submitting, setSubmitting] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    nome: '',
+    empresa: '',
+    role: 'user' as 'admin' | 'user',
+  });
 
   useEffect(() => {
     checkAdminAccess();
@@ -149,6 +167,94 @@ export default function AdminPage() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate('/login');
+  };
+
+  const handleEditUser = (user: User) => {
+    setEditingUser(user);
+    setEditFormData({
+      nome: user.nome,
+      empresa: user.empresa || '',
+      role: user.user_roles?.some((r) => r.role === 'admin') ? 'admin' : 'user',
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleUpdateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUser) return;
+
+    setSubmitting(true);
+    try {
+      // Update profile
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          nome: editFormData.nome,
+          empresa: editFormData.empresa || null,
+        })
+        .eq('id', editingUser.id);
+
+      if (profileError) throw profileError;
+
+      // Update role
+      const currentRole = editingUser.user_roles?.some((r) => r.role === 'admin') ? 'admin' : 'user';
+      
+      if (currentRole !== editFormData.role) {
+        // Remove old admin role if changing from admin to user
+        if (currentRole === 'admin' && editFormData.role === 'user') {
+          const { error: deleteError } = await supabase
+            .from('user_roles')
+            .delete()
+            .eq('user_id', editingUser.id)
+            .eq('role', 'admin');
+
+          if (deleteError) throw deleteError;
+        }
+
+        // Add admin role if changing from user to admin
+        if (currentRole === 'user' && editFormData.role === 'admin') {
+          const { error: insertError } = await supabase
+            .from('user_roles')
+            .insert({
+              user_id: editingUser.id,
+              role: 'admin',
+            });
+
+          if (insertError) throw insertError;
+        }
+      }
+
+      toast.success('User updated successfully');
+      setEditDialogOpen(false);
+      setEditingUser(null);
+      fetchUsers();
+    } catch (error: any) {
+      console.error('Error updating user:', error);
+      toast.error(error.message || 'Failed to update user');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteUser = async (userId: string, userEmail: string) => {
+    try {
+      // Note: Deleting from auth.users requires service role key
+      // For now, we'll just delete from profiles and user_roles
+      // The auth user will remain but won't be able to access data
+      
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', userId);
+
+      if (profileError) throw profileError;
+
+      toast.success(`User ${userEmail} deleted successfully`);
+      fetchUsers();
+    } catch (error: any) {
+      console.error('Error deleting user:', error);
+      toast.error(error.message || 'Failed to delete user');
+    }
   };
 
   if (loading) {
@@ -274,6 +380,7 @@ export default function AdminPage() {
                     <TableHead>Company</TableHead>
                     <TableHead>Role</TableHead>
                     <TableHead>Created</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -300,6 +407,111 @@ export default function AdminPage() {
                         </TableCell>
                         <TableCell>
                           {new Date(user.created_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Dialog open={editDialogOpen && editingUser?.id === user.id} onOpenChange={(open) => {
+                              if (!open) {
+                                setEditDialogOpen(false);
+                                setEditingUser(null);
+                              }
+                            }}>
+                              <DialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleEditUser(user)}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Edit User</DialogTitle>
+                                  <DialogDescription>
+                                    Update user information and role
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <form onSubmit={handleUpdateUser} className="space-y-4">
+                                  <div className="space-y-2">
+                                    <Label htmlFor="edit-nome">Name</Label>
+                                    <Input
+                                      id="edit-nome"
+                                      value={editFormData.nome}
+                                      onChange={(e) => setEditFormData({ ...editFormData, nome: e.target.value })}
+                                      required
+                                    />
+                                  </div>
+
+                                  <div className="space-y-2">
+                                    <Label htmlFor="edit-empresa">Company</Label>
+                                    <Input
+                                      id="edit-empresa"
+                                      value={editFormData.empresa}
+                                      onChange={(e) => setEditFormData({ ...editFormData, empresa: e.target.value })}
+                                    />
+                                  </div>
+
+                                  <div className="space-y-2">
+                                    <Label htmlFor="edit-role">Role</Label>
+                                    <Select
+                                      value={editFormData.role}
+                                      onValueChange={(value: 'admin' | 'user') => setEditFormData({ ...editFormData, role: value })}
+                                    >
+                                      <SelectTrigger>
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="user">User</SelectItem>
+                                        <SelectItem value="admin">Admin</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+
+                                  <div className="flex justify-end gap-2">
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      onClick={() => setEditDialogOpen(false)}
+                                    >
+                                      Cancel
+                                    </Button>
+                                    <Button type="submit" disabled={submitting}>
+                                      {submitting ? 'Updating...' : 'Update User'}
+                                    </Button>
+                                  </div>
+                                </form>
+                              </DialogContent>
+                            </Dialog>
+
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete User</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete user <strong>{user.email}</strong>? This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDeleteUser(user.id, user.email)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))
