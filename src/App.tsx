@@ -5,9 +5,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { CondominiosProvider } from "@/context/CondominiosContext";
+import { AtivosProvider } from "@/context/AtivosContext";
+import { AppLayout } from "@/components/AppLayout";
 import { LandingPage } from "./pages/LandingPage";
 import { LoginPage } from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
+import { CondominiosPage } from "./pages/CondominiosPage";
 import { AtivosPage } from "./pages/AtivosPage";
 import { AtivoDetailPage } from "./pages/AtivoDetailPage";
 import { NotificacoesPage } from "./pages/NotificacoesPage";
@@ -37,43 +41,21 @@ const App = () => (
               }
             />
             <Route
-              path="/condominios"
               element={
                 <ProtectedRoute>
-                  <Index />
+                  <CondominiosProvider>
+                    <AtivosProvider>
+                      <AppLayout />
+                    </AtivosProvider>
+                  </CondominiosProvider>
                 </ProtectedRoute>
               }
-            />
-            <Route
-              path="/condominios/:id/ativos"
-              element={
-                <ProtectedRoute>
-                  <Index>
-                    <AtivosPage />
-                  </Index>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/condominios/:id/notificacoes"
-              element={
-                <ProtectedRoute>
-                  <Index>
-                    <NotificacoesPage />
-                  </Index>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/condominios/:condominioId/ativos/:ativoId"
-              element={
-                <ProtectedRoute>
-                  <Index>
-                    <AtivoDetailPage />
-                  </Index>
-                </ProtectedRoute>
-              }
-            />
+            >
+              <Route path="/condominios" element={<CondominiosPage />} />
+              <Route path="/condominios/:id/ativos" element={<AtivosPage />} />
+              <Route path="/condominios/:id/notificacoes" element={<NotificacoesPage />} />
+              <Route path="/condominios/:condominioId/ativos/:ativoId" element={<AtivoDetailPage />} />
+            </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
