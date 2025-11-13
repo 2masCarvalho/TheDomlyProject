@@ -10,9 +10,18 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import dashboardMockup from '@/assets/dashboard-mockup.png';
+import { useScrollReveal } from '@/hooks/useScrollReveal';
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
+  
+  // Refs for scroll animations
+  const trustRef = useScrollReveal();
+  const featuresRef = useScrollReveal();
+  const howItWorksRef = useScrollReveal();
+  const pricingRef = useScrollReveal();
+  const testimonialsRef = useScrollReveal();
+  const faqRef = useScrollReveal();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-hero-gradient-start to-hero-gradient-end">
@@ -67,10 +76,10 @@ export const LandingPage: React.FC = () => {
               Domly centralizes all your documents, maintenance, and resident communication into one simple, intelligent platform. End administrative chaos and gain full visibility of your properties.
             </p>
             <div className="flex flex-wrap gap-4">
-              <Button size="lg" onClick={() => navigate('/signup')}>
+              <Button size="lg" onClick={() => navigate('/signup')} className="btn-hover-lift btn-hover-glow">
                 Start Free Trial
               </Button>
-              <Button size="lg" variant="outline" onClick={() => navigate('/signup')}>
+              <Button size="lg" variant="outline" onClick={() => navigate('/signup')} className="btn-hover-lift">
                 Book a Demo
               </Button>
             </div>
@@ -90,7 +99,7 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* Trust Section */}
-      <section className="container mx-auto px-4 py-12">
+      <section ref={trustRef} className="container mx-auto px-4 py-12 scroll-reveal">
         <p className="text-center text-sm text-muted-foreground mb-8">
           Trusted by leading property managers and condominiums
         </p>
@@ -126,7 +135,7 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="container mx-auto px-4 py-20 md:py-32">
+      <section ref={featuresRef} id="features" className="container mx-auto px-4 py-20 md:py-32 scroll-reveal">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
             Why Property Managers Choose Domly
@@ -176,7 +185,7 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* How it Works Section */}
-      <section id="how-it-works" className="bg-background py-20 md:py-32">
+      <section ref={howItWorksRef} id="how-it-works" className="bg-background py-20 md:py-32 scroll-reveal-left">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
@@ -228,7 +237,7 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="container mx-auto px-4 py-20 md:py-32">
+      <section ref={pricingRef} id="pricing" className="container mx-auto px-4 py-20 md:py-32 scroll-reveal-right">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
             Simple, Transparent Pricing
@@ -240,7 +249,7 @@ export const LandingPage: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {/* Starter Plan */}
-          <div className="bg-card border rounded-2xl p-8 hover:shadow-lg transition-shadow">
+          <div className="bg-card border rounded-2xl p-8 hover:shadow-lg transition-all duration-300 hover:-translate-y-2">
             <h3 className="text-2xl font-bold text-foreground mb-2">Starter</h3>
             <p className="text-sm text-muted-foreground mb-6">
               For small, self-managed condominiums
@@ -271,7 +280,7 @@ export const LandingPage: React.FC = () => {
                 <span className="text-foreground">Email Support</span>
               </li>
             </ul>
-            <Button variant="outline" className="w-full" onClick={() => navigate('/signup')}>
+            <Button variant="outline" className="w-full btn-hover-lift" onClick={() => navigate('/signup')}>
               Get Started
             </Button>
           </div>
@@ -315,13 +324,13 @@ export const LandingPage: React.FC = () => {
                 <span>Priority Support</span>
               </li>
             </ul>
-            <Button variant="secondary" className="w-full bg-background text-foreground hover:bg-background/90" onClick={() => navigate('/signup')}>
+            <Button variant="secondary" className="w-full bg-background text-foreground hover:bg-background/90 btn-hover-lift btn-hover-glow" onClick={() => navigate('/signup')}>
               Get Started
             </Button>
           </div>
 
           {/* Enterprise Plan */}
-          <div className="bg-card border rounded-2xl p-8 hover:shadow-lg transition-shadow">
+          <div className="bg-card border rounded-2xl p-8 hover:shadow-lg transition-all duration-300 hover:-translate-y-2">
             <h3 className="text-2xl font-bold text-foreground mb-2">Enterprise</h3>
             <p className="text-sm text-muted-foreground mb-6">
               For large management portfolios
@@ -355,7 +364,7 @@ export const LandingPage: React.FC = () => {
                 <span className="text-foreground">On-premise deployment option</span>
               </li>
             </ul>
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" className="w-full btn-hover-lift">
               Contact Sales
             </Button>
           </div>
@@ -363,7 +372,7 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section id="testimonials" className="bg-background py-20 md:py-32">
+      <section ref={testimonialsRef} id="testimonials" className="bg-background py-20 md:py-32 scroll-reveal">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
@@ -442,7 +451,7 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* FAQ Section */}
-      <section id="faq" className="container mx-auto px-4 py-20 md:py-32">
+      <section ref={faqRef} id="faq" className="container mx-auto px-4 py-20 md:py-32 scroll-reveal">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
             Frequently Asked Questions
@@ -514,7 +523,7 @@ export const LandingPage: React.FC = () => {
           <Button 
             size="lg" 
             variant="secondary" 
-            className="bg-background text-foreground hover:bg-background/90 mb-4"
+            className="bg-background text-foreground hover:bg-background/90 mb-4 btn-hover-lift btn-hover-glow"
             onClick={() => navigate('/signup')}
           >
             Start Your Free Trial Now
