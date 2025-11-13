@@ -66,7 +66,7 @@ export const LandingPage: React.FC = () => {
               Login
             </Button>
             <Button onClick={() => navigate("/signup")} className="text-sm">
-              Start Free Trial
+              See the AI in Action
             </Button>
           </div>
         </div>
@@ -91,7 +91,7 @@ export const LandingPage: React.FC = () => {
             </p>
             <div className="flex flex-wrap gap-4">
               <Button size="lg" onClick={() => navigate("/signup")} className="btn-hover-lift btn-hover-glow">
-                Start Free Trial
+                See the AI in Action
               </Button>
               <Button size="lg" variant="outline" onClick={() => navigate("/signup")} className="btn-hover-lift">
                 Book a Demo
