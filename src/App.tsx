@@ -13,6 +13,7 @@ import { AtivoDetailPage } from "./pages/AtivoDetailPage";
 import { NotificacoesPage } from "./pages/NotificacoesPage";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import AdminPage from "./pages/AdminPage";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,14 @@ const App = () => (
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
+            <Route
+              path="/secret-admin-panel"
+              element={
+                <ProtectedRoute>
+                  <AdminPage />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/condominios"
               element={
