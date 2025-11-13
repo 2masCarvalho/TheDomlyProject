@@ -2,16 +2,11 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
-  Building2,
   FileText,
   TrendingUp,
   MessageSquare,
-  Upload,
-  Sparkles,
-  LayoutDashboard,
   Star,
   Check,
-  ChevronDown,
   Linkedin,
   Twitter,
   Facebook,
@@ -19,8 +14,13 @@ import {
 } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import Autoplay from "embla-carousel-autoplay";
 import dashboardMockup from "@/assets/dashboard-mockup.png";
 import domlyLogo from "@/assets/domly-logo.png";
+import vanguardLogo from "@/assets/vanguard-logo.jpg";
+import sierraLogo from "@/assets/sierra-logo.webp";
+import jllLogo from "@/assets/jll-logo.png";
+import startupPortugalLogo from "@/assets/startup-portugal-logo.png";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import { DemoBookingModal } from "@/components/DemoBookingModal";
 
@@ -120,24 +120,33 @@ export const LandingPage: React.FC = () => {
             align: "start",
             loop: true,
           }}
+          plugins={[
+            Autoplay({
+              delay: 2000,
+              stopOnInteraction: false,
+            }),
+          ]}
           className="w-full max-w-5xl mx-auto"
         >
-          <CarouselContent>
+          <CarouselContent className="-ml-4">
             {[
-              "Skyline Properties",
-              "Urban Living Co.",
-              "Harbor View Estates",
-              "Metropolitan Condos",
-              "Riverside Management",
-              "City Heights Group",
-              "Coastal Property Partners",
-              "Downtown Residences",
+              { name: "Vanguard Properties", logo: vanguardLogo },
+              { name: "Sierra Sonae", logo: sierraLogo },
+              { name: "JLL", logo: jllLogo },
+              { name: "Startup Portugal", logo: startupPortugalLogo },
+              { name: "Vanguard Properties", logo: vanguardLogo },
+              { name: "Sierra Sonae", logo: sierraLogo },
+              { name: "JLL", logo: jllLogo },
+              { name: "Startup Portugal", logo: startupPortugalLogo },
             ].map((partner, index) => (
-              <CarouselItem key={index} className="basis-1/2 md:basis-1/3 lg:basis-1/4">
+              <CarouselItem key={index} className="pl-4 basis-1/2 md:basis-1/3 lg:basis-1/4">
                 <div className="flex items-center justify-center p-6">
-                  <div className="text-center opacity-40 hover:opacity-60 transition-opacity">
-                    <Building2 className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                    <p className="text-xs font-medium text-muted-foreground">{partner}</p>
+                  <div className="flex items-center justify-center h-20 opacity-50 hover:opacity-80 transition-opacity">
+                    <img 
+                      src={partner.logo} 
+                      alt={partner.name}
+                      className="max-h-16 max-w-full object-contain grayscale"
+                    />
                   </div>
                 </div>
               </CarouselItem>
