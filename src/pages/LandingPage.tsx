@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,9 +22,11 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import dashboardMockup from "@/assets/dashboard-mockup.png";
 import domlyLogo from "@/assets/domly-logo.png";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
+import { DemoBookingModal } from "@/components/DemoBookingModal";
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
+  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
 
   // Refs for scroll animations
   const trustRef = useScrollReveal();
@@ -65,7 +67,7 @@ export const LandingPage: React.FC = () => {
             <Button variant="ghost" onClick={() => navigate("/login")} className="text-sm">
               Login
             </Button>
-            <Button onClick={() => navigate("/signup")} className="text-sm">
+            <Button onClick={() => setIsDemoModalOpen(true)} className="text-sm">
               See the AI in Action
             </Button>
           </div>
@@ -90,7 +92,7 @@ export const LandingPage: React.FC = () => {
               platform. End administrative chaos and gain full visibility of your properties.
             </p>
             <div className="flex flex-wrap gap-4">
-              <Button size="lg" onClick={() => navigate("/signup")} className="btn-hover-lift btn-hover-glow">
+              <Button size="lg" onClick={() => setIsDemoModalOpen(true)} className="btn-hover-lift btn-hover-glow">
                 See the AI in Action
               </Button>
               <Button size="lg" variant="outline" onClick={() => navigate("/signup")} className="btn-hover-lift">
@@ -661,6 +663,8 @@ export const LandingPage: React.FC = () => {
           </div>
         </div>
       </footer>
+
+      <DemoBookingModal open={isDemoModalOpen} onOpenChange={setIsDemoModalOpen} />
     </div>
   );
 };
