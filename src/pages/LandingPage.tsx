@@ -10,6 +10,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import dashboardMockup from '@/assets/dashboard-mockup.png';
+import domlyLogo from '@/assets/domly-logo.png';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 
 export const LandingPage: React.FC = () => {
@@ -29,8 +30,7 @@ export const LandingPage: React.FC = () => {
       <header className="sticky top-0 z-50 bg-gradient-to-b from-hero-gradient-start/95 to-hero-gradient-start/90 backdrop-blur supports-[backdrop-filter]:from-hero-gradient-start/80 border-b border-border/20 container mx-auto px-4 py-5">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <Building2 className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold text-foreground">Domly</span>
+            <img src={domlyLogo} alt="Domly AI" className="h-8" />
           </div>
           
           <nav className="hidden md:flex items-center gap-8 text-sm">
@@ -541,8 +541,7 @@ export const LandingPage: React.FC = () => {
             {/* Brand Column */}
             <div className="md:col-span-2">
               <div className="flex items-center gap-2 mb-4">
-                <Building2 className="h-6 w-6 text-primary" />
-                <span className="text-xl font-bold">Domly</span>
+                <img src={domlyLogo} alt="Domly AI" className="h-8" />
               </div>
               <p className="text-gray-400 text-sm leading-relaxed">
                 AI-powered property management for modern condominiums.
