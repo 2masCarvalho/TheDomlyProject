@@ -73,36 +73,18 @@ export const CondominiosPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b bg-card shadow-sm">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Building2 className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">
-                  Gestão de Condomínios
-                </h1>
-                <p className="text-sm text-muted-foreground">
-                  Gerir todos os condomínios da plataforma
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-muted-foreground">
-                Olá, {user?.name}
-              </span>
-              <Button variant="ghost" size="sm" onClick={handleLogout}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Sair
-              </Button>
+      <header className="border-b bg-card">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Gestão de Condomínios</h1>
+              <p className="text-sm text-muted-foreground">Gerir todos os condomínios da plataforma</p>
             </div>
           </div>
 
-          {/* Barra de ações */}
+          {/* Action Bar */}
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -122,8 +104,8 @@ export const CondominiosPage: React.FC = () => {
         </div>
       </header>
 
-      {/* Conteúdo principal */}
-      <main className="container mx-auto px-4 py-8">
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {loading ? (
           <LoadingSpinner text="A carregar condomínios..." />
         ) : (
@@ -135,7 +117,7 @@ export const CondominiosPage: React.FC = () => {
         )}
       </main>
 
-      {/* Modais */}
+      {/* Modals */}
       <CondominioForm
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
