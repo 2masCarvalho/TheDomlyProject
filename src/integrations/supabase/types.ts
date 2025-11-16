@@ -109,11 +109,13 @@ export type Database = {
         Row: {
           cidade: string
           codigo_postal: string
+          contacto_administrador: string | null
           created_at: string
           data_criacao: string
           id_condominio: string
           id_user: string
           morada: string
+          n_fracoes: number | null
           nif: number
           nome: string
           updated_at: string
@@ -121,11 +123,13 @@ export type Database = {
         Insert: {
           cidade: string
           codigo_postal: string
+          contacto_administrador?: string | null
           created_at?: string
           data_criacao?: string
           id_condominio?: string
           id_user: string
           morada: string
+          n_fracoes?: number | null
           nif: number
           nome: string
           updated_at?: string
@@ -133,11 +137,13 @@ export type Database = {
         Update: {
           cidade?: string
           codigo_postal?: string
+          contacto_administrador?: string | null
           created_at?: string
           data_criacao?: string
           id_condominio?: string
           id_user?: string
           morada?: string
+          n_fracoes?: number | null
           nif?: number
           nome?: string
           updated_at?: string

@@ -1,75 +1,67 @@
-export interface Condominio {
-  id: number;
-  nome: string;
-  morada: string;
-  n_fracoes: number;
-  contacto_administrador?: string;
-  created_at?: string;
-}
+import { supabase } from '@/integrations/supabase/client';
+import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
-export interface CreateCondominioData {
-  nome: string;
-  morada: string;
-  n_fracoes: number;
-  contacto_administrador?: string;
-}
+export type Condominio = Tables<'condominio'>;
+export type CreateCondominioData = Omit<TablesInsert<'condominio'>, 'id_condominio' | 'created_at' | 'updated_at' | 'data_criacao' | 'id_user'>;
+export type UpdateCondominioData = Partial<CreateCondominioData>;
 
-// Mock data
-let mockCondominios: Condominio[] = [
-  {
-    id: 1,
-    nome: "Edifício Central",
-    morada: "Rua Principal, 123, Lisboa",
-    n_fracoes: 24,
-    contacto_administrador: "+351 912 345 678",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 2,
-    nome: "Residencial Mar Azul",
-    morada: "Av. Atlântica, 456, Porto",
-    n_fracoes: 36,
-    contacto_administrador: "+351 913 456 789",
-    created_at: new Date().toISOString(),
-  },
-];
-
-let nextId = 3;
-
-// Mock API functions
 export const condominiosApi = {
   getAll: async (): Promise<Condominio[]> => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    return [...mockCondominios];
+    const { data, error } = await supabase
+      .from('condominio')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
   },
 
-  getById: async (id: number): Promise<Condominio | null> => {
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    return mockCondominios.find((c) => c.id === id) || null;
+  getById: async (id: string): Promise<Condominio | null> => {
+    const { data, error } = await supabase
+      .from('condominio')
+      .select('*')
+      .eq('id_condominio', id)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data;
   },
 
-  create: async (data: CreateCondominioData): Promise<Condominio> => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    const newCondominio: Condominio = {
-      ...data,
-      id: nextId++,
-      created_at: new Date().toISOString(),
-    };
-    mockCondominios.push(newCondominio);
-    return newCondominio;
+  create: async (condominioData: CreateCondominioData): Promise<Condominio> => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
+    const { data, error } = await supabase
+      .from('condominio')
+      .insert({
+        ...condominioData,
+        id_user: user.id,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   },
 
-  update: async (id: number, data: Partial<CreateCondominioData>): Promise<Condominio> => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    const index = mockCondominios.findIndex((c) => c.id === id);
-    if (index === -1) throw new Error("Condomínio não encontrado");
-    
-    mockCondominios[index] = { ...mockCondominios[index], ...data };
-    return mockCondominios[index];
+  update: async (id: string, condominioData: UpdateCondominioData): Promise<Condominio> => {
+    const { data, error } = await supabase
+      .from('condominio')
+      .update(condominioData)
+      .eq('id_condominio', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   },
 
-  delete: async (id: number): Promise<void> => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    mockCondominios = mockCondominios.filter((c) => c.id !== id);
+  delete: async (id: string): Promise<void> => {
+    const { error } = await supabase
+      .from('condominio')
+      .delete()
+      .eq('id_condominio', id);
+
+    if (error) throw error;
   },
 };

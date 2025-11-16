@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCondominios } from '@/context/CondominiosContext';
 import { useAuth } from '@/context/AuthContext';
-import { Condominio } from '@/api/condominios';
+import { Condominio, CreateCondominioData } from '@/api/condominios';
 import { CondominioList } from '@/components/CondominioList/CondominioList';
 import { CondominioForm } from '@/components/CondominioForm/CondominioForm';
 import { ConfirmModal } from '@/components/ConfirmModal/ConfirmModal';
@@ -45,23 +45,16 @@ export const CondominiosPage: React.FC = () => {
   };
 
   const handleFormSubmit = async (data: CondominioFormData) => {
-    const condominioData = {
-      nome: data.nome,
-      morada: data.morada,
-      n_fracoes: data.n_fracoes,
-      contacto_administrador: data.contacto_administrador || undefined,
-    };
-
     if (selectedCondominio) {
-      await updateCondominio(selectedCondominio.id, condominioData);
+      await updateCondominio(selectedCondominio.id_condominio, data as Partial<CreateCondominioData>);
     } else {
-      await createCondominio(condominioData);
+      await createCondominio(data as CreateCondominioData);
     }
   };
 
   const handleConfirmDelete = async () => {
     if (selectedCondominio) {
-      await deleteCondominio(selectedCondominio.id);
+      await deleteCondominio(selectedCondominio.id_condominio);
       setIsDeleteModalOpen(false);
       setSelectedCondominio(null);
     }
