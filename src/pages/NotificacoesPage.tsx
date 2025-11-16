@@ -17,7 +17,7 @@ export const NotificacoesPage: React.FC = () => {
   const { getAtivosByCondominio } = useAtivos();
 
   const condominioId = parseInt(id || '0');
-  const condominio = condominios.find((c) => c.id === condominioId);
+  const condominio = condominios.find((c) => c.id_condominio === id);
   const ativos = getAtivosByCondominio(condominioId);
 
   const notificationColors = {
