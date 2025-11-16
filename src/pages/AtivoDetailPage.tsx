@@ -67,7 +67,7 @@ export const AtivoDetailPage: React.FC = () => {
   const parsedCondominioId = parseInt(condominioId || '0');
   const parsedAtivoId = parseInt(ativoId || '0');
 
-  const condominio = condominios.find((c) => c.id === parsedCondominioId);
+  const condominio = condominios.find((c) => c.id_condominio === condominioId);
   const ativos = getAtivosByCondominio(parsedCondominioId);
   const ativo = ativos.find((a) => a.id === parsedAtivoId);
 

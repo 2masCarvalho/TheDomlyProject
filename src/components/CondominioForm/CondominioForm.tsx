@@ -61,16 +61,48 @@ export const CondominioForm: React.FC<CondominioFormProps> = ({
             )}
           </div>
 
-          <div>
-            <Label htmlFor="n_fracoes">Número de Frações</Label>
-            <Input
-              id="n_fracoes"
-              type="number"
-              {...register('n_fracoes', { valueAsNumber: true })}
-            />
-            {errors.n_fracoes && (
-              <p className="text-sm text-destructive">{errors.n_fracoes.message}</p>
-            )}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="codigo_postal">Código Postal</Label>
+              <Input id="codigo_postal" {...register('codigo_postal')} placeholder="0000-000" />
+              {errors.codigo_postal && (
+                <p className="text-sm text-destructive">{errors.codigo_postal.message}</p>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="cidade">Cidade</Label>
+              <Input id="cidade" {...register('cidade')} />
+              {errors.cidade && (
+                <p className="text-sm text-destructive">{errors.cidade.message}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="nif">NIF</Label>
+              <Input
+                id="nif"
+                type="number"
+                {...register('nif', { valueAsNumber: true })}
+              />
+              {errors.nif && (
+                <p className="text-sm text-destructive">{errors.nif.message}</p>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="n_fracoes">Número de Frações</Label>
+              <Input
+                id="n_fracoes"
+                type="number"
+                {...register('n_fracoes', { valueAsNumber: true })}
+              />
+              {errors.n_fracoes && (
+                <p className="text-sm text-destructive">{errors.n_fracoes.message}</p>
+              )}
+            </div>
           </div>
 
           <div>

@@ -9,8 +9,8 @@ interface CondominiosContextType {
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   createCondominio: (data: CreateCondominioData) => Promise<void>;
-  updateCondominio: (id: number, data: Partial<CreateCondominioData>) => Promise<void>;
-  deleteCondominio: (id: number) => Promise<void>;
+  updateCondominio: (id: string, data: Partial<CreateCondominioData>) => Promise<void>;
+  deleteCondominio: (id: string) => Promise<void>;
   refreshCondominios: () => Promise<void>;
 }
 
@@ -18,7 +18,6 @@ const CondominiosContext = createContext<CondominiosContextType | undefined>(und
 
 export const CondominiosProvider: React.FC<{ children: ReactNode; useMock?: boolean }> = ({ 
   children,
-  useMock = true 
 }) => {
   const [condominios, setCondominios] = useState<Condominio[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,7 +67,7 @@ export const CondominiosProvider: React.FC<{ children: ReactNode; useMock?: bool
     }
   };
 
-  const updateCondominio = async (id: number, data: Partial<CreateCondominioData>) => {
+  const updateCondominio = async (id: string, data: Partial<CreateCondominioData>) => {
     try {
       await condominiosApi.update(id, data);
       await loadCondominios();
@@ -86,7 +85,7 @@ export const CondominiosProvider: React.FC<{ children: ReactNode; useMock?: bool
     }
   };
 
-  const deleteCondominio = async (id: number) => {
+  const deleteCondominio = async (id: string) => {
     try {
       await condominiosApi.delete(id);
       await loadCondominios();

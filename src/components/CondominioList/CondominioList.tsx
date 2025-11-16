@@ -30,7 +30,7 @@ export const CondominioList: React.FC<CondominioListProps> = ({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {condominios.map((condominio) => (
-        <Card key={condominio.id} className="hover:shadow-lg transition-shadow">
+        <Card key={condominio.id_condominio} className="hover:shadow-lg transition-shadow">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Building2 className="h-5 w-5 text-primary" />
@@ -52,7 +52,7 @@ export const CondominioList: React.FC<CondominioListProps> = ({
             <Button
               size="sm"
               variant="outline"
-              onClick={() => navigate(`/condominios/${condominio.id}/ativos`)}
+              onClick={() => navigate(`/condominios/${condominio.id_condominio}/ativos`)}
             >
               <Eye className="h-4 w-4 mr-1" />
               Ver Ativos
