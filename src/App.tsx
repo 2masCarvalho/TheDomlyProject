@@ -15,9 +15,13 @@ import { CondominiosPage } from "./pages/CondominiosPage";
 import { AtivosPage } from "./pages/AtivosPage";
 import { AtivoDetailPage } from "./pages/AtivoDetailPage";
 import { NotificacoesPage } from "./pages/NotificacoesPage";
-import Index from "./pages/Index";
+import Index from "./pages/Index"; // <- Atenção, esta página não está a ser usada nas rotas
 import NotFound from "./pages/NotFound";
 import AdminPage from "./pages/AdminPage";
+
+// 👇 1. IMPORTA O NOVO FORMULÁRIO
+// (Ajusta o caminho se o tiveres guardado noutro local, ex: ./components/CondominioForm)
+import CondominioForm from "@/components/CondominioForm/CondominioForm2"; 
 
 const queryClient = new QueryClient();
 
@@ -51,6 +55,9 @@ const App = () => (
                 </ProtectedRoute>
               }
             >
+              {/* 👇 2. ADICIONA A NOVA ROTA AQUI */}
+              <Route path="/novo-condominio" element={<CondominioForm />} />
+
               <Route path="/condominios" element={<CondominiosPage />} />
               <Route path="/condominios/:id/ativos" element={<AtivosPage />} />
               <Route path="/condominios/:id/notificacoes" element={<NotificacoesPage />} />
