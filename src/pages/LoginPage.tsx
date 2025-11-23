@@ -1,6 +1,6 @@
 //este codigo foi escrito assim pq estamos a usar sem backend, com o backend o codigo que deve ser usado está em baixo em comentário.
 
-
+/*
 import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -118,9 +118,7 @@ export const LoginPage: React.FC = () => {
     </div>
   );
 };
-
-
-/*
+*/
 
 import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
@@ -158,24 +156,13 @@ export const LoginPage: React.FC = () => {
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
-      // Simular delay de API
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      login({
-        email: data.email,
-        name: 'Utilizador Demo',
-      });
-      
-      toast({
-        title: 'Login efetuado',
-        description: 'Bem-vindo de volta!',
-      });
-      
+      await login(data.email, data.password);
+      toast({ title: 'Login efetuado', description: 'Bem-vindo de volta!' });
       navigate('/condominios');
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: 'Erro ao entrar',
-        description: 'Credenciais inválidas',
+        description: error?.message ?? 'Credenciais inválidas',
         variant: 'destructive',
       });
     } finally {
@@ -183,6 +170,7 @@ export const LoginPage: React.FC = () => {
     }
   };
 
+  // --- o resto do componente permanece exatamente como tens (markup/visual)
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -230,16 +218,10 @@ export const LoginPage: React.FC = () => {
             </Button>
 
             <div className="text-center text-sm text-muted-foreground">
-              Já tens uma licença?{' '}
-              <Link to="/signup" className="text-primary hover:underline">
-                Introduz
-              </Link>
-            </div>
-            <div className="text-center text-sm text-muted-foreground">
-              Não tens uma licença?{' '}
-              <Link to="/signup" className="text-primary hover:underline">
-                Contacta-nos!
-              </Link>
+               Não tens conta?{' '}
+               <Link to="/signup" className="text-primary hover:underline">
+                Cria uma agora
+               </Link>
             </div>
           </form>
         </CardContent>
@@ -248,7 +230,5 @@ export const LoginPage: React.FC = () => {
   );
 };
 
-
-*/
-
+export default LoginPage;
 
