@@ -1,67 +1,63 @@
-import { supabase } from '@/integrations/supabase/client';
-import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
+import { supabase } from '@/supabase-client';
 
-export type Condominio = Tables<'condominio'>;
-export type CreateCondominioData = Omit<TablesInsert<'condominio'>, 'id_condominio' | 'created_at' | 'updated_at' | 'data_criacao' | 'id_user'>;
-export type UpdateCondominioData = Partial<CreateCondominioData>;
+export interface Condominio {
+  id_comdominio: number;
+  nome: string;
+  cidade: string;
+  morada: string;
+  codigo_postal: string;
+  nif: number;
+  id_user: string;
+  created_at: string;
+}
+
+export interface CreateCondominioData {
+  nome: string;
+  cidade: string;
+  morada: string;
+  codigo_postal: string;
+  nif: number;
+}
 
 export const condominiosApi = {
   getAll: async (): Promise<Condominio[]> => {
     const { data, error } = await supabase
-      .from('condominio')
+      .from('condominios')
       .select('*')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    return data;
   },
 
-  getById: async (id: string): Promise<Condominio | null> => {
+  create: async (condominio: CreateCondominioData) => {
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData?.user?.id;
     const { data, error } = await supabase
-      .from('condominio')
-      .select('*')
-      .eq('id_condominio', id)
-      .maybeSingle();
+      .from('condominios')
+      .insert([{ ...condominio, id_user: userId }]);
 
     if (error) throw error;
     return data;
   },
 
-  create: async (condominioData: CreateCondominioData): Promise<Condominio> => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not authenticated');
-
+  update: async (id: number, condominio: Partial<CreateCondominioData>) => {
     const { data, error } = await supabase
-      .from('condominio')
-      .insert({
-        ...condominioData,
-        id_user: user.id,
-      })
-      .select()
-      .single();
+      .from('condominios')
+      .update(condominio)
+      .eq('id_comdominio', id);
 
     if (error) throw error;
     return data;
   },
 
-  update: async (id: string, condominioData: UpdateCondominioData): Promise<Condominio> => {
-    const { data, error } = await supabase
-      .from('condominio')
-      .update(condominioData)
-      .eq('id_condominio', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  },
-
-  delete: async (id: string): Promise<void> => {
+  delete: async (id: number) => {
     const { error } = await supabase
-      .from('condominio')
+      .from('condominios')
       .delete()
-      .eq('id_condominio', id);
+      .eq('id_comdominio', id);
 
     if (error) throw error;
   },
 };
+
