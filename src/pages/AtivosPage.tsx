@@ -23,7 +23,7 @@ export const AtivosPage: React.FC = () => {
   const [selectedAtivo, setSelectedAtivo] = useState<Ativo | null>(null);
 
   const condominioId = parseInt(id || '0');
-  const condominio = condominios.find((c) => c.id_comdominio === condominioId);
+  const condominio = condominios.find((c) => c.id_condominio === condominioId);
   const ativos = getAtivosByCondominio(condominioId);
 
   // Contar notificações não lidas

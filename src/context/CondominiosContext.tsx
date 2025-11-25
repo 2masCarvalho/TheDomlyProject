@@ -9,8 +9,8 @@ interface CondominiosContextType {
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   createCondominio: (data: CreateCondominioData) => Promise<void>;
-  updateCondominio: (id: number, data: Partial<CreateCondominioData>) => Promise<void>;
-  deleteCondominio: (id: number) => Promise<void>;
+  updateCondominio: (id: string, data: Partial<CreateCondominioData>) => Promise<void>;
+  deleteCondominio: (id: string) => Promise<void>;
   refreshCondominios: () => Promise<void>;
 }
 
@@ -47,12 +47,12 @@ export const CondominiosProvider: React.FC<{ children: ReactNode }> = ({ childre
     catch (error) { toast({ title: 'Erro', description: 'Não foi possível criar o condomínio', variant: 'destructive' }); throw error; }
   };
 
-  const updateCondominio = async (id: number, data: Partial<CreateCondominioData>) => {
+  const updateCondominio = async (id: string, data: Partial<CreateCondominioData>) => {
     try { await condominiosApi.update(id, data); await loadCondominios(); toast({ title: 'Sucesso', description: 'Condomínio atualizado com sucesso' }); }
     catch (error) { toast({ title: 'Erro', description: 'Não foi possível atualizar o condomínio', variant: 'destructive' }); throw error; }
   };
 
-  const deleteCondominio = async (id: number) => {
+  const deleteCondominio = async (id: string) => {
     try { await condominiosApi.delete(id); await loadCondominios(); toast({ title: 'Sucesso', description: 'Condomínio eliminado com sucesso' }); }
     catch (error) { toast({ title: 'Erro', description: 'Não foi possível eliminar o condomínio', variant: 'destructive' }); throw error; }
   };

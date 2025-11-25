@@ -25,7 +25,7 @@ export const CondominioList: React.FC<CondominioListProps> = ({ condominios, onE
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {condominios.map((condominio) => (
-        <CondominioCard key={condominio.id_comdominio} condominio={condominio} onEdit={onEdit} onDelete={onDelete} />
+        <CondominioCard key={condominio.id_condominio} condominio={condominio} onEdit={onEdit} onDelete={onDelete} />
       ))}
     </div>
   );
