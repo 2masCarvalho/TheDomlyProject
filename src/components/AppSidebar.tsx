@@ -4,7 +4,6 @@ import { useAuth } from "@/context/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const menuItems = [
   { title: "Dashboard", url: "/condominios", icon: LayoutDashboard },
@@ -26,69 +25,55 @@ export function AppSidebar() {
   };
 
   return (
-    <TooltipProvider>
-      <div className="flex flex-col h-screen w-20 bg-sidebar border-r border-sidebar-border">
-        {/* Header with Avatar and Menu */}
-        <div className="flex flex-col items-center gap-4 p-4">
-          <Avatar className="h-12 w-12">
-            <AvatarImage src="" />
-            <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
-              {getUserInitials()}
-            </AvatarFallback>
-          </Avatar>
-          
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-10 w-10 text-sidebar-foreground hover:bg-sidebar-accent"
-          >
-            <Menu className="h-6 w-6" />
-          </Button>
-        </div>
-
-        <Separator className="bg-sidebar-border" />
-
-        {/* Menu Items */}
-        <nav className="flex-1 flex flex-col items-center gap-2 py-4">
-          {menuItems.map((item) => (
-            <Tooltip key={item.title} delayDuration={0}>
-              <TooltipTrigger asChild>
-                <NavLink
-                  to={item.url}
-                  className="flex items-center justify-center h-12 w-12 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
-                  activeClassName="bg-primary text-primary-foreground"
-                >
-                  <item.icon className="h-6 w-6" />
-                </NavLink>
-              </TooltipTrigger>
-              <TooltipContent side="right" className="bg-popover text-popover-foreground">
-                {item.title}
-              </TooltipContent>
-            </Tooltip>
-          ))}
-        </nav>
-
-        <Separator className="bg-sidebar-border" />
-
-        {/* Logout */}
-        <div className="p-4">
-          <Tooltip delayDuration={0}>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={logout}
-                className="h-12 w-12 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-              >
-                <LogOut className="h-6 w-6" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right" className="bg-popover text-popover-foreground">
-              Logout
-            </TooltipContent>
-          </Tooltip>
-        </div>
+    <div className="group flex flex-col h-screen w-16 hover:w-60 bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-in-out overflow-hidden">
+      {/* Header with Avatar and Email */}
+      <div className="flex flex-col items-center gap-3 p-4 min-h-[120px]">
+        <Avatar className="h-10 w-10 group-hover:h-12 group-hover:w-12 transition-all duration-300 flex-shrink-0">
+          <AvatarImage src="" />
+          <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+            {getUserInitials()}
+          </AvatarFallback>
+        </Avatar>
+        
+        <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-xs font-normal text-sidebar-foreground/70 truncate max-w-full px-2">
+          {user?.email}
+        </span>
       </div>
-    </TooltipProvider>
+
+      <Separator className="bg-sidebar-border" />
+
+      {/* Menu Items */}
+      <nav className="flex-1 flex flex-col gap-2 py-4 px-2">
+        {menuItems.map((item) => (
+          <NavLink
+            key={item.title}
+            to={item.url}
+            className="flex items-center gap-3 h-12 px-3 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+            activeClassName="bg-primary text-primary-foreground"
+          >
+            <item.icon className="h-6 w-6 flex-shrink-0" />
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap text-sm font-medium">
+              {item.title}
+            </span>
+          </NavLink>
+        ))}
+      </nav>
+
+      <Separator className="bg-sidebar-border" />
+
+      {/* Logout */}
+      <div className="p-2">
+        <Button
+          variant="ghost"
+          onClick={logout}
+          className="flex items-center gap-3 h-12 w-full px-3 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+        >
+          <LogOut className="h-6 w-6 flex-shrink-0" />
+          <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap text-sm font-medium">
+            Logout
+          </span>
+        </Button>
+      </div>
+    </div>
   );
 }

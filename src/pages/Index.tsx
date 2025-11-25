@@ -9,7 +9,7 @@ interface IndexProps {
 
 const Index = ({ children }: IndexProps) => {
   return (
-    <CondominiosProvider useMock={true}>
+    <CondominiosProvider>
       <AtivosProvider>
         {children || <CondominiosPage />}
       </AtivosProvider>
