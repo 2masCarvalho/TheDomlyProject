@@ -1,7 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Condominio {
-  id_comdominio: number;
+  id_condominio: string;
   nome: string;
   cidade: string;
   morada: string;
@@ -22,7 +22,7 @@ export interface CreateCondominioData {
 export const condominiosApi = {
   getAll: async (): Promise<Condominio[]> => {
     const { data, error } = await supabase
-      .from('condominios')
+      .from('condominio')
       .select('*')
       .order('created_at', { ascending: false });
 
@@ -34,28 +34,28 @@ export const condominiosApi = {
     const { data: userData } = await supabase.auth.getUser();
     const userId = userData?.user?.id;
     const { data, error } = await supabase
-      .from('condominios')
+      .from('condominio')
       .insert([{ ...condominio, id_user: userId }]);
 
     if (error) throw error;
     return data;
   },
 
-  update: async (id: number, condominio: Partial<CreateCondominioData>) => {
+  update: async (id: string, condominio: Partial<CreateCondominioData>) => {
     const { data, error } = await supabase
-      .from('condominios')
+      .from('condominio')
       .update(condominio)
-      .eq('id_comdominio', id);
+      .eq('id_condominio', id);
 
     if (error) throw error;
     return data;
   },
 
-  delete: async (id: number) => {
+  delete: async (id: string) => {
     const { error } = await supabase
-      .from('condominios')
+      .from('condominio')
       .delete()
-      .eq('id_comdominio', id);
+      .eq('id_condominio', id);
 
     if (error) throw error;
   },
