@@ -30,7 +30,7 @@ export function AppSidebar() {
       <div className="flex flex-col items-center gap-3 p-4 min-h-[120px]">
         <Avatar className="h-10 w-10 group-hover:h-12 group-hover:w-12 transition-all duration-300 flex-shrink-0">
           <AvatarImage src="" />
-          <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+          <AvatarFallback className="bg-primary text-primary-foreground font-semibold border-2 border-white">
             {getUserInitials()}
           </AvatarFallback>
         </Avatar>
