@@ -11,6 +11,7 @@ import {
   Twitter,
   Facebook,
   Instagram,
+  Globe,
 } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -23,10 +24,12 @@ import jllLogo from "@/assets/jll-logo.png";
 import startupPortugalLogo from "@/assets/startup-portugal-logo.png";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import { DemoBookingModal } from "@/components/DemoBookingModal";
+import { useLanguage } from "@/context/LanguageContext";
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
+  const { language, setLanguage, t } = useLanguage();
 
   // Refs for scroll animations
   const trustRef = useScrollReveal();
@@ -35,6 +38,10 @@ export const LandingPage: React.FC = () => {
   const pricingRef = useScrollReveal();
   const testimonialsRef = useScrollReveal();
   const faqRef = useScrollReveal();
+
+  const toggleLanguage = () => {
+    setLanguage(language === "en" ? "pt" : "en");
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-hero-gradient-start to-hero-gradient-end">
@@ -47,28 +54,37 @@ export const LandingPage: React.FC = () => {
 
           <nav className="hidden md:flex items-center gap-8 text-sm ">
             <a href="#how-it-works" className="text-black hover:text-primary transition-colors">
-              How it Works
+              {t("nav.howItWorks")}
             </a>
             <a href="#features" className="text-black hover:text-primary transition-colors">
-              Features
+              {t("nav.features")}
             </a>
             <a href="#pricing" className="text-black hover:text-primary transition-colors">
-              Pricing
+              {t("nav.pricing")}
             </a>
             <a href="#testimonials" className="text-black hover:text-primary transition-colors">
-              Testimonials
+              {t("nav.testimonials")}
             </a>
             <a href="#faq" className="text-black hover:text-primary transition-colors">
-              FAQ
+              {t("nav.faq")}
             </a>
           </nav>
 
           <div className="flex gap-3 items-center">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleLanguage}
+              className="flex items-center gap-1.5 text-sm font-medium"
+            >
+              <Globe className="h-4 w-4" />
+              {language === "en" ? "PT" : "EN"}
+            </Button>
             <Button variant="ghost" onClick={() => navigate("/login")} className="text-sm">
-              Login
+              {t("nav.login")}
             </Button>
             <Button onClick={() => setIsDemoModalOpen(true)} className="text-sm">
-              See the AI in Action
+              {t("nav.cta")}
             </Button>
           </div>
         </div>
@@ -79,24 +95,23 @@ export const LandingPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="text-left animate-fade-in">
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-              <span className="text-primary">Automate</span> Your
+              <span className="text-primary">{t("hero.title1")}</span> {t("hero.title2")}
               <br />
-              Property
+              {t("hero.title3")}
               <br />
-              Management with
+              {t("hero.title4")}
               <br />
-              AI.
+              {t("hero.title5")}
             </h1>
             <p className="text-lg text-muted-foreground mb-8 max-w-xl">
-              Domly centralizes all your documents, maintenance, and resident communication into one simple, intelligent
-              platform. End administrative chaos and gain full visibility of your properties.
+              {t("hero.description")}
             </p>
             <div className="flex flex-wrap gap-4">
               <Button size="lg" onClick={() => setIsDemoModalOpen(true)} className="btn-hover-lift btn-hover-glow">
-                See the AI in Action
+                {t("nav.cta")}
               </Button>
               <Button size="lg" variant="outline" onClick={() => navigate("/signup")} className="btn-hover-lift">
-                Book a Demo
+                {t("hero.bookDemo")}
               </Button>
             </div>
           </div>
@@ -113,7 +128,7 @@ export const LandingPage: React.FC = () => {
       {/* Trust Section */}
       <section ref={trustRef} className="container mx-auto px-4 py-12 scroll-reveal">
         <p className="text-center text-sm text-muted-foreground mb-8">
-          Trusted by leading property managers and condominiums
+          {t("trust.text")}
         </p>
         <Carousel
           opts={{
@@ -158,9 +173,9 @@ export const LandingPage: React.FC = () => {
       {/* Features Section */}
       <section ref={featuresRef} id="features" className="container mx-auto px-4 py-20 md:py-32 scroll-reveal">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">Why Property Managers Choose Domly</h2>
+          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">{t("features.title")}</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Transform chaos into clarity with intelligent automation
+            {t("features.subtitle")}
           </p>
         </div>
 
@@ -169,10 +184,9 @@ export const LandingPage: React.FC = () => {
             <div className="bg-primary/10 w-14 h-14 rounded-lg flex items-center justify-center mb-6">
               <FileText className="h-7 w-7 text-primary" />
             </div>
-            <h3 className="text-2xl font-bold text-foreground mb-3">Automate Document Chaos</h3>
+            <h3 className="text-2xl font-bold text-foreground mb-3">{t("features.doc.title")}</h3>
             <p className="text-muted-foreground leading-relaxed">
-              Our AI uses OCR to read, categorize, and organize all your documents—from insurance to invoices. It
-              automatically sets renewal alerts so you never miss a critical deadline.
+              {t("features.doc.desc")}
             </p>
           </div>
 
@@ -180,10 +194,9 @@ export const LandingPage: React.FC = () => {
             <div className="bg-primary/10 w-14 h-14 rounded-lg flex items-center justify-center mb-6">
               <TrendingUp className="h-7 w-7 text-primary" />
             </div>
-            <h3 className="text-2xl font-bold text-foreground mb-3">Gain Total Financial & Operational Control</h3>
+            <h3 className="text-2xl font-bold text-foreground mb-3">{t("features.control.title")}</h3>
             <p className="text-muted-foreground leading-relaxed">
-              See all costs, maintenance schedules, and asset statuses in one intuitive dashboard. Stop guessing and
-              start making data-driven decisions.
+              {t("features.control.desc")}
             </p>
           </div>
 
@@ -191,10 +204,9 @@ export const LandingPage: React.FC = () => {
             <div className="bg-primary/10 w-14 h-14 rounded-lg flex items-center justify-center mb-6">
               <MessageSquare className="h-7 w-7 text-primary" />
             </div>
-            <h3 className="text-2xl font-bold text-foreground mb-3">Unify Resident & Manager Communication</h3>
+            <h3 className="text-2xl font-bold text-foreground mb-3">{t("features.comm.title")}</h3>
             <p className="text-muted-foreground leading-relaxed">
-              Empower residents to report incidents (with photos) via the mobile app. Track resolutions in real-time and
-              manage all communications in one place.
+              {t("features.comm.desc")}
             </p>
           </div>
         </div>
@@ -204,8 +216,8 @@ export const LandingPage: React.FC = () => {
       <section ref={howItWorksRef} id="how-it-works" className="bg-background py-20 md:py-32 scroll-reveal-left">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">How it Works?</h2>
-            <p className="text-lg text-muted-foreground">Get started in three simple steps</p>
+            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">{t("howItWorks.title")}</h2>
+            <p className="text-lg text-muted-foreground">{t("howItWorks.subtitle")}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-5xl mx-auto">
@@ -213,9 +225,9 @@ export const LandingPage: React.FC = () => {
               <div className="bg-primary text-primary-foreground w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-6">
                 1
               </div>
-              <h3 className="text-2xl font-bold text-foreground mb-4">Upload Your Data</h3>
+              <h3 className="text-2xl font-bold text-foreground mb-4">{t("howItWorks.step1.title")}</h3>
               <p className="text-muted-foreground">
-                Automatically build your entire condominium and asset portfolio by uploading a simple Excel/CSV file.
+                {t("howItWorks.step1.desc")}
               </p>
             </div>
 
@@ -223,10 +235,9 @@ export const LandingPage: React.FC = () => {
               <div className="bg-primary text-primary-foreground w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-6">
                 2
               </div>
-              <h3 className="text-2xl font-bold text-foreground mb-4">Let the AI Organize</h3>
+              <h3 className="text-2xl font-bold text-foreground mb-4">{t("howItWorks.step2.title")}</h3>
               <p className="text-muted-foreground">
-                Drag and drop your existing documents. Domly's AI scans, tags, and organizes them, creating automatic
-                maintenance and renewal alerts.
+                {t("howItWorks.step2.desc")}
               </p>
             </div>
 
@@ -234,10 +245,9 @@ export const LandingPage: React.FC = () => {
               <div className="bg-primary text-primary-foreground w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-6">
                 3
               </div>
-              <h3 className="text-2xl font-bold text-foreground mb-4">Manage with Clarity</h3>
+              <h3 className="text-2xl font-bold text-foreground mb-4">{t("howItWorks.step3.title")}</h3>
               <p className="text-muted-foreground">
-                Use your central dashboard to track maintenance, monitor costs, and communicate with residents. All from
-                a single platform.
+                {t("howItWorks.step3.desc")}
               </p>
             </div>
           </div>
@@ -247,81 +257,81 @@ export const LandingPage: React.FC = () => {
       {/* Pricing Section */}
       <section ref={pricingRef} id="pricing" className="container mx-auto px-4 py-20 md:py-32 scroll-reveal-right">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">Simple, Transparent Pricing</h2>
-          <p className="text-lg text-muted-foreground">Choose the plan that fits your property portfolio</p>
+          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">{t("pricing.title")}</h2>
+          <p className="text-lg text-muted-foreground">{t("pricing.subtitle")}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {/* Starter Plan */}
           <div className="bg-card border rounded-2xl p-8 hover:shadow-lg transition-all duration-300 hover:-translate-y-2">
-            <h3 className="text-2xl font-bold text-foreground mb-2">Starter</h3>
-            <p className="text-sm text-muted-foreground mb-6">For small, self-managed condominiums</p>
+            <h3 className="text-2xl font-bold text-foreground mb-2">{t("pricing.starter")}</h3>
+            <p className="text-sm text-muted-foreground mb-6">{t("pricing.starter.desc")}</p>
             <div className="mb-6">
               <span className="text-5xl font-bold text-foreground">$49</span>
-              <span className="text-muted-foreground">/month</span>
+              <span className="text-muted-foreground">{t("pricing.month")}</span>
             </div>
             <ul className="space-y-3 mb-8">
               <li className="flex items-start gap-2">
                 <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <span className="text-foreground">Up to 50 units</span>
+                <span className="text-foreground">{t("pricing.units50")}</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <span className="text-foreground">Document Management</span>
+                <span className="text-foreground">{t("pricing.docManagement")}</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <span className="text-foreground">AI-Powered OCR</span>
+                <span className="text-foreground">{t("pricing.aiOcr")}</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <span className="text-foreground">Basic Dashboard</span>
+                <span className="text-foreground">{t("pricing.basicDashboard")}</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <span className="text-foreground">Email Support</span>
+                <span className="text-foreground">{t("pricing.emailSupport")}</span>
               </li>
             </ul>
             <Button variant="outline" className="w-full btn-hover-lift" onClick={() => navigate("/signup")}>
-              Get Started
+              {t("pricing.getStarted")}
             </Button>
           </div>
 
           {/* Pro Plan */}
           <div className="bg-primary text-primary-foreground border-2 border-primary rounded-2xl p-8 relative shadow-xl scale-105">
             <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-foreground text-background px-4 py-1 rounded-full text-sm font-semibold">
-              Most Popular
+              {t("pricing.mostPopular")}
             </div>
-            <h3 className="text-2xl font-bold mb-2">Pro</h3>
-            <p className="text-sm text-primary-foreground/80 mb-6">For professional property managers</p>
+            <h3 className="text-2xl font-bold mb-2">{t("pricing.pro")}</h3>
+            <p className="text-sm text-primary-foreground/80 mb-6">{t("pricing.pro.desc")}</p>
             <div className="mb-6">
               <span className="text-5xl font-bold">$149</span>
-              <span className="text-primary-foreground/80">/month</span>
+              <span className="text-primary-foreground/80">{t("pricing.month")}</span>
             </div>
             <ul className="space-y-3 mb-8">
               <li className="flex items-start gap-2">
                 <Check className="h-5 w-5 mt-0.5 flex-shrink-0" />
-                <span>Up to 200 units</span>
+                <span>{t("pricing.units200")}</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="h-5 w-5 mt-0.5 flex-shrink-0" />
-                <span>Advanced Document Management</span>
+                <span>{t("pricing.advDocManagement")}</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="h-5 w-5 mt-0.5 flex-shrink-0" />
-                <span>AI-Powered OCR</span>
+                <span>{t("pricing.aiOcr")}</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="h-5 w-5 mt-0.5 flex-shrink-0" />
-                <span>Financial Dashboard</span>
+                <span>{t("pricing.financialDashboard")}</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="h-5 w-5 mt-0.5 flex-shrink-0" />
-                <span>Resident Mobile App</span>
+                <span>{t("pricing.residentApp")}</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="h-5 w-5 mt-0.5 flex-shrink-0" />
-                <span>Priority Support</span>
+                <span>{t("pricing.prioritySupport")}</span>
               </li>
             </ul>
             <Button
@@ -329,45 +339,45 @@ export const LandingPage: React.FC = () => {
               className="w-full bg-background text-foreground hover:bg-background/90 btn-hover-lift btn-hover-glow"
               onClick={() => navigate("/signup")}
             >
-              Get Started
+              {t("pricing.getStarted")}
             </Button>
           </div>
 
           {/* Enterprise Plan */}
           <div className="bg-card border rounded-2xl p-8 hover:shadow-lg transition-all duration-300 hover:-translate-y-2">
-            <h3 className="text-2xl font-bold text-foreground mb-2">Enterprise</h3>
-            <p className="text-sm text-muted-foreground mb-6">For large management portfolios</p>
+            <h3 className="text-2xl font-bold text-foreground mb-2">{t("pricing.enterprise")}</h3>
+            <p className="text-sm text-muted-foreground mb-6">{t("pricing.enterprise.desc")}</p>
             <div className="mb-6">
-              <span className="text-5xl font-bold text-foreground">Custom</span>
+              <span className="text-5xl font-bold text-foreground">{t("pricing.custom")}</span>
             </div>
             <ul className="space-y-3 mb-8">
               <li className="flex items-start gap-2">
                 <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <span className="text-foreground">Unlimited units</span>
+                <span className="text-foreground">{t("pricing.unitsUnlimited")}</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <span className="text-foreground">All Pro features</span>
+                <span className="text-foreground">{t("pricing.allProFeatures")}</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <span className="text-foreground">Custom integrations</span>
+                <span className="text-foreground">{t("pricing.customIntegrations")}</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <span className="text-foreground">Dedicated account manager</span>
+                <span className="text-foreground">{t("pricing.dedicatedManager")}</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <span className="text-foreground">24/7 Premium Support</span>
+                <span className="text-foreground">{t("pricing.premiumSupport")}</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <span className="text-foreground">On-premise deployment option</span>
+                <span className="text-foreground">{t("pricing.onPremise")}</span>
               </li>
             </ul>
             <Button variant="outline" className="w-full btn-hover-lift">
-              Contact Sales
+              {t("pricing.contactSales")}
             </Button>
           </div>
         </div>
@@ -378,9 +388,9 @@ export const LandingPage: React.FC = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-              Loved by Property Managers and Residents
+              {t("testimonials.title")}
             </h2>
-            <p className="text-lg text-muted-foreground">See what our customers have to say</p>
+            <p className="text-lg text-muted-foreground">{t("testimonials.subtitle")}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -454,59 +464,54 @@ export const LandingPage: React.FC = () => {
       {/* FAQ Section */}
       <section ref={faqRef} id="faq" className="container mx-auto px-4 py-20 md:py-32 scroll-reveal">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">Frequently Asked Questions</h2>
-          <p className="text-lg text-muted-foreground">Everything you need to know about Domly</p>
+          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">{t("faq.title")}</h2>
+          <p className="text-lg text-muted-foreground">{t("faq.subtitle")}</p>
         </div>
 
         <div className="max-w-3xl mx-auto">
           <Accordion type="single" collapsible className="space-y-4">
             <AccordionItem value="item-1" className="bg-card border rounded-lg px-6">
               <AccordionTrigger className="text-left font-semibold text-foreground hover:no-underline">
-                How long does implementation take?
+                {t("faq.q1")}
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Most customers are up and running within 48 hours. Our rapid implementation process includes data import
-                assistance and a personalized onboarding session.
+                {t("faq.a1")}
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="item-2" className="bg-card border rounded-lg px-6">
               <AccordionTrigger className="text-left font-semibold text-foreground hover:no-underline">
-                Is my data secure?
+                {t("faq.q2")}
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Absolutely. We use bank-level encryption, regular security audits, and comply with GDPR and SOC 2
-                standards. Your data is stored in secure, redundant cloud infrastructure.
+                {t("faq.a2")}
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="item-3" className="bg-card border rounded-lg px-6">
               <AccordionTrigger className="text-left font-semibold text-foreground hover:no-underline">
-                How does the AI and OCR work?
+                {t("faq.q3")}
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Our AI uses advanced optical character recognition to scan and extract information from documents. It
-                learns from your data to automatically categorize files, set reminders, and flag important dates.
+                {t("faq.a3")}
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="item-4" className="bg-card border rounded-lg px-6">
               <AccordionTrigger className="text-left font-semibold text-foreground hover:no-underline">
-                Is there a mobile app for residents?
+                {t("faq.q4")}
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Yes! Residents can download our mobile app for iOS and Android to report maintenance issues, view
-                announcements, and communicate with property management directly.
+                {t("faq.a4")}
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="item-5" className="bg-card border rounded-lg px-6">
               <AccordionTrigger className="text-left font-semibold text-foreground hover:no-underline">
-                What kind of support is included?
+                {t("faq.q5")}
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                All plans include email support and access to our knowledge base. Pro and Enterprise plans get priority
-                support with faster response times and dedicated account management.
+                {t("faq.a5")}
               </AccordionContent>
             </AccordionItem>
           </Accordion>
@@ -517,22 +522,19 @@ export const LandingPage: React.FC = () => {
       <section className="bg-primary py-20 md:py-24">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-4xl md:text-5xl font-bold text-primary-foreground mb-6">
-            Ready to Simplify Your Condominium Management?
+            {t("cta.title")}
           </h2>
           <p className="text-lg text-primary-foreground/90 mb-8 max-w-3xl mx-auto">
-            Get started with Domly's AI-powered platform today and turn administrative chaos into automated efficiency.
+            {t("cta.subtitle")}
           </p>
           <Button
             size="lg"
             variant="secondary"
             className="bg-background text-foreground hover:bg-background/90 mb-4 btn-hover-lift btn-hover-glow"
-            onClick={() => navigate("/signup")}
+            onClick={() => setIsDemoModalOpen(true)}
           >
-            Start Your Free Trial Now
+            {t("nav.cta")}
           </Button>
-          <p className="text-sm text-primary-foreground/80">
-            No credit card required • 14-day free trial • Cancel anytime
-          </p>
         </div>
       </section>
 
@@ -546,32 +548,27 @@ export const LandingPage: React.FC = () => {
                 <img src={domlyLogo} alt="Domly AI" className="h-8" />
               </div>
               <p className="text-gray-400 text-sm leading-relaxed">
-                AI-powered property management for modern condominiums.
+                {t("footer.description")}
               </p>
             </div>
 
             {/* Product Column */}
             <div>
-              <h3 className="font-semibold mb-4 text-white">Product</h3>
+              <h3 className="font-semibold mb-4 text-white">{t("footer.product")}</h3>
               <ul className="space-y-3 text-sm">
                 <li>
                   <a href="#features" className="text-gray-400 hover:text-white transition-colors">
-                    Features
+                    {t("nav.features")}
                   </a>
                 </li>
                 <li>
                   <a href="#pricing" className="text-gray-400 hover:text-white transition-colors">
-                    Pricing
+                    {t("nav.pricing")}
                   </a>
                 </li>
                 <li>
                   <a href="#security" className="text-gray-400 hover:text-white transition-colors">
-                    Security
-                  </a>
-                </li>
-                <li>
-                  <a href="#integrations" className="text-gray-400 hover:text-white transition-colors">
-                    Integrations
+                    {t("footer.security")}
                   </a>
                 </li>
               </ul>
@@ -579,26 +576,26 @@ export const LandingPage: React.FC = () => {
 
             {/* Company Column */}
             <div>
-              <h3 className="font-semibold mb-4 text-white">Company</h3>
+              <h3 className="font-semibold mb-4 text-white">{t("footer.company")}</h3>
               <ul className="space-y-3 text-sm">
                 <li>
                   <a href="#about" className="text-gray-400 hover:text-white transition-colors">
-                    About Us
+                    {t("footer.about")}
                   </a>
                 </li>
                 <li>
                   <a href="#careers" className="text-gray-400 hover:text-white transition-colors">
-                    Careers
+                    {t("footer.careers")}
                   </a>
                 </li>
                 <li>
                   <a href="#blog" className="text-gray-400 hover:text-white transition-colors">
-                    Blog
+                    {t("footer.blog")}
                   </a>
                 </li>
                 <li>
                   <a href="#contact" className="text-gray-400 hover:text-white transition-colors">
-                    Contact
+                    {t("footer.contact")}
                   </a>
                 </li>
               </ul>
@@ -606,21 +603,21 @@ export const LandingPage: React.FC = () => {
 
             {/* Legal Column */}
             <div>
-              <h3 className="font-semibold mb-4 text-white">Legal</h3>
+              <h3 className="font-semibold mb-4 text-white">{t("footer.legal")}</h3>
               <ul className="space-y-3 text-sm">
                 <li>
                   <a href="#privacy" className="text-gray-400 hover:text-white transition-colors">
-                    Privacy Policy
+                    {t("footer.privacy")}
                   </a>
                 </li>
                 <li>
                   <a href="#terms" className="text-gray-400 hover:text-white transition-colors">
-                    Terms of Service
+                    {t("footer.terms")}
                   </a>
                 </li>
                 <li>
                   <a href="#cookies" className="text-gray-400 hover:text-white transition-colors">
-                    Cookie Policy
+                    {t("footer.cookies")}
                   </a>
                 </li>
               </ul>
@@ -629,7 +626,7 @@ export const LandingPage: React.FC = () => {
 
           {/* Bottom Bar */}
           <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-gray-400">© 2024 Domly. All rights reserved.</p>
+            <p className="text-sm text-gray-400">© 2024 Domly. {t("footer.rights")}</p>
 
             <div className="flex gap-6">
               <a
