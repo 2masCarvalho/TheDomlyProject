@@ -292,7 +292,7 @@ export const LandingPage: React.FC = () => {
                 <span className="text-foreground">{t("pricing.emailSupport")}</span>
               </li>
             </ul>
-            <Button variant="outline" className="w-full btn-hover-lift" onClick={() => navigate("/signup")}>
+            <Button variant="outline" className="w-full btn-hover-lift" onClick={() => setIsDemoModalOpen(true)}>
               {t("pricing.getStarted")}
             </Button>
           </div>
@@ -337,7 +337,7 @@ export const LandingPage: React.FC = () => {
             <Button
               variant="secondary"
               className="w-full bg-background text-foreground hover:bg-background/90 btn-hover-lift btn-hover-glow"
-              onClick={() => navigate("/signup")}
+              onClick={() => setIsDemoModalOpen(true)}
             >
               {t("pricing.getStarted")}
             </Button>
@@ -377,7 +377,7 @@ export const LandingPage: React.FC = () => {
                 <span className="text-foreground">{t("pricing.predictiveFinancial")}</span>
               </li>
             </ul>
-            <Button variant="outline" className="w-full btn-hover-lift" onClick={() => navigate("/signup")}>
+            <Button variant="outline" className="w-full btn-hover-lift" onClick={() => setIsDemoModalOpen(true)}>
               {t("pricing.getStarted")}
             </Button>
           </div>
