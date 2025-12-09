@@ -93,7 +93,7 @@ export const LandingPage: React.FC = () => {
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-16 md:py-24">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <div className="text-left animate-fade-in">
+          <div className="text-left animate-slide-in-left">
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
               <span className="text-primary">{t("hero.title1")}</span> {t("hero.title2")}
               <br />
@@ -116,7 +116,7 @@ export const LandingPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="relative animate-scale-in">
+          <div className="relative animate-slide-in-right">
             <div className="relative z-10 rounded-2xl overflow-hidden shadow-2xl">
               <img src={dashboardMockup} alt="Domly Dashboard Interface" className="w-full h-auto" />
             </div>
