@@ -267,13 +267,13 @@ export const LandingPage: React.FC = () => {
             <h3 className="text-2xl font-bold text-foreground mb-2">{t("pricing.starter")}</h3>
             <p className="text-sm text-muted-foreground mb-6">{t("pricing.starter.desc")}</p>
             <div className="mb-6">
-              <span className="text-5xl font-bold text-foreground">$49</span>
+              <span className="text-5xl font-bold text-foreground">€39</span>
               <span className="text-muted-foreground">{t("pricing.month")}</span>
             </div>
             <ul className="space-y-3 mb-8">
               <li className="flex items-start gap-2">
                 <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <span className="text-foreground">{t("pricing.units50")}</span>
+                <span className="text-foreground">{t("pricing.starterUnits")}</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
@@ -297,21 +297,21 @@ export const LandingPage: React.FC = () => {
             </Button>
           </div>
 
-          {/* Pro Plan */}
+          {/* Growth Plan */}
           <div className="bg-primary text-primary-foreground border-2 border-primary rounded-2xl p-8 relative shadow-xl scale-105">
             <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-foreground text-background px-4 py-1 rounded-full text-sm font-semibold">
               {t("pricing.mostPopular")}
             </div>
-            <h3 className="text-2xl font-bold mb-2">{t("pricing.pro")}</h3>
-            <p className="text-sm text-primary-foreground/80 mb-6">{t("pricing.pro.desc")}</p>
+            <h3 className="text-2xl font-bold mb-2">{t("pricing.growth")}</h3>
+            <p className="text-sm text-primary-foreground/80 mb-6">{t("pricing.growth.desc")}</p>
             <div className="mb-6">
-              <span className="text-5xl font-bold">$149</span>
+              <span className="text-5xl font-bold">€99</span>
               <span className="text-primary-foreground/80">{t("pricing.month")}</span>
             </div>
             <ul className="space-y-3 mb-8">
               <li className="flex items-start gap-2">
                 <Check className="h-5 w-5 mt-0.5 flex-shrink-0" />
-                <span>{t("pricing.units200")}</span>
+                <span>{t("pricing.growthUnits")}</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="h-5 w-5 mt-0.5 flex-shrink-0" />
@@ -343,21 +343,22 @@ export const LandingPage: React.FC = () => {
             </Button>
           </div>
 
-          {/* Enterprise Plan */}
+          {/* Pro Plan */}
           <div className="bg-card border rounded-2xl p-8 hover:shadow-lg transition-all duration-300 hover:-translate-y-2">
-            <h3 className="text-2xl font-bold text-foreground mb-2">{t("pricing.enterprise")}</h3>
-            <p className="text-sm text-muted-foreground mb-6">{t("pricing.enterprise.desc")}</p>
+            <h3 className="text-2xl font-bold text-foreground mb-2">{t("pricing.pro")}</h3>
+            <p className="text-sm text-muted-foreground mb-6">{t("pricing.pro.desc")}</p>
             <div className="mb-6">
-              <span className="text-5xl font-bold text-foreground">{t("pricing.custom")}</span>
+              <span className="text-5xl font-bold text-foreground">€299</span>
+              <span className="text-muted-foreground">{t("pricing.month")}</span>
             </div>
             <ul className="space-y-3 mb-8">
               <li className="flex items-start gap-2">
                 <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <span className="text-foreground">{t("pricing.unitsUnlimited")}</span>
+                <span className="text-foreground">{t("pricing.proUnits")}</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <span className="text-foreground">{t("pricing.allProFeatures")}</span>
+                <span className="text-foreground">{t("pricing.allGrowthFeatures")}</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
@@ -373,11 +374,11 @@ export const LandingPage: React.FC = () => {
               </li>
               <li className="flex items-start gap-2">
                 <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <span className="text-foreground">{t("pricing.onPremise")}</span>
+                <span className="text-foreground">{t("pricing.predictiveFinancial")}</span>
               </li>
             </ul>
-            <Button variant="outline" className="w-full btn-hover-lift">
-              {t("pricing.contactSales")}
+            <Button variant="outline" className="w-full btn-hover-lift" onClick={() => navigate("/signup")}>
+              {t("pricing.getStarted")}
             </Button>
           </div>
         </div>
