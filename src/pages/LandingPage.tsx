@@ -12,6 +12,11 @@ import {
   Facebook,
   Instagram,
   Globe,
+  ScanSearch,
+  LineChart,
+  Activity,
+  Leaf,
+  Shield,
 } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -106,6 +111,9 @@ export const LandingPage: React.FC = () => {
             <p className="text-lg text-muted-foreground mb-8 max-w-xl">
               {t("hero.description")}
             </p>
+            <p className="text-sm text-muted-foreground mb-8 max-w-xl italic">
+              {t("hero.dashboardDesc")}
+            </p>
             <div className="flex flex-wrap gap-4">
               <Button size="lg" onClick={() => setIsDemoModalOpen(true)} className="btn-hover-lift btn-hover-glow">
                 {t("nav.cta")}
@@ -168,6 +176,14 @@ export const LandingPage: React.FC = () => {
             ))}
           </CarouselContent>
         </Carousel>
+
+        {/* Security Assurance Strip */}
+        <div className="mt-8 flex items-center justify-center gap-2 text-center">
+          <Shield className="h-5 w-5 text-primary" />
+          <p className="text-sm text-muted-foreground">
+            {t("security.strip")}
+          </p>
+        </div>
       </section>
 
       {/* Features Section */}
@@ -179,34 +195,44 @@ export const LandingPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div className="bg-card p-8 rounded-2xl border shadow-sm hover:shadow-md transition-shadow">
             <div className="bg-primary/10 w-14 h-14 rounded-lg flex items-center justify-center mb-6">
-              <FileText className="h-7 w-7 text-primary" />
+              <ScanSearch className="h-7 w-7 text-primary" />
             </div>
-            <h3 className="text-2xl font-bold text-foreground mb-3">{t("features.doc.title")}</h3>
+            <h3 className="text-2xl font-bold text-foreground mb-3">{t("features.ocr.title")}</h3>
             <p className="text-muted-foreground leading-relaxed">
-              {t("features.doc.desc")}
+              {t("features.ocr.desc")}
             </p>
           </div>
 
           <div className="bg-card p-8 rounded-2xl border shadow-sm hover:shadow-md transition-shadow">
             <div className="bg-primary/10 w-14 h-14 rounded-lg flex items-center justify-center mb-6">
-              <TrendingUp className="h-7 w-7 text-primary" />
+              <LineChart className="h-7 w-7 text-primary" />
             </div>
-            <h3 className="text-2xl font-bold text-foreground mb-3">{t("features.control.title")}</h3>
+            <h3 className="text-2xl font-bold text-foreground mb-3">{t("features.predictive.title")}</h3>
             <p className="text-muted-foreground leading-relaxed">
-              {t("features.control.desc")}
+              {t("features.predictive.desc")}
             </p>
           </div>
 
           <div className="bg-card p-8 rounded-2xl border shadow-sm hover:shadow-md transition-shadow">
             <div className="bg-primary/10 w-14 h-14 rounded-lg flex items-center justify-center mb-6">
-              <MessageSquare className="h-7 w-7 text-primary" />
+              <Activity className="h-7 w-7 text-primary" />
             </div>
-            <h3 className="text-2xl font-bold text-foreground mb-3">{t("features.comm.title")}</h3>
+            <h3 className="text-2xl font-bold text-foreground mb-3">{t("features.analytics.title")}</h3>
             <p className="text-muted-foreground leading-relaxed">
-              {t("features.comm.desc")}
+              {t("features.analytics.desc")}
+            </p>
+          </div>
+
+          <div className="bg-card p-8 rounded-2xl border shadow-sm hover:shadow-md transition-shadow">
+            <div className="bg-primary/10 w-14 h-14 rounded-lg flex items-center justify-center mb-6">
+              <Leaf className="h-7 w-7 text-primary" />
+            </div>
+            <h3 className="text-2xl font-bold text-foreground mb-3">{t("features.eco.title")}</h3>
+            <p className="text-muted-foreground leading-relaxed">
+              {t("features.eco.desc")}
             </p>
           </div>
         </div>

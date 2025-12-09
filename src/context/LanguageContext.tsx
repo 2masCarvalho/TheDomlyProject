@@ -26,20 +26,26 @@ const translations: Record<Language, Record<string, string>> = {
     "hero.title4": "Management with",
     "hero.title5": "AI.",
     "hero.description": "Domly centralizes all your documents, maintenance, and resident communication into one simple, intelligent platform. End administrative chaos and gain full visibility of your properties.",
+    "hero.dashboardDesc": "Manage your portfolio with a card-based interface. Instantly view asset status (e.g., 'Good', 'Excellent') for elevators and gates, and track maintenance history per fraction.",
     "hero.bookDemo": "Book a Demo",
     
     // Trust
     "trust.text": "Trusted by leading property managers and condominiums",
     
+    // Security
+    "security.strip": "Enterprise-grade security: Built with OAuth 2.0, SSL/TLS encryption, and Cloud redundancy to protect your community's data.",
+    
     // Features
     "features.title": "Why Property Managers Choose Domly",
     "features.subtitle": "Transform chaos into clarity with intelligent automation",
-    "features.doc.title": "Automate Document Chaos",
-    "features.doc.desc": "Our AI uses OCR to read, categorize, and organize all your documents—from insurance to invoices. It automatically sets renewal alerts so you never miss a critical deadline.",
-    "features.control.title": "Gain Total Financial & Operational Control",
-    "features.control.desc": "See all costs, maintenance schedules, and asset statuses in one intuitive dashboard. Stop guessing and start making data-driven decisions.",
-    "features.comm.title": "Unify Resident & Manager Communication",
-    "features.comm.desc": "Empower residents to report incidents (with photos) via the mobile app. Track resolutions in real-time and manage all communications in one place.",
+    "features.ocr.title": "Semantic OCR Intelligence",
+    "features.ocr.desc": "Go beyond simple scanning. Domly automatically classifies contracts and invoices, setting automated compliance alerts.",
+    "features.predictive.title": "Predictive Financial Planning",
+    "features.predictive.desc": "Utilize predictive algorithms to estimate future maintenance costs and reserve funds before they are needed.",
+    "features.analytics.title": "Granular Asset Analytics",
+    "features.analytics.desc": "Monitor the 'Health Score' of every elevator, gate, and pump individually, moving beyond general accounting to true asset management.",
+    "features.eco.title": "Eco-Monitoring & Sustainability",
+    "features.eco.desc": "Track environmental consumption and promote ecological practices within the condominium.",
     
     // How it Works
     "howItWorks.title": "How it Works?",
@@ -135,20 +141,26 @@ const translations: Record<Language, Record<string, string>> = {
     "hero.title4": "Condomínios com",
     "hero.title5": "IA.",
     "hero.description": "O Domly centraliza todos os seus documentos, manutenção e comunicação com condóminos numa plataforma simples e inteligente. Acabe com o caos administrativo e ganhe visibilidade total das suas propriedades.",
+    "hero.dashboardDesc": "Gerencie o seu portfólio com uma interface baseada em cartões. Veja instantaneamente o estado dos ativos (ex.: 'Bom', 'Excelente') para elevadores e portões, e acompanhe o histórico de manutenção por fração.",
     "hero.bookDemo": "Agendar Demo",
     
     // Trust
     "trust.text": "Confiado por gestores de condomínios e propriedades líderes",
     
+    // Security
+    "security.strip": "Segurança de nível empresarial: Construído com OAuth 2.0, encriptação SSL/TLS e redundância Cloud para proteger os dados da sua comunidade.",
+    
     // Features
     "features.title": "Porque os Gestores Escolhem o Domly",
     "features.subtitle": "Transforme o caos em clareza com automação inteligente",
-    "features.doc.title": "Automatize o Caos Documental",
-    "features.doc.desc": "A nossa IA usa OCR para ler, categorizar e organizar todos os seus documentos—de seguros a faturas. Define automaticamente alertas de renovação para nunca perder um prazo crítico.",
-    "features.control.title": "Controlo Financeiro e Operacional Total",
-    "features.control.desc": "Veja todos os custos, cronogramas de manutenção e estado dos ativos num painel intuitivo. Pare de adivinhar e comece a tomar decisões baseadas em dados.",
-    "features.comm.title": "Unifique a Comunicação",
-    "features.comm.desc": "Permita que os condóminos reportem incidentes (com fotos) via app móvel. Acompanhe resoluções em tempo real e gerencie todas as comunicações num só lugar.",
+    "features.ocr.title": "Inteligência OCR Semântica",
+    "features.ocr.desc": "Vá além da simples digitalização. O Domly classifica automaticamente contratos e faturas, definindo alertas de conformidade automatizados.",
+    "features.predictive.title": "Planeamento Financeiro Preditivo",
+    "features.predictive.desc": "Utilize algoritmos preditivos para estimar custos de manutenção futuros e fundos de reserva antes de serem necessários.",
+    "features.analytics.title": "Análise Granular de Ativos",
+    "features.analytics.desc": "Monitorize o 'Health Score' de cada elevador, portão e bomba individualmente, indo além da contabilidade geral para uma verdadeira gestão de ativos.",
+    "features.eco.title": "Eco-Monitorização e Sustentabilidade",
+    "features.eco.desc": "Acompanhe o consumo ambiental e promova práticas ecológicas dentro do condomínio.",
     
     // How it Works
     "howItWorks.title": "Como Funciona?",
