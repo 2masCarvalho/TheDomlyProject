@@ -17,7 +17,7 @@ import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carouse
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import Autoplay from "embla-carousel-autoplay";
 import dashboardMockup from "@/assets/dashboard-mockup.png";
-import domlyLogo from "@/assets/domly-logo.png";
+import domlyLogo from "@/assets/domly-final-logo.png";
 import vanguardLogo from "@/assets/vanguard-logo.jpg";
 import sierraLogo from "@/assets/sierra-logo.webp";
 import jllLogo from "@/assets/jll-logo.png";
