@@ -173,11 +173,10 @@ export function DemoBookingModal({ open, onOpenChange }: DemoBookingModalProps) 
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="1-50">1-50</SelectItem>
-                      <SelectItem value="51-200">51-200</SelectItem>
-                      <SelectItem value="201-500">201-500</SelectItem>
-                      <SelectItem value="501-1000">501-1,000</SelectItem>
-                      <SelectItem value="1000+">1,000+</SelectItem>
+                      <SelectItem value="1-10">1 - 10 units</SelectItem>
+                      <SelectItem value="11-50">11 - 50 units</SelectItem>
+                      <SelectItem value="51-250">51 - 250 units</SelectItem>
+                      <SelectItem value="250+">250+ units</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
