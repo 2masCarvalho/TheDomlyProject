@@ -1,12 +1,28 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { FileText, TrendingUp, MessageSquare, Star, Check, Linkedin, Twitter, Facebook, Instagram, Globe, ScanSearch, LineChart, Activity, Leaf, Shield } from "lucide-react";
+import {
+  FileText,
+  TrendingUp,
+  MessageSquare,
+  Star,
+  Check,
+  Linkedin,
+  Twitter,
+  Facebook,
+  Instagram,
+  Globe,
+  ScanSearch,
+  LineChart,
+  Activity,
+  Leaf,
+  Shield,
+} from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import Autoplay from "embla-carousel-autoplay";
 import dashboardMockup from "@/assets/dashboard-mockup.png";
-import domlyLogo from "@/assets/domly-white-logo.png";
+import domlyLogo from "@/assets/domly-final-logo.png";
 import vanguardLogo from "@/assets/vanguard-logo.jpg";
 import sierraLogo from "@/assets/sierra-logo.webp";
 import jllLogo from "@/assets/jll-logo.png";
@@ -14,14 +30,11 @@ import startupPortugalLogo from "@/assets/startup-portugal-logo.png";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import { DemoBookingModal } from "@/components/DemoBookingModal";
 import { useLanguage } from "@/context/LanguageContext";
+
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
-  const {
-    language,
-    setLanguage,
-    t
-  } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
 
   // Refs for scroll animations
   const trustRef = useScrollReveal();
@@ -30,10 +43,13 @@ export const LandingPage: React.FC = () => {
   const pricingRef = useScrollReveal();
   const testimonialsRef = useScrollReveal();
   const faqRef = useScrollReveal();
+
   const toggleLanguage = () => {
     setLanguage(language === "en" ? "pt" : "en");
   };
-  return <div className="min-h-screen bg-gradient-to-b from-hero-gradient-start to-hero-gradient-end">
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-hero-gradient-start to-hero-gradient-end">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-gradient-to-b from-hero-gradient-start/95 to-hero-gradient-start/90 backdrop-blur supports-[backdrop-filter]:from-hero-gradient-start/80 border-b border-border/20 container mx-auto px-4 py-5">
         <div className="flex justify-between items-center">
@@ -60,7 +76,12 @@ export const LandingPage: React.FC = () => {
           </nav>
 
           <div className="flex gap-3 items-center">
-            <Button variant="ghost" size="sm" onClick={toggleLanguage} className="flex items-center gap-1.5 text-sm font-medium">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleLanguage}
+              className="flex items-center gap-1.5 text-sm font-medium"
+            >
               <Globe className="h-4 w-4" />
               {language === "en" ? "PT" : "EN"}
             </Button>
@@ -90,12 +111,16 @@ export const LandingPage: React.FC = () => {
             <p className="text-lg text-muted-foreground mb-8 max-w-xl">
               {t("hero.description")}
             </p>
-            
+            <p className="text-sm text-muted-foreground mb-8 max-w-xl italic">
+              {t("hero.dashboardDesc")}
+            </p>
             <div className="flex flex-wrap gap-4">
               <Button size="lg" onClick={() => setIsDemoModalOpen(true)} className="btn-hover-lift btn-hover-glow">
                 {t("nav.cta")}
               </Button>
-              
+              <Button size="lg" variant="outline" onClick={() => navigate("/signup")} className="btn-hover-lift">
+                {t("hero.bookDemo")}
+              </Button>
             </div>
           </div>
 
@@ -113,45 +138,42 @@ export const LandingPage: React.FC = () => {
         <p className="text-center text-sm text-muted-foreground mb-8">
           {t("trust.text")}
         </p>
-        <Carousel opts={{
-        align: "start",
-        loop: true
-      }} plugins={[Autoplay({
-        delay: 2000,
-        stopOnInteraction: false
-      })]} className="w-full max-w-5xl mx-auto">
+        <Carousel
+          opts={{
+            align: "start",
+            loop: true,
+          }}
+          plugins={[
+            Autoplay({
+              delay: 2000,
+              stopOnInteraction: false,
+            }),
+          ]}
+          className="w-full max-w-5xl mx-auto"
+        >
           <CarouselContent className="-ml-4">
-            {[{
-            name: "Vanguard Properties",
-            logo: vanguardLogo
-          }, {
-            name: "Sierra Sonae",
-            logo: sierraLogo
-          }, {
-            name: "JLL",
-            logo: jllLogo
-          }, {
-            name: "Startup Portugal",
-            logo: startupPortugalLogo
-          }, {
-            name: "Vanguard Properties",
-            logo: vanguardLogo
-          }, {
-            name: "Sierra Sonae",
-            logo: sierraLogo
-          }, {
-            name: "JLL",
-            logo: jllLogo
-          }, {
-            name: "Startup Portugal",
-            logo: startupPortugalLogo
-          }].map((partner, index) => <CarouselItem key={index} className="pl-4 basis-1/2 md:basis-1/3 lg:basis-1/4">
+            {[
+              { name: "Vanguard Properties", logo: vanguardLogo },
+              { name: "Sierra Sonae", logo: sierraLogo },
+              { name: "JLL", logo: jllLogo },
+              { name: "Startup Portugal", logo: startupPortugalLogo },
+              { name: "Vanguard Properties", logo: vanguardLogo },
+              { name: "Sierra Sonae", logo: sierraLogo },
+              { name: "JLL", logo: jllLogo },
+              { name: "Startup Portugal", logo: startupPortugalLogo },
+            ].map((partner, index) => (
+              <CarouselItem key={index} className="pl-4 basis-1/2 md:basis-1/3 lg:basis-1/4">
                 <div className="flex items-center justify-center p-6">
                   <div className="flex items-center justify-center h-20 opacity-50 hover:opacity-80 transition-opacity">
-                    <img src={partner.logo} alt={partner.name} className="max-h-16 max-w-full object-contain grayscale" />
+                    <img 
+                      src={partner.logo} 
+                      alt={partner.name}
+                      className="max-h-16 max-w-full object-contain grayscale"
+                    />
                   </div>
                 </div>
-              </CarouselItem>)}
+              </CarouselItem>
+            ))}
           </CarouselContent>
         </Carousel>
 
@@ -338,7 +360,11 @@ export const LandingPage: React.FC = () => {
                 <span>{t("pricing.prioritySupport")}</span>
               </li>
             </ul>
-            <Button variant="secondary" className="w-full bg-background text-foreground hover:bg-background/90 btn-hover-lift btn-hover-glow" onClick={() => setIsDemoModalOpen(true)}>
+            <Button
+              variant="secondary"
+              className="w-full bg-background text-foreground hover:bg-background/90 btn-hover-lift btn-hover-glow"
+              onClick={() => setIsDemoModalOpen(true)}
+            >
               {t("pricing.getStarted")}
             </Button>
           </div>
@@ -398,7 +424,9 @@ export const LandingPage: React.FC = () => {
             {/* Testimonial 1 */}
             <div className="bg-card border rounded-2xl p-8">
               <div className="flex gap-1 mb-4">
-                {[1, 2, 3, 4, 5].map(i => <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />)}
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                ))}
               </div>
               <p className="text-foreground mb-6 italic">
                 "Domly cut our administrative time by 50%. The automatic alerts for insurance renewals are a lifesaver."
@@ -417,7 +445,9 @@ export const LandingPage: React.FC = () => {
             {/* Testimonial 2 */}
             <div className="bg-card border rounded-2xl p-8">
               <div className="flex gap-1 mb-4">
-                {[1, 2, 3, 4, 5].map(i => <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />)}
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                ))}
               </div>
               <p className="text-foreground mb-6 italic">
                 "We finally have true visibility into our costs. The financial dashboard is transparent and a
@@ -437,7 +467,9 @@ export const LandingPage: React.FC = () => {
             {/* Testimonial 3 */}
             <div className="bg-card border rounded-2xl p-8">
               <div className="flex gap-1 mb-4">
-                {[1, 2, 3, 4, 5].map(i => <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />)}
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                ))}
               </div>
               <p className="text-foreground mb-6 italic">
                 "Reporting a broken light took 30 seconds on the app, and I saw exactly when it was fixed. Amazing."
@@ -522,7 +554,12 @@ export const LandingPage: React.FC = () => {
           <p className="text-lg text-primary-foreground/90 mb-8 max-w-3xl mx-auto">
             {t("cta.subtitle")}
           </p>
-          <Button size="lg" variant="secondary" className="bg-background text-foreground hover:bg-background/90 mb-4 btn-hover-lift btn-hover-glow" onClick={() => setIsDemoModalOpen(true)}>
+          <Button
+            size="lg"
+            variant="secondary"
+            className="bg-background text-foreground hover:bg-background/90 mb-4 btn-hover-lift btn-hover-glow"
+            onClick={() => setIsDemoModalOpen(true)}
+          >
             {t("nav.cta")}
           </Button>
         </div>
@@ -619,16 +656,40 @@ export const LandingPage: React.FC = () => {
             <p className="text-sm text-gray-400">© 2024 Domly. {t("footer.rights")}</p>
 
             <div className="flex gap-6">
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors" aria-label="LinkedIn">
+              <a
+                href="https://linkedin.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-white transition-colors"
+                aria-label="LinkedIn"
+              >
                 <Linkedin className="h-5 w-5" />
               </a>
-              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors" aria-label="Twitter">
+              <a
+                href="https://twitter.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-white transition-colors"
+                aria-label="Twitter"
+              >
                 <Twitter className="h-5 w-5" />
               </a>
-              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors" aria-label="Facebook">
+              <a
+                href="https://facebook.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-white transition-colors"
+                aria-label="Facebook"
+              >
                 <Facebook className="h-5 w-5" />
               </a>
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors" aria-label="Instagram">
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-white transition-colors"
+                aria-label="Instagram"
+              >
                 <Instagram className="h-5 w-5" />
               </a>
             </div>
@@ -637,5 +698,6 @@ export const LandingPage: React.FC = () => {
       </footer>
 
       <DemoBookingModal open={isDemoModalOpen} onOpenChange={setIsDemoModalOpen} />
-    </div>;
+    </div>
+  );
 };
