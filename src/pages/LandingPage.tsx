@@ -23,6 +23,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import Autoplay from "embla-carousel-autoplay";
 import dashboardMockup from "@/assets/dashboard-mockup.png";
 import domlyLogo from "@/assets/domly-final-logo.png";
+import domlyLogoWhite from "@/assets/DomlyLogoWhite.png";
 import vanguardLogo from "@/assets/vanguard-logo.jpg";
 import sierraLogo from "@/assets/sierra-logo.webp";
 import jllLogo from "@/assets/jll-logo.png";
@@ -572,7 +573,7 @@ export const LandingPage: React.FC = () => {
             {/* Brand Column */}
             <div className="md:col-span-2">
               <div className="flex items-center gap-2 mb-4">
-                <img src={domlyLogo} alt="Domly AI" className="h-8" />
+                <img src={domlyLogoWhite} alt="Domly AI" className="h-8" />
               </div>
               <p className="text-gray-400 text-sm leading-relaxed">
                 {t("footer.description")}
