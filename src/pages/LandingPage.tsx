@@ -126,7 +126,7 @@ export const LandingPage: React.FC = () => {
 
           <div className="relative animate-slide-in-right">
             <div className="relative z-10 rounded-2xl overflow-hidden shadow-2xl">
-              <img src={dashboardMockup} alt="Domly Dashboard Interface" className="w-full h-auto" />
+              <img src={dashboardMockup} alt="Domly Dashboard Interface" className="w-full h-auto object-cover object-center" />
             </div>
             <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent rounded-2xl blur-3xl -z-10 transform translate-y-8"></div>
           </div>
