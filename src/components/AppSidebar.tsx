@@ -34,7 +34,7 @@ export function AppSidebar() {
             {getUserInitials()}
           </AvatarFallback>
         </Avatar>
-        
+
         <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-xs font-normal text-sidebar-foreground/70 truncate max-w-full px-2">
           {user?.email}
         </span>

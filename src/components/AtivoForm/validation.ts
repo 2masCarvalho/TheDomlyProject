@@ -2,11 +2,14 @@ import { z } from 'zod';
 
 export const ativoFormSchema = z.object({
   nome: z.string().min(1, 'Nome é obrigatório').max(100),
-  tipo: z.string().min(1, 'Tipo é obrigatório'),
-  estado: z.enum(['excelente', 'bom', 'regular', 'mau']),
+  categoria: z.string().min(1, 'Categoria é obrigatória'),
+  marca: z.string().optional(),
+  modelo: z.string().optional(),
+  num_serie: z.number().optional(),
+  data_instalacao: z.string().optional(),
+  estado: z.enum(['excelente', 'bom', 'regular', 'mau']).optional(),
   descricao: z.string().optional(),
   valor: z.number().optional(),
-  data_aquisicao: z.string().optional(),
   localizacao: z.string().optional(),
 });
 

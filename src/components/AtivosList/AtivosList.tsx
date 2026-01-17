@@ -34,15 +34,15 @@ export const AtivosList: React.FC<AtivosListProps> = ({ ativos, onEdit, onDelete
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {ativos.map((ativo) => (
-        <Card key={ativo.id} className="hover:shadow-lg transition-shadow">
+        <Card key={ativo.id_ativo} className="hover:shadow-lg transition-shadow">
           <CardHeader>
             <div className="flex items-start justify-between">
               <CardTitle className="text-lg">{ativo.nome}</CardTitle>
-              <Badge variant="outline" className={estadoColors[ativo.estado]}>
-                {ativo.estado}
+              <Badge variant="outline" className={ativo.estado ? estadoColors[ativo.estado] : ''}>
+                {ativo.estado || 'Sem estado'}
               </Badge>
             </div>
-            <p className="text-sm text-muted-foreground">{ativo.tipo}</p>
+            <p className="text-sm text-muted-foreground">{ativo.categoria}</p>
           </CardHeader>
           <CardContent className="space-y-2">
             {ativo.descricao && (
@@ -67,7 +67,7 @@ export const AtivosList: React.FC<AtivosListProps> = ({ ativos, onEdit, onDelete
             <Button
               size="sm"
               variant="outline"
-              onClick={() => navigate(`/condominios/${id}/ativos/${ativo.id}`)}
+              onClick={() => navigate(`/condominios/${id}/ativos/${ativo.id_ativo}`)}
             >
               <Eye className="h-4 w-4 mr-1" />
               Ver Detalhes

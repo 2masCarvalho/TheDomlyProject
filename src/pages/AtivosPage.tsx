@@ -48,23 +48,23 @@ export const AtivosPage: React.FC = () => {
 
   const handleFormSubmit = async (data: AtivoFormData) => {
     if (selectedAtivo) {
-      await updateAtivo(selectedAtivo.id, data);
+      await updateAtivo(selectedAtivo.id_ativo, data);
     } else {
       await createAtivo({
-        condominio_id: condominioId,
+        id_condominio: condominioId,
         nome: data.nome,
-        tipo: data.tipo,
+        categoria: data.categoria,
         estado: data.estado,
         descricao: data.descricao,
         valor: data.valor,
-        data_aquisicao: data.data_aquisicao,
+        data_instalacao: data.data_instalacao,
       });
     }
   };
 
   const handleConfirmDelete = async () => {
     if (selectedAtivo) {
-      await deleteAtivo(selectedAtivo.id);
+      await deleteAtivo(selectedAtivo.id_ativo);
       setIsDeleteModalOpen(false);
       setSelectedAtivo(null);
     }

@@ -69,7 +69,7 @@ export const AtivoDetailPage: React.FC = () => {
 
   const condominio = condominios.find((c) => c.id_comdominio === parsedCondominioId);
   const ativos = getAtivosByCondominio(parsedCondominioId);
-  const ativo = ativos.find((a) => a.id === parsedAtivoId);
+  const ativo = ativos.find((a) => a.id_ativo === parsedAtivoId);
 
   if (condominiosLoading || ativosLoading) {
     return <LoadingSpinner />;
@@ -103,7 +103,7 @@ export const AtivoDetailPage: React.FC = () => {
       });
       return;
     }
-    
+
     toast({
       title: 'Fotos adicionadas',
       description: `${selectedPhotos.length} foto(s) foram adicionadas com sucesso`,
@@ -121,7 +121,7 @@ export const AtivoDetailPage: React.FC = () => {
       });
       return;
     }
-    
+
     toast({
       title: 'Documento adicionado',
       description: 'O documento foi adicionado com sucesso',
@@ -139,7 +139,7 @@ export const AtivoDetailPage: React.FC = () => {
       });
       return;
     }
-    
+
     toast({
       title: 'Manutenção agendada',
       description: `Manutenção agendada para ${new Date(maintenanceDate).toLocaleDateString('pt-PT')}`,
@@ -157,7 +157,7 @@ export const AtivoDetailPage: React.FC = () => {
       });
       return;
     }
-    
+
     toast({
       title: 'Notificação criada',
       description: 'A notificação foi adicionada com sucesso',
@@ -193,10 +193,10 @@ export const AtivoDetailPage: React.FC = () => {
               <div className="flex items-center gap-3 mb-2">
                 <h1 className="text-3xl font-bold">{ativo.nome}</h1>
                 <Badge variant="outline" className={estadoColors[ativo.estado]}>
-                  {ativo.estado}
+                  {ativo.estado || 'Sem estado'}
                 </Badge>
               </div>
-              <p className="text-muted-foreground text-lg">{ativo.tipo}</p>
+              <p className="text-muted-foreground text-lg">{ativo.categoria}</p>
               <p className="text-sm text-muted-foreground mt-1">{condominio.nome}</p>
             </div>
 
@@ -243,9 +243,8 @@ export const AtivoDetailPage: React.FC = () => {
                   {ativo.notificacoes.map((notificacao) => (
                     <div
                       key={notificacao.id}
-                      className={`p-4 border rounded-lg transition-colors ${
-                        notificacao.lida ? 'bg-muted/50' : 'bg-background'
-                      }`}
+                      className={`p-4 border rounded-lg transition-colors ${notificacao.lida ? 'bg-muted/50' : 'bg-background'
+                        }`}
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
@@ -308,13 +307,13 @@ export const AtivoDetailPage: React.FC = () => {
                     </div>
                   )}
 
-                  {ativo.data_aquisicao && (
+                  {ativo.data_instalacao && (
                     <div>
                       <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                         <Calendar className="h-4 w-4" />
-                        Data de Aquisição
+                        Data de Instalação
                       </label>
-                      <p className="mt-1">{new Date(ativo.data_aquisicao).toLocaleDateString('pt-PT')}</p>
+                      <p className="mt-1">{new Date(ativo.data_instalacao).toLocaleDateString('pt-PT')}</p>
                     </div>
                   )}
 
@@ -440,8 +439,8 @@ export const AtivoDetailPage: React.FC = () => {
               <div className="space-y-4">
                 <div>
                   <label className="text-sm text-muted-foreground">Condição Atual</label>
-                  <Badge variant="outline" className={`${estadoColors[ativo.estado]} mt-2 w-full justify-center py-2`}>
-                    {ativo.estado.toUpperCase()}
+                  <Badge variant="outline" className={`${ativo.estado ? estadoColors[ativo.estado] : ''} mt-2 w-full justify-center py-2`}>
+                    {ativo.estado ? ativo.estado.toUpperCase() : 'SEM ESTADO'}
                   </Badge>
                 </div>
 
@@ -450,7 +449,7 @@ export const AtivoDetailPage: React.FC = () => {
                 <div>
                   <label className="text-sm text-muted-foreground">Criado em</label>
                   <p className="text-sm mt-1">
-                    {new Date(ativo.criado_em).toLocaleDateString('pt-PT')}
+                    {ativo.created_at ? new Date(ativo.created_at).toLocaleDateString('pt-PT') : '-'}
                   </p>
                 </div>
               </div>
@@ -620,7 +619,7 @@ export const AtivoDetailPage: React.FC = () => {
                 </Button>
               </div>
             </div>
-            </DialogContent>
+          </DialogContent>
         </Dialog>
 
         {/* Notification Modal */}

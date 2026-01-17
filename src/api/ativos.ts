@@ -1,3 +1,5 @@
+import { supabase } from '@/supabase-client';
+
 export interface Notificacao {
   id: number;
   tipo: 'info' | 'aviso' | 'urgente';
@@ -31,117 +33,114 @@ export interface Foto {
 }
 
 export interface Ativo {
-  id: number;
-  condominio_id: number;
+  id_ativo: number;
+  id_condominio: number;
   nome: string;
-  tipo: string;
-  estado: 'excelente' | 'bom' | 'regular' | 'mau';
+  categoria: string;
+  marca?: string;
+  modelo?: string;
+  num_serie?: number;
+  data_instalacao?: string;
+  created_at?: string;
+
+  // Fields not in DB yet but used in UI (keeping optional for now or need to be added to DB)
+  estado?: 'excelente' | 'bom' | 'regular' | 'mau';
   descricao?: string;
   valor?: number;
-  data_aquisicao?: string;
   data_proxima_manutencao?: string;
   localizacao?: string;
   observacoes?: string;
-  criado_em?: string;
+
   notificacoes?: Notificacao[];
   manutencoes?: Manutencao[];
   documentos?: Documento[];
   fotos?: string[];
-  created_at?: string;
 }
 
 export interface CreateAtivoData {
-  condominio_id: number;
+  id_condominio: number;
   nome: string;
-  tipo: string;
-  estado: 'excelente' | 'bom' | 'regular' | 'mau';
+  categoria: string;
+  marca?: string;
+  modelo?: string;
+  num_serie?: number;
+  data_instalacao?: string;
+
+  // Keeping these for compatibility if we add them later
+  estado?: 'excelente' | 'bom' | 'regular' | 'mau';
   descricao?: string;
   valor?: number;
-  data_aquisicao?: string;
   localizacao?: string;
 }
 
-// Mock data
-let mockAtivos: Ativo[] = [
-  {
-    id: 1,
-    condominio_id: 1,
-    nome: "Elevador Principal",
-    tipo: "Elevador",
-    estado: "bom",
-    descricao: "Elevador principal do edifício",
-    valor: 25000,
-    data_aquisicao: "2020-01-15",
-    data_proxima_manutencao: "2025-02-01",
-    localizacao: "Hall de entrada",
-    observacoes: "Última revisão realizada em Janeiro de 2024",
-    criado_em: new Date().toISOString(),
-    notificacoes: [
-      {
-        id: 1,
-        tipo: 'info',
-        titulo: 'Manutenção programada',
-        mensagem: 'Manutenção preventiva agendada para próxima semana',
-        data: new Date().toISOString(),
-        data_criacao: new Date().toISOString(),
-        lida: false,
-      },
-    ],
-    manutencoes: [
-      {
-        id: 1,
-        data: '2024-01-15',
-        descricao: 'Revisão anual',
-        custo: 350,
-        responsavel: 'TechElevadores Lda',
-      },
-    ],
-    documentos: [],
-    fotos: [],
-    created_at: new Date().toISOString(),
-  },
-];
-
-let nextId = 2;
-
-// Mock API functions
 export const ativosApi = {
   getByCondominio: async (condominioId: number): Promise<Ativo[]> => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    return mockAtivos.filter((a) => a.condominio_id === condominioId);
+    const { data, error } = await supabase
+      .from('ativos')
+      .select('*')
+      .eq('id_condominio', condominioId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
   },
 
   getById: async (id: number): Promise<Ativo | null> => {
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    return mockAtivos.find((a) => a.id === id) || null;
+    const { data, error } = await supabase
+      .from('ativos')
+      .select('*')
+      .eq('id_ativo', id)
+      .single();
+
+    if (error) throw error;
+    return data;
   },
 
   create: async (data: CreateAtivoData): Promise<Ativo> => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    const newAtivo: Ativo = {
-      ...data,
-      id: nextId++,
-      notificacoes: [],
-      manutencoes: [],
-      documentos: [],
-      fotos: [],
-      created_at: new Date().toISOString(),
+    // Filter out undefined values to avoid sending them to Supabase if columns don't exist
+    const payload = {
+      id_condominio: data.id_condominio,
+      nome: data.nome,
+      categoria: data.categoria,
+      marca: data.marca,
+      modelo: data.modelo,
+      num_serie: data.num_serie,
+      data_instalacao: data.data_instalacao,
+      estado: data.estado,
+      descricao: data.descricao,
+      valor: data.valor,
+      localizacao: data.localizacao,
     };
-    mockAtivos.push(newAtivo);
+
+    const { data: newAtivo, error } = await supabase
+      .from('ativos')
+      .insert([payload])
+      .select()
+      .single();
+
+    if (error) throw error;
     return newAtivo;
   },
 
   update: async (id: number, data: Partial<CreateAtivoData>): Promise<Ativo> => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    const index = mockAtivos.findIndex((a) => a.id === id);
-    if (index === -1) throw new Error("Ativo não encontrado");
-    
-    mockAtivos[index] = { ...mockAtivos[index], ...data };
-    return mockAtivos[index];
+    const { data: updatedAtivo, error } = await supabase
+      .from('ativos')
+      .update(data)
+      .eq('id_ativo', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return updatedAtivo;
   },
 
   delete: async (id: number): Promise<void> => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    mockAtivos = mockAtivos.filter((a) => a.id !== id);
+    const { error } = await supabase
+      .from('ativos')
+      .delete()
+      .eq('id_ativo', id);
+
+    if (error) throw error;
   },
 };
+

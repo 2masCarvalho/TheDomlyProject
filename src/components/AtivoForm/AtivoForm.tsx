@@ -59,12 +59,28 @@ export const AtivoForm: React.FC<AtivoFormProps> = ({
             </div>
 
             <div>
-              <Label htmlFor="tipo">Tipo</Label>
-              <Input id="tipo" {...register('tipo')} placeholder="Ex: Elevador, Portão" />
-              {errors.tipo && (
-                <p className="text-sm text-destructive">{errors.tipo.message}</p>
+              <Label htmlFor="categoria">Categoria</Label>
+              <Input id="categoria" {...register('categoria')} placeholder="Ex: Elevador, Portão" />
+              {errors.categoria && (
+                <p className="text-sm text-destructive">{errors.categoria.message}</p>
               )}
             </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="marca">Marca</Label>
+              <Input id="marca" {...register('marca')} />
+            </div>
+            <div>
+              <Label htmlFor="modelo">Modelo</Label>
+              <Input id="modelo" {...register('modelo')} />
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="num_serie">Nº Série</Label>
+            <Input type="number" id="num_serie" {...register('num_serie', { valueAsNumber: true })} />
           </div>
 
           <div>
@@ -105,8 +121,8 @@ export const AtivoForm: React.FC<AtivoFormProps> = ({
             </div>
 
             <div>
-              <Label htmlFor="data_aquisicao">Data de Aquisição</Label>
-              <Input id="data_aquisicao" type="date" {...register('data_aquisicao')} />
+              <Label htmlFor="data_instalacao">Data de Instalação</Label>
+              <Input id="data_instalacao" type="date" {...register('data_instalacao')} />
             </div>
           </div>
 

@@ -41,7 +41,7 @@ export const AtivosProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   }, []);
 
   const getAtivosByCondominio = (condominioId: number): Ativo[] => {
-    return ativos.filter((a) => a.condominio_id === condominioId);
+    return ativos.filter((a) => a.id_condominio === condominioId);
   };
 
   const createAtivo = async (data: CreateAtivoData) => {
@@ -65,7 +65,7 @@ export const AtivosProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const updateAtivo = async (id: number, data: Partial<CreateAtivoData>) => {
     try {
       const updatedAtivo = await ativosApi.update(id, data);
-      setAtivos(ativos.map((a) => (a.id === id ? updatedAtivo : a)));
+      setAtivos(ativos.map((a) => (a.id_ativo === id ? updatedAtivo : a)));
       toast({
         title: 'Sucesso',
         description: 'Ativo atualizado com sucesso',
@@ -83,7 +83,7 @@ export const AtivosProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const deleteAtivo = async (id: number) => {
     try {
       await ativosApi.delete(id);
-      setAtivos(ativos.filter((a) => a.id !== id));
+      setAtivos(ativos.filter((a) => a.id_ativo !== id));
       toast({
         title: 'Sucesso',
         description: 'Ativo eliminado com sucesso',
