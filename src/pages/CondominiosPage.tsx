@@ -9,9 +9,10 @@ import { ConfirmModal } from '@/components/ConfirmModal/ConfirmModal';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Building2, Plus, LogOut } from 'lucide-react';
+import { Building2, Plus, LogOut, Upload } from 'lucide-react';
 import { CondominioFormData } from '@/components/CondominioForm/validation';
 import { CreateCondominioData } from '@/api/condominios';
+import { CondominioImportModal } from '@/components/CondominioImportModal/CondominioImportModal';
 
 export const CondominiosPage: React.FC = () => {
   const navigate = useNavigate();
@@ -28,6 +29,7 @@ export const CondominiosPage: React.FC = () => {
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedCondominio, setSelectedCondominio] = useState<Condominio | null>(null);
 
   const handleCreate = () => { setSelectedCondominio(null); setIsFormOpen(true); };
@@ -60,6 +62,12 @@ export const CondominiosPage: React.FC = () => {
     setIsDeleteModalOpen(false);
   };
 
+  const handleImportCondominios = async (data: CreateCondominioData[]) => {
+    for (const item of data) {
+      await createCondominio(item);
+    }
+  };
+
   if (!user) return <div>Necessita de autenticação.</div>;
 
   return (
@@ -68,6 +76,9 @@ export const CondominiosPage: React.FC = () => {
         <h1 className="text-2xl font-bold flex items-center gap-2"><Building2 className="h-6 w-6" /> Meus Condomínios</h1>
         <div className="flex gap-2">
           <Input placeholder="Pesquisar..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+          <Button variant="outline" onClick={() => setIsImportModalOpen(true)}>
+            <Upload className="h-4 w-4 mr-1" /> Importar
+          </Button>
           <Button onClick={handleCreate}><Plus className="h-4 w-4 mr-1" /> Novo</Button>
           <Button variant="destructive" onClick={logout}><LogOut className="h-4 w-4 mr-1" /> Sair</Button>
         </div>
@@ -88,6 +99,12 @@ export const CondominiosPage: React.FC = () => {
         onConfirm={confirmDelete}
         title="Eliminar Condomínio"
         description="Tem a certeza que pretende eliminar este condomínio?"
+      />
+
+      <CondominioImportModal
+        open={isImportModalOpen}
+        onOpenChange={setIsImportModalOpen}
+        onImport={handleImportCondominios}
       />
     </div>
   );
