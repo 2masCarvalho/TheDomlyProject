@@ -56,7 +56,15 @@ export const CondominioImportModal: React.FC<CondominioImportModalProps> = ({
             cidade: row['Cidade'] || row['cidade'] || '',
             morada: row['Morada'] || row['morada'] || '',
             codigo_postal: row['Codigo Postal'] || row['codigo_postal'] || '',
-            nif: Number(row['NIF'] || row['nif'] || 0)
+            nif: Number(row['NIF'] || row['nif'] || 0),
+            iban: row['IBAN'] || row['iban'],
+            banco: row['Banco'] || row['banco'],
+            num_fracoes: Number(row['Num Fracoes'] || row['num_fracoes'] || 0),
+            num_pisos: Number(row['Num Pisos'] || row['num_pisos'] || 0),
+            ano_construcao: Number(row['Ano Construcao'] || row['ano_construcao'] || 0) || undefined,
+            tem_elevador: (row['Tem Elevador'] || row['tem_elevador']) === 'Sim' || (row['Tem Elevador'] || row['tem_elevador']) === true,
+            email_geral: row['Email Geral'] || row['email_geral'],
+            telefone: row['Telefone'] || row['telefone'],
           })).filter(item => item.nome && item.nif); // Basic validation
 
           resolve(parsedData);
@@ -76,7 +84,15 @@ export const CondominioImportModal: React.FC<CondominioImportModalProps> = ({
         'Cidade': 'Lisboa',
         'Morada': 'Rua Exemplo, 123',
         'Codigo Postal': '1000-001',
-        'NIF': 123456789
+        'NIF': 123456789,
+        'IBAN': 'PT50...',
+        'Banco': 'Banco Exemplo',
+        'Num Fracoes': 10,
+        'Num Pisos': 5,
+        'Ano Construcao': 2000,
+        'Tem Elevador': 'Sim',
+        'Email Geral': 'geral@condominio.pt',
+        'Telefone': '912345678'
       }
     ]);
     const wb = utils.book_new();

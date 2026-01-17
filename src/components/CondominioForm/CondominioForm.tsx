@@ -45,6 +45,17 @@ export const CondominioForm: React.FC<CondominioFormProps> = ({
       morada: '',
       codigo_postal: '',
       nif: 0,
+      iban: '',
+      banco: '',
+      num_fracoes: 0,
+      num_pisos: 0,
+      ano_construcao: undefined,
+      tem_elevador: false,
+      email_geral: '',
+      telefone: '',
+      admin_externa: false,
+      apolice_seguro: '',
+      companhia_seguro: '',
     },
   });
 
@@ -55,6 +66,17 @@ export const CondominioForm: React.FC<CondominioFormProps> = ({
       setValue('morada', initialData.morada);
       setValue('codigo_postal', initialData.codigo_postal);
       setValue('nif', initialData.nif);
+      setValue('iban', initialData.iban);
+      setValue('banco', initialData.banco);
+      setValue('num_fracoes', initialData.num_fracoes);
+      setValue('num_pisos', initialData.num_pisos);
+      setValue('ano_construcao', initialData.ano_construcao);
+      setValue('tem_elevador', initialData.tem_elevador);
+      setValue('email_geral', initialData.email_geral);
+      setValue('telefone', initialData.telefone);
+      setValue('admin_externa', initialData.admin_externa);
+      setValue('apolice_seguro', initialData.apolice_seguro);
+      setValue('companhia_seguro', initialData.companhia_seguro);
     } else {
       reset();
     }
@@ -113,6 +135,50 @@ export const CondominioForm: React.FC<CondominioFormProps> = ({
             <Label htmlFor="nif">NIF <span className="text-destructive">*</span></Label>
             <Input type="number" id="nif" {...register('nif', { valueAsNumber: true })} />
             {errors.nif && <p className="text-sm text-destructive">{errors.nif.message}</p>}
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="iban">IBAN</Label>
+              <Input id="iban" {...register('iban')} placeholder="PT50..." />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="banco">Banco</Label>
+              <Input id="banco" {...register('banco')} />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="num_fracoes">Nº Frações</Label>
+              <Input type="number" id="num_fracoes" {...register('num_fracoes', { valueAsNumber: true })} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="num_pisos">Nº Pisos</Label>
+              <Input type="number" id="num_pisos" {...register('num_pisos', { valueAsNumber: true })} />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="ano_construcao">Ano Construção</Label>
+              <Input type="number" id="ano_construcao" {...register('ano_construcao', { valueAsNumber: true })} />
+            </div>
+            <div className="flex items-center space-x-2 pt-8">
+              <Input type="checkbox" id="tem_elevador" className="h-4 w-4" {...register('tem_elevador')} />
+              <Label htmlFor="tem_elevador">Tem Elevador?</Label>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="email_geral">Email Geral</Label>
+            <Input type="email" id="email_geral" {...register('email_geral')} />
+            {errors.email_geral && <p className="text-sm text-destructive">{errors.email_geral.message}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="telefone">Telefone</Label>
+            <Input id="telefone" {...register('telefone')} />
           </div>
 
           <DialogFooter>

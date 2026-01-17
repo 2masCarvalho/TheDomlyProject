@@ -7,6 +7,17 @@ export interface Condominio {
   morada: string;
   codigo_postal: string;
   nif: number;
+  iban?: string;
+  banco?: string;
+  num_fracoes?: number;
+  num_pisos?: number;
+  ano_construcao?: number;
+  tem_elevador?: boolean;
+  email_geral?: string;
+  telefone?: string;
+  admin_externa?: boolean;
+  apolice_seguro?: string;
+  companhia_seguro?: string;
   id_user: string;
   created_at: string;
 }
@@ -17,6 +28,17 @@ export interface CreateCondominioData {
   morada: string;
   codigo_postal: string;
   nif: number;
+  iban?: string;
+  banco?: string;
+  num_fracoes?: number;
+  num_pisos?: number;
+  ano_construcao?: number;
+  tem_elevador?: boolean;
+  email_geral?: string;
+  telefone?: string;
+  admin_externa?: boolean;
+  apolice_seguro?: string;
+  companhia_seguro?: string;
 }
 
 export const condominiosApi = {
