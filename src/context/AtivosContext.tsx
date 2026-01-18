@@ -55,9 +55,9 @@ export const AtivosProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     } catch (error) {
       toast({
         title: 'Erro',
-        description: 'Não foi possível criar o ativo',
         variant: 'destructive',
       });
+      console.error('Error creating ativo:', error);
       throw error;
     }
   };

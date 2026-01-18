@@ -31,6 +31,15 @@ export const CondominioCard: React.FC<CondominioCardProps> = ({ condominio, onEd
   return (
     <Card className="h-full hover:shadow-hover transition-all duration-300">
       <CardHeader>
+        {condominio.image_url && (
+          <div className="w-full h-48 mb-4 rounded-md overflow-hidden">
+            <img
+              src={condominio.image_url}
+              alt={condominio.nome}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        )}
         <CardTitle className="flex items-center gap-2 text-lg">
           <Building2 className="h-5 w-5 text-primary" />
           {condominio.nome}

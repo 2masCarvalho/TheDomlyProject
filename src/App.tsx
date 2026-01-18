@@ -18,8 +18,7 @@ import { AtivoDetailPage } from "./pages/AtivoDetailPage";
 import { NotificacoesPage } from "./pages/NotificacoesPage";
 import NotFound from "./pages/NotFound";
 
-// 👇 Formulário de novo condomínio
-import CondominioForm from "@/components/CondominioForm/CondominioForm2";
+
 
 const queryClient = new QueryClient();
 
@@ -48,7 +47,7 @@ const App = () => (
                   </ProtectedRoute>
                 }
               >
-                <Route path="/novo-condominio" element={<CondominioForm />} />
+
                 <Route path="/condominios" element={<CondominiosPage />} />
                 <Route path="/condominios/:id/ativos" element={<AtivosPage />} />
                 <Route path="/condominios/:id/notificacoes" element={<NotificacoesPage />} />

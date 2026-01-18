@@ -43,17 +43,34 @@ export const CondominiosPage: React.FC = () => {
       cidade: data.cidade || '',
       morada: data.morada || '',
       codigo_postal: data.codigo_postal || '',
-      nif: data.nif || 0
+      nif: data.nif || 0,
+      image_url: data.image_url,
+      iban: data.iban,
+      banco: data.banco,
+      num_fracoes: data.num_fracoes,
+      num_pisos: data.num_pisos,
+      ano_construcao: data.ano_construcao,
+      tem_elevador: data.tem_elevador,
+      email_geral: data.email_geral,
+      telefone: data.telefone,
+      admin_externa: data.admin_externa,
+      apolice_seguro: data.apolice_seguro,
+      companhia_seguro: data.companhia_seguro,
     };
+
+    console.log("📦 [Page] Payload a enviar para API:", payload);
 
     try {
       if (selectedCondominio) {
+        console.log("🔄 [Page] A atualizar condomínio ID:", selectedCondominio.id_comdominio);
         await updateCondominio(selectedCondominio.id_comdominio, payload);
       } else {
+        console.log("✨ [Page] A criar novo condomínio");
         await createCondominio(payload);
       }
+      console.log("✅ [Page] Operação concluída com sucesso!");
     } catch (error) {
-      console.error('Erro ao salvar condomínio', error);
+      console.error('❌ [Page] Erro ao salvar condomínio:', error);
     }
   };
 

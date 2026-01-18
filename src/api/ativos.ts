@@ -104,13 +104,15 @@ export const ativosApi = {
       categoria: data.categoria,
       marca: data.marca,
       modelo: data.modelo,
-      num_serie: data.num_serie,
-      data_instalacao: data.data_instalacao,
+      num_serie: (data.num_serie !== undefined && !Number.isNaN(data.num_serie)) ? data.num_serie : null,
+      data_instalacao: data.data_instalacao || null,
       estado: data.estado,
       descricao: data.descricao,
-      valor: data.valor,
+      valor: (data.valor !== undefined && !Number.isNaN(data.valor)) ? data.valor : null,
       localizacao: data.localizacao,
     };
+
+    console.log('Sending payload to Supabase:', payload);
 
     const { data: newAtivo, error } = await supabase
       .from('ativos')
@@ -118,14 +120,28 @@ export const ativosApi = {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase error creating ativo:', error);
+      throw error;
+    }
     return newAtivo;
   },
 
   update: async (id: number, data: Partial<CreateAtivoData>): Promise<Ativo> => {
+    const payload = { ...data };
+    if (payload.data_instalacao === '') {
+      (payload as any).data_instalacao = null;
+    }
+    if (payload.num_serie !== undefined && Number.isNaN(payload.num_serie)) {
+      (payload as any).num_serie = null;
+    }
+    if (payload.valor !== undefined && Number.isNaN(payload.valor)) {
+      (payload as any).valor = null;
+    }
+
     const { data: updatedAtivo, error } = await supabase
       .from('ativos')
-      .update(data)
+      .update(payload)
       .eq('id_ativo', id)
       .select()
       .single();

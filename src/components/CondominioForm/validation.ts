@@ -21,6 +21,7 @@ export const condominioSchema = z.object({
   admin_externa: z.boolean().optional(),
   apolice_seguro: z.string().optional(),
   companhia_seguro: z.string().optional(),
+  image_url: z.string().optional(),
 });
 
 export type CondominioFormData = z.infer<typeof condominioSchema>;

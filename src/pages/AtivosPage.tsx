@@ -4,13 +4,15 @@ import { useCondominios } from '@/context/CondominiosContext';
 import { useAtivos } from '@/context/AtivosContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Plus, Bell } from 'lucide-react';
+import { ArrowLeft, Plus, Bell, PackageOpen } from 'lucide-react';
 import { AtivosList } from '@/components/AtivosList/AtivosList';
 import { AtivoForm } from '@/components/AtivoForm/AtivoForm';
 import { AtivoFormData } from '@/components/AtivoForm/validation';
 import { ConfirmModal } from '@/components/ConfirmModal/ConfirmModal';
 import { Ativo } from '@/api/ativos';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+
+import { Input } from '@/components/ui/input';
 
 export const AtivosPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -21,6 +23,10 @@ export const AtivosPage: React.FC = () => {
   const [isAtivoFormOpen, setIsAtivoFormOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedAtivo, setSelectedAtivo] = useState<Ativo | null>(null);
+  // SearchTerm é o texto atual 
+  // o setSearchTerm é a função que atualiza o searchTerm
+  // ('') significa que começa vazio
+  const [searchTerm, setSearchTerm] = useState('');
 
   const condominioId = parseInt(id || '0');
   const condominio = condominios.find((c) => c.id_comdominio === condominioId);
@@ -70,6 +76,15 @@ export const AtivosPage: React.FC = () => {
     }
   };
 
+  // 1. pegamos na lista original de ativos
+  // 2. a funcao filter percorre cada ativo
+  const filteredAtivos = ativos.filter((ativo) => {
+    const nomeAtivo = ativo.nome.toLowerCase();
+    const searchTermLower = searchTerm.toLowerCase();
+    // Devolvemos true se o nome do ativo contiver o termo de pesquisa
+    return nomeAtivo.includes(searchTermLower);
+  });
+
   if (condominiosLoading) {
     return <LoadingSpinner />;
   }
@@ -107,6 +122,18 @@ export const AtivosPage: React.FC = () => {
               <h1 className="text-3xl font-bold mb-2">{condominio.nome}</h1>
               <p className="text-muted-foreground">{condominio.morada}</p>
             </div>
+
+            {/* A Barra de Pesquisa */}
+            <div className="mb-6 mt-6">
+              <Input
+                placeholder="Pesquisar ativo pelo nome..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="max-w-md"
+              />
+            </div>
+
+
             <div className="flex gap-2">
               <Button
                 variant="outline"
@@ -128,16 +155,28 @@ export const AtivosPage: React.FC = () => {
                 <Plus className="h-4 w-4" />
                 Adicionar Ativo
               </Button>
+
             </div>
+
           </div>
         </div>
 
         {/* Ativos List */}
         {ativosLoading ? (
           <LoadingSpinner />
+        ) : ativos.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground border-2 border-dashed rounded-lg bg-muted/30">
+            <PackageOpen className="h-12 w-12 mb-3 opacity-50" />
+            <h3 className="text-lg font-medium">Sem ativos registados</h3>
+            <p className="text-sm">Este condomínio ainda não tem equipamentos ou ativos.</p>
+            <Button variant="link" onClick={handleCreate} className="mt-2">
+              Adicionar o primeiro ativo
+            </Button>
+          </div>
         ) : (
+          // se houver ativos mostrar a lista
           <AtivosList
-            ativos={ativos}
+            ativos={filteredAtivos}
             onEdit={handleEdit}
             onDelete={handleDelete}
           />

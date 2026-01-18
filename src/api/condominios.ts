@@ -19,6 +19,7 @@ export interface Condominio {
   apolice_seguro?: string;
   companhia_seguro?: string;
   id_user: string;
+  image_url?: string;
   created_at: string;
 }
 
@@ -39,6 +40,7 @@ export interface CreateCondominioData {
   admin_externa?: boolean;
   apolice_seguro?: string;
   companhia_seguro?: string;
+  image_url?: string;
 }
 
 export const condominiosApi = {
@@ -80,6 +82,26 @@ export const condominiosApi = {
       .eq('id_comdominio', id);
 
     if (error) throw error;
+  },
+
+  uploadImage: async (file: File): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('condominio-images')
+      .upload(filePath, file);
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const { data } = supabase.storage
+      .from('condominio-images')
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
   },
 };
 
