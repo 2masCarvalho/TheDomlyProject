@@ -24,6 +24,9 @@ import {
   X,
   Bell,
   Plus,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { AtivoForm } from '@/components/AtivoForm/AtivoForm';
@@ -31,6 +34,7 @@ import { AtivoFormData } from '@/components/AtivoForm/validation';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ativosApi } from '@/api/ativos';
 
 const estadoColors = {
   excelente: 'bg-green-500/10 text-green-500 border-green-500/20',
@@ -50,8 +54,8 @@ export const AtivoDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { condominios, loading: condominiosLoading } = useCondominios();
-  const { getAtivosByCondominio, updateAtivo, loading: ativosLoading } = useAtivos();
-
+  const { getAtivosByCondominio, updateAtivo, refreshAtivos, loading: ativosLoading } = useAtivos();
+  const [uploadingDoc, setUploadingDoc] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [photoModalOpen, setPhotoModalOpen] = useState(false);
   const [documentModalOpen, setDocumentModalOpen] = useState(false);
@@ -63,6 +67,9 @@ export const AtivoDetailPage: React.FC = () => {
   const [notificationTitle, setNotificationTitle] = useState('');
   const [notificationMessage, setNotificationMessage] = useState('');
   const [notificationType, setNotificationType] = useState<'info' | 'aviso' | 'urgente'>('info');
+  const [uploadingPhotos, setUploadingPhotos] = useState(false);
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
   const parsedCondominioId = parseInt(condominioId || '0');
   const parsedAtivoId = parseInt(ativoId || '0');
@@ -94,41 +101,92 @@ export const AtivoDetailPage: React.FC = () => {
     setEditModalOpen(false);
   };
 
-  const handleAddPhotos = () => {
-    if (selectedPhotos.length === 0) {
-      toast({
-        title: 'Erro',
-        description: 'Selecione pelo menos uma foto',
-        variant: 'destructive',
-      });
-      return;
-    }
+  const handleAddPhotos = async () => {
+  if (selectedPhotos.length === 0) {
+    toast({ title: 'Erro', description: 'Selecione pelo menos uma foto', variant: 'destructive' });
+    return;
+  }
 
-    toast({
-      title: 'Fotos adicionadas',
-      description: `${selectedPhotos.length} foto(s) foram adicionadas com sucesso`,
+  try {
+    setUploadingPhotos(true);
+    
+    // Faz o upload de todas as fotos selecionadas em paralelo
+    const uploadPromises = selectedPhotos.map(async (file) => {
+      const url = await ativosApi.uploadPhoto(parsedAtivoId, file);
+      return ativosApi.savePhoto(parsedAtivoId, url);
     });
+
+    await Promise.all(uploadPromises);
+
+    toast({ title: 'Sucesso', description: `${selectedPhotos.length} fotos adicionadas` });
     setSelectedPhotos([]);
     setPhotoModalOpen(false);
-  };
+    
+    if (refreshAtivos) await refreshAtivos();
+  } catch (error: any) {
+    toast({ title: 'Erro no upload', description: error.message, variant: 'destructive' });
+  } finally {
+    setUploadingPhotos(false);
+  }
+};
 
-  const handleAddDocument = () => {
-    if (!selectedDocument) {
-      toast({
-        title: 'Erro',
-        description: 'Selecione um documento',
-        variant: 'destructive',
-      });
-      return;
-    }
+  const handleNextPhoto = () => {
+  if (!ativo.fotos) return;
+  setCurrentPhotoIndex((prev) => (prev + 1) % ativo.fotos!.length);
+};
+
+const handlePrevPhoto = () => {
+  if (!ativo.fotos) return;
+  setCurrentPhotoIndex((prev) => (prev - 1 + ativo.fotos!.length) % ativo.fotos!.length);
+};
+
+  const handleAddDocument = async () => {
+  if (!selectedDocument) {
+    toast({
+      title: 'Erro',
+      description: 'Selecione um documento primeiro',
+      variant: 'destructive',
+    });
+    return;
+  }
+
+  try {
+    setUploadingDoc(true);
+
+    // 1. Upload do ficheiro para o Storage
+    const publicUrl = await ativosApi.uploadDocument(parsedAtivoId, selectedDocument);
+
+    // 2. Grava os dados na tabela de documentos
+    await ativosApi.saveDocument({
+      id_ativo: parsedAtivoId,
+      nome: selectedDocument.name,
+      tipo_documento: selectedDocument.name.split('.').pop()?.toUpperCase() || 'DOC',
+      url: publicUrl,
+    });
 
     toast({
-      title: 'Documento adicionado',
-      description: 'O documento foi adicionado com sucesso',
+      title: 'Sucesso',
+      description: 'O documento foi guardado com sucesso',
     });
+
+    // 3. Limpa e fecha
     setSelectedDocument(null);
     setDocumentModalOpen(false);
-  };
+    
+    // 4. Atualiza a lista global para o documento aparecer no ecrã
+    if (refreshAtivos) await refreshAtivos();
+
+  } catch (error: any) {
+    console.error('Erro no upload:', error);
+    toast({
+      title: 'Erro no upload',
+      description: error.message || 'Não foi possível guardar o documento',
+      variant: 'destructive',
+    });
+  } finally {
+    setUploadingDoc(false);
+  }
+};
 
   const handleScheduleMaintenance = () => {
     if (!maintenanceDate) {
@@ -352,82 +410,81 @@ export const AtivoDetailPage: React.FC = () => {
             {/* Tabs: Fotos e Documentos */}
             <Card className="p-6">
               <Tabs defaultValue="fotos" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="fotos">
-                    <ImageIcon className="h-4 w-4 mr-2" />
-                    Fotos ({ativo.fotos?.length || 0})
-                  </TabsTrigger>
-                  <TabsTrigger value="documentos">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Documentos ({ativo.documentos?.length || 0})
-                  </TabsTrigger>
-                </TabsList>
+  <TabsList className="grid w-full grid-cols-2">
+    <TabsTrigger value="fotos" className="flex-1">
+      <ImageIcon className="h-4 w-4 mr-2" />
+      {/* Contador de Fotos real */}
+      Fotos ({ativo.fotos?.length || 0})
+    </TabsTrigger>
+    <TabsTrigger value="documentos">
+      <FileText className="h-4 w-4 mr-2" />
+      {/* Contador de Documentos real */}
+      Documentos ({ativo.documentos?.length || 0})
+    </TabsTrigger>
+  </TabsList>
 
-                <TabsContent value="fotos" className="mt-4">
-                  {ativo.fotos && ativo.fotos.length > 0 ? (
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      {ativo.fotos.map((foto, index) => (
-                        <div
-                          key={index}
-                          className="aspect-video bg-muted rounded-lg overflow-hidden border"
-                        >
-                          <img
-                            src={foto}
-                            alt={`${ativo.nome} - Foto ${index + 1}`}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <ImageIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                      <p>Nenhuma foto adicionada</p>
-                      <Button variant="outline" size="sm" className="mt-4" onClick={() => setPhotoModalOpen(true)}>
-                        <Upload className="h-4 w-4 mr-2" />
-                        Adicionar Foto
-                      </Button>
-                    </div>
-                  )}
-                </TabsContent>
+  <TabsContent value="fotos" className="pt-4">
+  {ativo.fotos && ativo.fotos.length > 0 ? (
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+      {ativo.fotos.map((foto, index) => ( // Adicionamos o index aqui
+        <div 
+          key={foto.id} 
+          className="aspect-video rounded-lg overflow-hidden border bg-muted cursor-pointer group relative"
+          onClick={() => {
+            setCurrentPhotoIndex(index);
+            setViewerOpen(true);
+          }}
+        >
+          <img 
+            src={foto.url} 
+            className="w-full h-full object-cover transition-transform group-hover:scale-105" 
+            alt="Ativo"
+          />
+          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+             <ImageIcon className="text-white h-6 w-6" />
+          </div>
+        </div>
+      ))}
+      {/* ... botão de adicionar */}
+    </div>
+  ) : (
+      <div className="text-center py-12 border-2 border-dashed rounded-lg">
+        <ImageIcon className="h-12 w-12 mx-auto mb-3 opacity-20" />
+        <p>Nenhuma foto adicionada</p>
+        <Button variant="outline" size="sm" className="mt-4" onClick={() => setPhotoModalOpen(true)}>
+          <Upload className="h-4 w-4 mr-2" /> Carregar Foto
+        </Button>
+      </div>
+    )}
+  </TabsContent>
 
-                <TabsContent value="documentos" className="mt-4">
-                  {ativo.documentos && ativo.documentos.length > 0 ? (
-                    <div className="space-y-2">
-                      {ativo.documentos.map((doc) => (
-                        <div
-                          key={doc.id}
-                          className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 bg-primary/10 rounded">
-                              <FileText className="h-5 w-5 text-primary" />
-                            </div>
-                            <div>
-                              <p className="font-medium">{doc.nome}</p>
-                              <p className="text-sm text-muted-foreground">
-                                {doc.tipo} • {new Date(doc.data_upload).toLocaleDateString('pt-PT')}
-                              </p>
-                            </div>
-                          </div>
-                          <Button variant="ghost" size="icon">
-                            <Download className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <FileText className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                      <p>Nenhum documento adicionado</p>
-                      <Button variant="outline" size="sm" className="mt-4" onClick={() => setDocumentModalOpen(true)}>
-                        <Upload className="h-4 w-4 mr-2" />
-                        Adicionar Documento
-                      </Button>
-                    </div>
-                  )}
-                </TabsContent>
-              </Tabs>
+  <TabsContent value="documentos" className="mt-4">
+    {ativo.documentos && ativo.documentos.length > 0 ? (
+      <div className="space-y-2">
+        {ativo.documentos.map((doc) => (
+          <div key={doc.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50">
+            <div className="flex items-center gap-3">
+              <FileText className="h-5 w-5 text-primary" />
+              <div>
+                <p className="font-medium">{doc.nome}</p>
+                <p className="text-sm text-muted-foreground">
+                  {doc.tipo_documento} • {new Date(doc.data_upload || doc.created_at).toLocaleDateString('pt-PT')}
+                </p>
+              </div>
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => window.open(doc.url, '_blank')}>
+              <Download className="h-4 w-4" />
+            </Button>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <div className="text-center py-8">
+        <p>Nenhum documento.</p>
+      </div>
+    )}
+  </TabsContent>
+</Tabs>
             </Card>
           </div>
 
@@ -585,14 +642,77 @@ export const AtivoDetailPage: React.FC = () => {
                 <Button variant="outline" onClick={() => setDocumentModalOpen(false)}>
                   Cancelar
                 </Button>
-                <Button onClick={handleAddDocument}>
-                  Adicionar Documento
+                <Button onClick={handleAddDocument} disabled={uploadingDoc || !selectedDocument}>
+                  {uploadingDoc ? (
+                    <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      A carregar...
+                    </>
+                  ) : (
+                    'Adicionar Documento'
+                  )}
                 </Button>
               </div>
             </div>
           </DialogContent>
         </Dialog>
 
+        {/* Image Viewer Lightbox */}
+<Dialog open={viewerOpen} onOpenChange={setViewerOpen}>
+  <DialogContent className="max-w-[95vw] w-full h-[90vh] p-0 bg-black/95 border-none flex flex-col items-center justify-center overflow-hidden">
+    <DialogHeader className="absolute top-4 left-4 z-50">
+      <DialogTitle className="text-white opacity-70 font-normal">
+        Foto {currentPhotoIndex + 1} de {ativo.fotos?.length}
+      </DialogTitle>
+    </DialogHeader>
+
+    {/* Close Button Custom (opcional, o Dialog já traz um por defeito, mas este fica melhor em dark) */}
+    <Button 
+      variant="ghost" 
+      size="icon" 
+      className="absolute top-4 right-4 text-white hover:bg-white/20 z-50"
+      onClick={() => setViewerOpen(false)}
+    >
+      <X className="h-6 w-6" />
+    </Button>
+
+    <div className="relative w-full h-full flex items-center justify-center p-4">
+      {/* Navigation Buttons */}
+      {ativo.fotos && ativo.fotos.length > 1 && (
+        <>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute left-4 z-50 text-white hover:bg-white/20 rounded-full h-12 w-12"
+            onClick={(e) => { e.stopPropagation(); handlePrevPhoto(); }}
+          >
+            <ChevronLeft className="h-8 w-8" />
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-4 z-50 text-white hover:bg-white/20 rounded-full h-12 w-12"
+            onClick={(e) => { e.stopPropagation(); handleNextPhoto(); }}
+          >
+            <ChevronRight className="h-8 w-8" />
+          </Button>
+        </>
+      )}
+
+      {/* The Image */}
+      {ativo.fotos && (
+        <img
+          src={ativo.fotos[currentPhotoIndex]?.url}
+          alt={`Foto ${currentPhotoIndex + 1}`}
+          className="max-w-full max-h-full object-contain shadow-2xl transition-all duration-300"
+        />
+      )}
+    </div>
+  </DialogContent>
+</Dialog>
+
+        
         {/* Maintenance Schedule Modal */}
         <Dialog open={maintenanceModalOpen} onOpenChange={setMaintenanceModalOpen}>
           <DialogContent className="sm:max-w-[400px]">

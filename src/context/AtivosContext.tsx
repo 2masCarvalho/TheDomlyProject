@@ -22,13 +22,16 @@ export const AtivosProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const loadAtivos = async () => {
     try {
       setLoading(true);
-      // For now, we load all ativos. In production, this would be filtered server-side
-      const allAtivos: Ativo[] = [];
-      setAtivos(allAtivos);
+      
+      // CORREÇÃO: Chamar a API para buscar os dados reais do Supabase
+      const data = await ativosApi.getAll(); 
+      setAtivos(data);
+      
     } catch (error) {
+      console.error('Erro ao carregar ativos:', error);
       toast({
         title: 'Erro',
-        description: 'Não foi possível carregar os ativos',
+        description: 'Não foi possível carregar os ativos da base de dados',
         variant: 'destructive',
       });
     } finally {
@@ -36,6 +39,7 @@ export const AtivosProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     }
   };
 
+  // Carrega os ativos assim que o Provider é montado
   useEffect(() => {
     loadAtivos();
   }, []);
