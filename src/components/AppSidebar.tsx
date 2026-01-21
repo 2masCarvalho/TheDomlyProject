@@ -11,13 +11,13 @@ export function AppSidebar() {
   const { user, logout } = useAuth();
 
   const { ativos } = useAtivos();
-  
-const pendingCount = ativos?.reduce((acc, ativo) => 
-    acc + (ativo.alertas?.filter(a => a.estado === 'pendente').length || 0), 0
-) || 0;
 
-const menuItems: MenuItem[] = [
-    { title: "Dashboard", url: "/condominios", icon: LayoutDashboard },
+  const pendingCount = ativos?.reduce((acc, ativo) =>
+    acc + (ativo.alertas?.filter(a => a.estado === 'pendente').length || 0), 0
+  ) || 0;
+
+  const menuItems: MenuItem[] = [
+    { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
     { title: "Properties", url: "/condominios", icon: Building2 },
     { title: "Calendar", url: "/calendario", icon: Calendar },
     { title: "Alerts", url: "/alertas", icon: Shield, badge: pendingCount }, // Agora ele aceita o badge
@@ -26,12 +26,12 @@ const menuItems: MenuItem[] = [
     { title: "Settings", url: "/configuracoes", icon: Settings },
   ]
 
-interface MenuItem {
-  title: string;
-  url: string;
-  icon: any; // ou o tipo específico do Lucide se preferires
-  badge?: number; // O '?' indica que é opcional
-}
+  interface MenuItem {
+    title: string;
+    url: string;
+    icon: any; // ou o tipo específico do Lucide se preferires
+    badge?: number; // O '?' indica que é opcional
+  }
 
 
   const getUserInitials = () => {
@@ -39,7 +39,7 @@ interface MenuItem {
     return user.email.substring(0, 2).toUpperCase();
   };
 
-  const itemsWithBadges = menuItems.map((item) => 
+  const itemsWithBadges = menuItems.map((item) =>
     item.title === "Alerts" ? { ...item, badge: pendingCount } : item
   );
 
@@ -76,7 +76,7 @@ interface MenuItem {
                 {item.title}
               </span>
             </div>
-            
+
             {/* Badge de Alertas */}
             {item.badge > 0 && (
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white group-hover:mr-2">

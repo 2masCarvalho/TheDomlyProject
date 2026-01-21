@@ -34,9 +34,9 @@ export const AtivosPage: React.FC = () => {
 
   // Contar notificações não lidas
   const alertasPendentes = (ativos || []).reduce((total, ativo) => {
-  // O uso de ?. e || [] evita que o ecrã fique branco se os dados demorarem a chegar
-  return total + (ativo.alertas || []).filter((a) => a.estado === 'pendente').length;
-}, 0);
+    // O uso de ?. e || [] evita que o ecrã fique branco se os dados demorarem a chegar
+    return total + (ativo.alertas || []).filter((a) => a.estado === 'pendente').length;
+  }, 0);
 
   const handleCreate = () => {
     setSelectedAtivo(null);
@@ -54,27 +54,27 @@ export const AtivosPage: React.FC = () => {
   };
 
   const handleFormSubmit = async (data: AtivoFormData) => {
-  if (selectedAtivo) {
-    // Na edição, passamos o objeto 'data' completo
-    await updateAtivo(selectedAtivo.id_ativo, data);
-  } else {
-    // CORREÇÃO: Adicionar os campos que estavam em falta na criação
-    await createAtivo({
-      id_condominio: condominioId,
-      nome: data.nome,
-      categoria: data.categoria,
-      marca: data.marca,
-      modelo: data.modelo, 
-      num_serie: data.num_serie,
-      localizacao: data.localizacao,
-      estado: data.estado,
-      descricao: data.descricao,
-      valor: data.valor,
-      data_instalacao: data.data_instalacao,
-    });
-  }
-  setIsAtivoFormOpen(false); // Fecha o modal após sucesso
-};
+    if (selectedAtivo) {
+      // Na edição, passamos o objeto 'data' completo
+      await updateAtivo(selectedAtivo.id_ativo, data);
+    } else {
+      // CORREÇÃO: Adicionar os campos que estavam em falta na criação
+      await createAtivo({
+        id_condominio: condominioId,
+        nome: data.nome,
+        categoria: data.categoria,
+        marca: data.marca,
+        modelo: data.modelo,
+        num_serie: data.num_serie,
+        localizacao: data.localizacao,
+        estado: data.estado,
+        descricao: data.descricao,
+        valor: data.valor,
+        data_instalacao: data.data_instalacao,
+      });
+    }
+    setIsAtivoFormOpen(false); // Fecha o modal após sucesso
+  };
 
   const handleConfirmDelete = async () => {
     if (selectedAtivo) {
@@ -143,23 +143,23 @@ export const AtivosPage: React.FC = () => {
 
 
             <div className="flex gap-2">
-  <Button
-    variant="outline"
-    onClick={() => navigate(`/condominios/${condominioId}/notificacoes`)}
-    className="gap-2 relative"
-  >
-    <Bell className="h-4 w-4" />
-    Alertas
-    {/* Usamos a nova variável aqui */}
-    {alertasPendentes > 0 && (
-      <Badge
-        variant="destructive"
-        className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
-      >
-        {alertasPendentes}
-      </Badge>
-    )}
-  </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate(`/condominios/${condominioId}/notificacoes`)}
+                className="gap-2 relative"
+              >
+                <Bell className="h-4 w-4" />
+                Alertas
+                {/* Usamos a nova variável aqui */}
+                {alertasPendentes > 0 && (
+                  <Badge
+                    variant="destructive"
+                    className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                  >
+                    {alertasPendentes}
+                  </Badge>
+                )}
+              </Button>
               <Button onClick={handleCreate} className="gap-2 shadow-elegant">
                 <Plus className="h-4 w-4" />
                 Adicionar Ativo
