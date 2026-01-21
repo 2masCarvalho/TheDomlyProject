@@ -18,6 +18,8 @@ import { AtivoDetailPage } from "./pages/AtivoDetailPage";
 import { CalendarPage } from './pages/CalendarPage';
 import NotFound from "./pages/NotFound";
 import { AlertsPage } from "./pages/AlertsPage";
+import { MaintenancePage } from "./pages/MaintenancePage";
+import { DashboardPage } from "./pages/DashboardPage";
 
 
 
@@ -54,6 +56,8 @@ const App = () => (
                 <Route path="/condominios/:condominioId/ativos/:ativoId" element={<AtivoDetailPage />} />
                 <Route path="/calendario" element={<CalendarPage />} />
                 <Route path="/alertas" element={<AlertsPage />} />
+                <Route path="/manutencao" element={<MaintenancePage />} />
+                <Route path="/dashboard" element={<DashboardPage />} />
               </Route>
 
               {/* Catch-all */}

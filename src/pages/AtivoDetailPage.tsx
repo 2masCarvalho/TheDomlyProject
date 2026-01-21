@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCondominios } from '@/context/CondominiosContext';
 import { useAtivos } from '@/context/AtivosContext';
@@ -27,6 +27,8 @@ import {
   Loader2,
   ChevronLeft,
   ChevronRight,
+  CheckCircle2,
+  Wrench
 } from 'lucide-react';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { AtivoForm } from '@/components/AtivoForm/AtivoForm';
@@ -34,7 +36,8 @@ import { AtivoFormData } from '@/components/AtivoForm/validation';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Alerta, ativosApi } from '@/api/ativos';
+import { Alerta, ativosApi, manutencoesApi } from '@/api/ativos';
+import { MaintenanceForm } from '@/components/MaintenanceForm/MaintenanceForm';
 
 const estadoColors = {
   excelente: 'bg-green-500/10 text-green-500 border-green-500/20',
@@ -75,16 +78,20 @@ export const AtivoDetailPage: React.FC = () => {
   const [maintenanceDate, setMaintenanceDate] = useState('');
   const [notificationTitle, setNotificationTitle] = useState('');
   const [notificationMessage, setNotificationMessage] = useState('');
-  
+
   const [viewerOpen, setViewerOpen] = useState(false);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [notificationType, setNotificationType] = useState<Alerta['tipo_alerta']>('outro');
   const parsedCondominioId = parseInt(condominioId || '0');
   const parsedAtivoId = parseInt(ativoId || '0');
 
+  const [assetMaintenances, setAssetMaintenances] = useState<any[]>([]);
+  const [maintenancesLoading, setMaintenancesLoading] = useState(true);
+
   const condominio = condominios.find((c) => c.id_comdominio === parsedCondominioId);
   const ativos = getAtivosByCondominio(parsedCondominioId);
   const ativo = ativos.find((a) => a.id_ativo === parsedAtivoId);
+  const [isMaintenanceModalOpen, setIsMaintenanceModalOpen] = useState(false);
 
   if (condominiosLoading || ativosLoading) {
     return <LoadingSpinner />;
@@ -109,134 +116,165 @@ export const AtivoDetailPage: React.FC = () => {
     setEditModalOpen(false);
   };
 
+  const loadAssetMaintenances = async () => {
+    try {
+      setMaintenancesLoading(true);
+      // Filtramos as manutenções para mostrar apenas as deste ativo
+      const all = await manutencoesApi.getAllMaintenances();
+      const filtered = all.filter(m => m.id_ativo === parsedAtivoId);
+      setAssetMaintenances(filtered);
+    } catch (error) {
+      console.error("Erro ao carregar manutenções:", error);
+    } finally {
+      setMaintenancesLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadAssetMaintenances();
+  }, [parsedAtivoId]);
+
   const handleReportIncident = async () => {
-  if (!notificationTitle || !notificationMessage) {
-    toast({ title: 'Erro', description: 'Preencha o título e a descrição', variant: 'destructive' });
-    return;
-  }
+    if (!notificationTitle || !notificationMessage) {
+      toast({ title: 'Erro', description: 'Preencha o título e a descrição', variant: 'destructive' });
+      return;
+    }
 
-  try {
-    // Agora gravamos na tabela de ALERTAS que viste no esquema
-    await ativosApi.createAlert({
-      id_ativo: parsedAtivoId,
-      titulo: notificationTitle,
-      mensagem: notificationMessage,
-      tipo_alerta: notificationType, // avaria, manutencao, etc.
-      estado: 'pendente'
-    });
+    try {
+      // Agora gravamos na tabela de ALERTAS que viste no esquema
+      await ativosApi.createAlert({
+        id_ativo: parsedAtivoId,
+        titulo: notificationTitle,
+        mensagem: notificationMessage,
+        tipo_alerta: notificationType, // avaria, manutencao, etc.
+        estado: 'pendente'
+      });
 
-    toast({ title: 'Ocorrência Registada', description: 'O alerta foi criado com sucesso.' });
-    setNotificationModalOpen(false);
-    if (refreshAtivos) await refreshAtivos();
-  } catch (error: any) {
-    toast({ title: 'Erro', description: error.message, variant: 'destructive' });
-  }
-};
+      toast({ title: 'Ocorrência Registada', description: 'O alerta foi criado com sucesso.' });
+      setNotificationModalOpen(false);
+      if (refreshAtivos) await refreshAtivos();
+    } catch (error: any) {
+      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+    }
+  };
 
   const handleAddPhotos = async () => {
-  if (selectedPhotos.length === 0) {
-    toast({ title: 'Erro', description: 'Selecione pelo menos uma foto', variant: 'destructive' });
-    return;
-  }
+    if (selectedPhotos.length === 0) {
+      toast({ title: 'Erro', description: 'Selecione pelo menos uma foto', variant: 'destructive' });
+      return;
+    }
 
-  try {
-    setUploadingPhotos(true);
-    
-    // Faz o upload de todas as fotos selecionadas em paralelo
-    const uploadPromises = selectedPhotos.map(async (file) => {
-      const url = await ativosApi.uploadPhoto(parsedAtivoId, file);
-      return ativosApi.savePhoto(parsedAtivoId, url);
-    });
+    try {
+      setUploadingPhotos(true);
 
-    await Promise.all(uploadPromises);
+      // Faz o upload de todas as fotos selecionadas em paralelo
+      const uploadPromises = selectedPhotos.map(async (file) => {
+        const url = await ativosApi.uploadPhoto(parsedAtivoId, file);
+        return ativosApi.savePhoto(parsedAtivoId, url);
+      });
 
-    toast({ title: 'Sucesso', description: `${selectedPhotos.length} fotos adicionadas` });
-    setSelectedPhotos([]);
-    setPhotoModalOpen(false);
-    
-    if (refreshAtivos) await refreshAtivos();
-  } catch (error: any) {
-    toast({ title: 'Erro no upload', description: error.message, variant: 'destructive' });
-  } finally {
-    setUploadingPhotos(false);
-  }
-};
+      await Promise.all(uploadPromises);
+
+      toast({ title: 'Sucesso', description: `${selectedPhotos.length} fotos adicionadas` });
+      setSelectedPhotos([]);
+      setPhotoModalOpen(false);
+
+      if (refreshAtivos) await refreshAtivos();
+    } catch (error: any) {
+      toast({ title: 'Erro no upload', description: error.message, variant: 'destructive' });
+    } finally {
+      setUploadingPhotos(false);
+    }
+  };
 
   const handleNextPhoto = () => {
-  if (!ativo.fotos) return;
-  setCurrentPhotoIndex((prev) => (prev + 1) % ativo.fotos!.length);
-};
+    if (!ativo.fotos) return;
+    setCurrentPhotoIndex((prev) => (prev + 1) % ativo.fotos!.length);
+  };
 
-const alertColors = {
-  avaria: 'bg-red-500/10 text-red-500 border-red-500/20',
-  manutencao: 'bg-orange-500/10 text-orange-500 border-orange-500/20',
-  limpeza: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
-  inspecao: 'bg-purple-500/10 text-purple-500 border-purple-500/20',
-  outro: 'bg-gray-500/10 text-gray-500 border-gray-500/20',
-};
+  const alertColors = {
+    avaria: 'bg-red-500/10 text-red-500 border-red-500/20',
+    manutencao: 'bg-orange-500/10 text-orange-500 border-orange-500/20',
+    limpeza: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
+    inspecao: 'bg-purple-500/10 text-purple-500 border-purple-500/20',
+    outro: 'bg-gray-500/10 text-gray-500 border-gray-500/20',
+  };
 
-const handlePrevPhoto = () => {
-  if (!ativo.fotos) return;
-  setCurrentPhotoIndex((prev) => (prev - 1 + ativo.fotos!.length) % ativo.fotos!.length);
-};
+  const handlePrevPhoto = () => {
+    if (!ativo.fotos) return;
+    setCurrentPhotoIndex((prev) => (prev - 1 + ativo.fotos!.length) % ativo.fotos!.length);
+  };
 
   const handleAddDocument = async () => {
-  if (!selectedDocument) {
-    toast({
-      title: 'Erro',
-      description: 'Selecione um documento primeiro',
-      variant: 'destructive',
-    });
-    return;
-  }
+    if (!selectedDocument) {
+      toast({
+        title: 'Erro',
+        description: 'Selecione um documento primeiro',
+        variant: 'destructive',
+      });
+      return;
+    }
 
-  try {
-    setUploadingDoc(true);
+    try {
+      setUploadingDoc(true);
 
-    // 1. Upload do ficheiro para o Storage
-    const publicUrl = await ativosApi.uploadDocument(parsedAtivoId, selectedDocument);
+      // 1. Upload do ficheiro para o Storage
+      const publicUrl = await ativosApi.uploadDocument(parsedAtivoId, selectedDocument);
 
-    // 2. Grava os dados na tabela de documentos
-    await ativosApi.saveDocument({
-      id_ativo: parsedAtivoId,
-      nome: selectedDocument.name,
-      tipo_documento: selectedDocument.name.split('.').pop()?.toUpperCase() || 'DOC',
-      url: publicUrl,
-    });
+      // 2. Grava os dados na tabela de documentos
+      await ativosApi.saveDocument({
+        id_ativo: parsedAtivoId,
+        nome: selectedDocument.name,
+        tipo_documento: selectedDocument.name.split('.').pop()?.toUpperCase() || 'DOC',
+        url: publicUrl,
+      });
 
-    toast({
-      title: 'Sucesso',
-      description: 'O documento foi guardado com sucesso',
-    });
+      toast({
+        title: 'Sucesso',
+        description: 'O documento foi guardado com sucesso',
+      });
 
-    // 3. Limpa e fecha
-    setSelectedDocument(null);
-    setDocumentModalOpen(false);
-    
-    // 4. Atualiza a lista global para o documento aparecer no ecrã
-    if (refreshAtivos) await refreshAtivos();
+      // 3. Limpa e fecha
+      setSelectedDocument(null);
+      setDocumentModalOpen(false);
 
-  } catch (error: any) {
-    console.error('Erro no upload:', error);
-    toast({
-      title: 'Erro no upload',
-      description: error.message || 'Não foi possível guardar o documento',
-      variant: 'destructive',
-    });
-  } finally {
-    setUploadingDoc(false);
-  }
-};
+      // 4. Atualiza a lista global para o documento aparecer no ecrã
+      if (refreshAtivos) await refreshAtivos();
+
+    } catch (error: any) {
+      console.error('Erro no upload:', error);
+      toast({
+        title: 'Erro no upload',
+        description: error.message || 'Não foi possível guardar o documento',
+        variant: 'destructive',
+      });
+    } finally {
+      setUploadingDoc(false);
+    }
+  };
 
   const handleResolveAlert = async (id_alerta: number) => {
-  try {
-    await ativosApi.updateAlertStatus(id_alerta, 'resolvido');
-    toast({ title: 'Sucesso', description: 'Alerta marcado como resolvido.' });
-    if (refreshAtivos) await refreshAtivos(); // Atualiza a lista e o contador
-  } catch (error: any) {
-    toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+    try {
+      // 1. Chama a API para atualizar na base de dados
+      await ativosApi.updateAlertStatus(id_alerta, 'resolvido');
+
+      // 2. Feedback visual para o utilizador
+      toast({
+        title: 'Alerta Resolvido',
+        description: 'O estado da ocorrência foi atualizado com sucesso.'
+      });
+
+      // 3. REFRESH: Isto é vital para o contador da Sidebar e o Badge diminuírem
+      if (refreshAtivos) await refreshAtivos();
+
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao atualizar',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
   }
-};
 
   const handleScheduleMaintenance = () => {
     if (!maintenanceDate) {
@@ -272,7 +310,7 @@ const handlePrevPhoto = () => {
     });
     setNotificationTitle('');
     setNotificationMessage('');
-    setNotificationType('outro');    
+    setNotificationType('outro');
     setNotificationModalOpen(false);
   };
 
@@ -301,9 +339,9 @@ const handlePrevPhoto = () => {
               <div className="flex items-center gap-3 mb-2">
                 <h1 className="text-3xl font-bold">{ativo.nome}</h1>
                 {ativo.alertas?.some(a => a.tipo_alerta === 'avaria' && a.estado === 'pendente') && (
-                <Badge variant="destructive" className="animate-pulse">
-                  <AlertCircle className="h-3 w-3 mr-1" /> Avaria Reportada
-                </Badge>
+                  <Badge variant="destructive" className="animate-pulse">
+                    <AlertCircle className="h-3 w-3 mr-1" /> Avaria Reportada
+                  </Badge>
                 )}
               </div>
               <p className="text-muted-foreground text-lg">{ativo.categoria}</p>
@@ -333,73 +371,73 @@ const handlePrevPhoto = () => {
           <div className="lg:col-span-2 space-y-6">
             {/* Notificações */}
             {/* Notificações (Alertas) */}
-<Card className="p-6">
-  <div className="flex items-center justify-between mb-4">
-    <div className="flex items-center gap-2">
-      <Bell className="h-5 w-5" />
-      <h2 className="text-xl font-semibold">Alertas e Ocorrências</h2>
-      {/* Contador de Alertas Pendentes */}
-      {ativo.alertas && ativo.alertas.filter(a => a.estado === 'pendente').length > 0 && (
-        <Badge variant="destructive" className="ml-2">
-          {ativo.alertas.filter(a => a.estado === 'pendente').length}
-        </Badge>
-      )}
-    </div>
-    <Button size="sm" className="gap-2" onClick={() => setNotificationModalOpen(true)}>
-      <Plus className="h-4 w-4" />
-      Novo
-    </Button>
-  </div>
-
-  {ativo.alertas && ativo.alertas.length > 0 ? (
-    <div className="space-y-3">
-      {ativo.alertas.map((alerta) => (
-        <div
-          key={alerta.id_alerta}
-          className={`p-4 border rounded-lg transition-colors ${
-            alerta.estado === 'resolvido' ? 'bg-muted/50 opacity-70' : 'bg-background'
-          }`}
-        >
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <Badge variant="outline" className={alertColors[alerta.tipo_alerta]}>
-                  {alerta.tipo_alerta.toUpperCase()}
-                </Badge>
-                <span className="text-xs text-muted-foreground">
-                  {new Date(alerta.data_alerta).toLocaleDateString('pt-PT', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </span>
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Bell className="h-5 w-5" />
+                  <h2 className="text-xl font-semibold">Alertas e Ocorrências</h2>
+                  {/* Contador de Alertas Pendentes */}
+                  {ativo.alertas && ativo.alertas.filter(a => a.estado === 'pendente').length > 0 && (
+                    <Badge variant="destructive" className="ml-2">
+                      {ativo.alertas.filter(a => a.estado === 'pendente').length}
+                    </Badge>
+                  )}
+                </div>
+                <Button size="sm" className="gap-2" onClick={() => setNotificationModalOpen(true)}>
+                  <Plus className="h-4 w-4" />
+                  Novo
+                </Button>
               </div>
-              <h4 className="font-semibold mb-1">{alerta.titulo}</h4>
-              <p className="text-sm text-muted-foreground">{alerta.mensagem}</p>
-            </div>
-            {alerta.estado === 'pendente' && (
-  <Button
-    variant="ghost"
-    size="sm"
-    className="text-green-600 hover:text-green-700 hover:bg-green-50"
-    onClick={() => handleResolveAlert(alerta.id_alerta)} // <--- AQUI
-  >
-    Marcar resolvido
-  </Button>
-)}
-          </div>
-        </div>
-      ))}
-    </div>
-  ) : (
-    <div className="text-center py-8 text-muted-foreground">
-      <Bell className="h-12 w-12 mx-auto mb-2 opacity-50" />
-      <p>Nenhuma ocorrência registada</p>
-    </div>
-  )}
-</Card>
+
+              {ativo.alertas && ativo.alertas.length > 0 ? (
+                <div className="space-y-3">
+                  {ativo.alertas.map((alerta) => (
+                    <div
+                      key={alerta.id_alerta}
+                      className={`p-4 border rounded-lg transition-colors ${alerta.estado === 'resolvido' ? 'bg-muted/50 opacity-70' : 'bg-background'
+                        }`}
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge variant="outline" className={alertColors[alerta.tipo_alerta]}>
+                              {alerta.tipo_alerta.toUpperCase()}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(alerta.data_alerta).toLocaleDateString('pt-PT', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </span>
+                          </div>
+                          <h4 className="font-semibold mb-1">{alerta.titulo}</h4>
+                          <p className="text-sm text-muted-foreground">{alerta.mensagem}</p>
+                        </div>
+                        {alerta.estado === 'pendente' && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-green-600 hover:text-green-700 hover:bg-green-50 gap-2"
+                            onClick={() => handleResolveAlert(alerta.id_alerta)} // <--- LIGAÇÃO AQUI
+                          >
+                            <CheckCircle2 className="h-4 w-4" />
+                            Marcar resolvido
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Bell className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>Nenhuma ocorrência registada</p>
+                </div>
+              )}
+            </Card>
             {/* Informações Gerais */}
             <Card className="p-6">
               <h2 className="text-xl font-semibold mb-4">Informações Gerais</h2>
@@ -467,82 +505,140 @@ const handlePrevPhoto = () => {
             {/* Tabs: Fotos e Documentos */}
             <Card className="p-6">
               <Tabs defaultValue="fotos" className="w-full">
-  <TabsList className="grid w-full grid-cols-2">
-    <TabsTrigger value="fotos" className="flex-1">
-      <ImageIcon className="h-4 w-4 mr-2" />
-      {/* Contador de Fotos real */}
-      Fotos ({ativo.fotos?.length || 0})
-    </TabsTrigger>
-    <TabsTrigger value="documentos">
-      <FileText className="h-4 w-4 mr-2" />
-      {/* Contador de Documentos real */}
-      Documentos ({ativo.documentos?.length || 0})
-    </TabsTrigger>
-  </TabsList>
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="fotos" className="flex-1">
+                    <ImageIcon className="h-4 w-4 mr-2" />
+                    {/* Contador de Fotos real */}
+                    Fotos ({ativo.fotos?.length || 0})
+                  </TabsTrigger>
+                  <TabsTrigger value="documentos">
+                    <FileText className="h-4 w-4 mr-2" />
+                    {/* Contador de Documentos real */}
+                    Documentos ({ativo.documentos?.length || 0})
+                  </TabsTrigger>
+                </TabsList>
 
-  <TabsContent value="fotos" className="pt-4">
-  {ativo.fotos && ativo.fotos.length > 0 ? (
-    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-      {ativo.fotos.map((foto, index) => ( // Adicionamos o index aqui
-        <div 
-          key={foto.id} 
-          className="aspect-video rounded-lg overflow-hidden border bg-muted cursor-pointer group relative"
-          onClick={() => {
-            setCurrentPhotoIndex(index);
-            setViewerOpen(true);
-          }}
-        >
-          <img 
-            src={foto.url} 
-            className="w-full h-full object-cover transition-transform group-hover:scale-105" 
-            alt="Ativo"
-          />
-          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-             <ImageIcon className="text-white h-6 w-6" />
-          </div>
-        </div>
-      ))}
-      {/* ... botão de adicionar */}
-    </div>
-  ) : (
-      <div className="text-center py-12 border-2 border-dashed rounded-lg">
-        <ImageIcon className="h-12 w-12 mx-auto mb-3 opacity-20" />
-        <p>Nenhuma foto adicionada</p>
-        <Button variant="outline" size="sm" className="mt-4" onClick={() => setPhotoModalOpen(true)}>
-          <Upload className="h-4 w-4 mr-2" /> Carregar Foto
-        </Button>
-      </div>
-    )}
-  </TabsContent>
+                <TabsContent value="fotos" className="pt-4">
+                  {ativo.fotos && ativo.fotos.length > 0 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                      {ativo.fotos.map((foto, index) => ( // Adicionamos o index aqui
+                        <div
+                          key={foto.id}
+                          className="aspect-video rounded-lg overflow-hidden border bg-muted cursor-pointer group relative"
+                          onClick={() => {
+                            setCurrentPhotoIndex(index);
+                            setViewerOpen(true);
+                          }}
+                        >
+                          <img
+                            src={foto.url}
+                            className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                            alt="Ativo"
+                          />
+                          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <ImageIcon className="text-white h-6 w-6" />
+                          </div>
+                        </div>
+                      ))}
+                      {/* ... botão de adicionar */}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 border-2 border-dashed rounded-lg">
+                      <ImageIcon className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                      <p>Nenhuma foto adicionada</p>
+                      <Button variant="outline" size="sm" className="mt-4" onClick={() => setPhotoModalOpen(true)}>
+                        <Upload className="h-4 w-4 mr-2" /> Carregar Foto
+                      </Button>
+                    </div>
+                  )}
+                </TabsContent>
 
-  <TabsContent value="documentos" className="mt-4">
-    {ativo.documentos && ativo.documentos.length > 0 ? (
-      <div className="space-y-2">
-        {ativo.documentos.map((doc) => (
-          <div key={doc.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50">
-            <div className="flex items-center gap-3">
-              <FileText className="h-5 w-5 text-primary" />
-              <div>
-                <p className="font-medium">{doc.nome}</p>
-                <p className="text-sm text-muted-foreground">
-                  {doc.tipo_documento} • {new Date(doc.data_upload || doc.created_at).toLocaleDateString('pt-PT')}
-                </p>
-              </div>
-            </div>
-            <Button variant="ghost" size="icon" onClick={() => window.open(doc.url, '_blank')}>
-              <Download className="h-4 w-4" />
-            </Button>
-          </div>
-        ))}
-      </div>
-    ) : (
-      <div className="text-center py-8">
-        <p>Nenhum documento.</p>
-      </div>
-    )}
-  </TabsContent>
-</Tabs>
+                <TabsContent value="documentos" className="mt-4">
+                  {ativo.documentos && ativo.documentos.length > 0 ? (
+                    <div className="space-y-2">
+                      {ativo.documentos.map((doc) => (
+                        <div key={doc.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50">
+                          <div className="flex items-center gap-3">
+                            <FileText className="h-5 w-5 text-primary" />
+                            <div>
+                              <p className="font-medium">{doc.nome}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {doc.tipo_documento} • {new Date(doc.data_upload || doc.created_at).toLocaleDateString('pt-PT')}
+                              </p>
+                            </div>
+                          </div>
+                          <Button variant="ghost" size="icon" onClick={() => window.open(doc.url, '_blank')}>
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p>Nenhum documento.</p>
+                    </div>
+                  )}
+                </TabsContent>
+              </Tabs>
             </Card>
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2">
+                  <Wrench className="h-5 w-5 text-primary" />
+                  <h2 className="text-xl font-semibold">Plano de Manutenção</h2>
+                </div>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="gap-2"
+                  onClick={() => setIsMaintenanceModalOpen(true)}
+                >
+                  <Plus className="h-4 w-4" /> Agendar
+                </Button>
+              </div>
+
+              {maintenancesLoading ? (
+                <div className="flex justify-center py-8"><Loader2 className="animate-spin h-6 w-6 text-muted-foreground" /></div>
+              ) : assetMaintenances.length > 0 ? (
+                <div className="border rounded-lg overflow-hidden">
+                  <table className="w-full text-sm text-left">
+                    <thead className="bg-muted/50 text-muted-foreground uppercase text-[10px] font-bold">
+                      <tr>
+                        <th className="p-3">Data</th>
+                        <th className="p-3">Descrição</th>
+                        <th className="p-3 text-right">Custo</th>
+                        <th className="p-3 text-center">Estado</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {assetMaintenances.map((m) => (
+                        <tr key={m.id_manutencao} className="hover:bg-muted/30 transition-colors">
+                          <td className="p-3 font-medium">
+                            {m.data_conclusao ? new Date(m.data_conclusao).toLocaleDateString('pt-PT') : '---'}
+                          </td>
+                          <td className="p-3 text-muted-foreground truncate max-w-[200px]">{m.descricao}</td>
+                          <td className="p-3 text-right font-mono">
+                            {m.custo ? `${m.custo.toFixed(2)}€` : '0.00€'}
+                          </td>
+                          <td className="p-3 text-center">
+                            <Badge className={m.estado === 'concluido' ? 'bg-green-500' : 'bg-yellow-500'}>
+                              {m.estado.toUpperCase()}
+                            </Badge>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-8 bg-muted/20 rounded-lg border-2 border-dashed">
+                  <Calendar className="h-10 w-10 mx-auto mb-2 opacity-20" />
+                  <p className="text-muted-foreground">Sem manutenções registadas.</p>
+                </div>
+              )}
+            </Card>
+          
+            
           </div>
 
           {/* Sidebar */}
@@ -581,27 +677,40 @@ const handlePrevPhoto = () => {
                   <FileText className="h-4 w-4" />
                   Adicionar Documento
                 </Button>
-                <Button 
-    variant="destructive" 
-    className="w-full justify-start gap-2 shadow-sm" 
-    onClick={() => {
-      setNotificationType('avaria'); // Pré-seleciona Avaria
-      setNotificationModalOpen(true);
-    }}
-  >
-    <AlertCircle className="h-4 w-4" />
-    Reportar Avaria
-  </Button>
-  <Separator className="my-2" />
-                <Button variant="outline" className="w-full justify-start gap-2" onClick={() => setMaintenanceModalOpen(true)}>
-                  <Calendar className="h-4 w-4" />
-                  Agendar Manutenção
+                <Button
+                  variant="destructive"
+                  className="w-full justify-start gap-2 shadow-sm"
+                  onClick={() => {
+                    setNotificationType('avaria'); // Pré-seleciona Avaria
+                    setNotificationModalOpen(true);
+                  }}
+                >
+                  <AlertCircle className="h-4 w-4" />
+                  Reportar Avaria
+                </Button>
+                <Separator className="my-2" />
+                <Button
+                  variant="outline"
+                  className="w-full justify-start gap-2"
+                  onClick={() => setIsMaintenanceModalOpen(true)} // Abre o modal
+                >
+                  <Calendar className="h-4 w-4" /> Agendar Manutenção
                 </Button>
                 <Button variant="outline" className="w-full justify-start gap-2" onClick={() => setEditModalOpen(true)}>
                   <Edit className="h-4 w-4" />
                   Editar Informações
                 </Button>
               </div>
+
+              <MaintenanceForm
+                open={isMaintenanceModalOpen}
+                onOpenChange={setIsMaintenanceModalOpen}
+                ativos={[]} // Não precisa da lista completa aqui
+                fixedAtivoId={ativo.id_ativo} // Passa o ID deste ativo específico
+                onSuccess={() => {
+                  // Lógica para recarregar os dados do ativo ou mostrar toast de sucesso
+                }}
+              />
             </Card>
           </div>
         </div>
@@ -714,7 +823,7 @@ const handlePrevPhoto = () => {
                 <Button onClick={handleAddDocument} disabled={uploadingDoc || !selectedDocument}>
                   {uploadingDoc ? (
                     <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       A carregar...
                     </>
                   ) : (
@@ -727,61 +836,61 @@ const handlePrevPhoto = () => {
         </Dialog>
 
         {/* Image Viewer Lightbox */}
-<Dialog open={viewerOpen} onOpenChange={setViewerOpen}>
-  <DialogContent className="max-w-[95vw] w-full h-[90vh] p-0 bg-black/95 border-none flex flex-col items-center justify-center overflow-hidden">
-    <DialogHeader className="absolute top-4 left-4 z-50">
-      <DialogTitle className="text-white opacity-70 font-normal">
-        Foto {currentPhotoIndex + 1} de {ativo.fotos?.length}
-      </DialogTitle>
-    </DialogHeader>
+        <Dialog open={viewerOpen} onOpenChange={setViewerOpen}>
+          <DialogContent className="max-w-[95vw] w-full h-[90vh] p-0 bg-black/95 border-none flex flex-col items-center justify-center overflow-hidden">
+            <DialogHeader className="absolute top-4 left-4 z-50">
+              <DialogTitle className="text-white opacity-70 font-normal">
+                Foto {currentPhotoIndex + 1} de {ativo.fotos?.length}
+              </DialogTitle>
+            </DialogHeader>
 
-    {/* Close Button Custom (opcional, o Dialog já traz um por defeito, mas este fica melhor em dark) */}
-    <Button 
-      variant="ghost" 
-      size="icon" 
-      className="absolute top-4 right-4 text-white hover:bg-white/20 z-50"
-      onClick={() => setViewerOpen(false)}
-    >
-      <X className="h-6 w-6" />
-    </Button>
+            {/* Close Button Custom (opcional, o Dialog já traz um por defeito, mas este fica melhor em dark) */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-4 right-4 text-white hover:bg-white/20 z-50"
+              onClick={() => setViewerOpen(false)}
+            >
+              <X className="h-6 w-6" />
+            </Button>
 
-    <div className="relative w-full h-full flex items-center justify-center p-4">
-      {/* Navigation Buttons */}
-      {ativo.fotos && ativo.fotos.length > 1 && (
-        <>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute left-4 z-50 text-white hover:bg-white/20 rounded-full h-12 w-12"
-            onClick={(e) => { e.stopPropagation(); handlePrevPhoto(); }}
-          >
-            <ChevronLeft className="h-8 w-8" />
-          </Button>
+            <div className="relative w-full h-full flex items-center justify-center p-4">
+              {/* Navigation Buttons */}
+              {ativo.fotos && ativo.fotos.length > 1 && (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute left-4 z-50 text-white hover:bg-white/20 rounded-full h-12 w-12"
+                    onClick={(e) => { e.stopPropagation(); handlePrevPhoto(); }}
+                  >
+                    <ChevronLeft className="h-8 w-8" />
+                  </Button>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-4 z-50 text-white hover:bg-white/20 rounded-full h-12 w-12"
-            onClick={(e) => { e.stopPropagation(); handleNextPhoto(); }}
-          >
-            <ChevronRight className="h-8 w-8" />
-          </Button>
-        </>
-      )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-4 z-50 text-white hover:bg-white/20 rounded-full h-12 w-12"
+                    onClick={(e) => { e.stopPropagation(); handleNextPhoto(); }}
+                  >
+                    <ChevronRight className="h-8 w-8" />
+                  </Button>
+                </>
+              )}
 
-      {/* The Image */}
-      {ativo.fotos && (
-        <img
-          src={ativo.fotos[currentPhotoIndex]?.url}
-          alt={`Foto ${currentPhotoIndex + 1}`}
-          className="max-w-full max-h-full object-contain shadow-2xl transition-all duration-300"
-        />
-      )}
-    </div>
-  </DialogContent>
-</Dialog>
+              {/* The Image */}
+              {ativo.fotos && (
+                <img
+                  src={ativo.fotos[currentPhotoIndex]?.url}
+                  alt={`Foto ${currentPhotoIndex + 1}`}
+                  className="max-w-full max-h-full object-contain shadow-2xl transition-all duration-300"
+                />
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
 
-        
+
         {/* Maintenance Schedule Modal */}
         <Dialog open={maintenanceModalOpen} onOpenChange={setMaintenanceModalOpen}>
           <DialogContent className="sm:max-w-[400px]">
@@ -820,21 +929,21 @@ const handlePrevPhoto = () => {
             <div className="space-y-4">
               <div>
                 <Label htmlFor="notification-type">Tipo de Notificação</Label>
-                <Select 
-  value={notificationType} 
-  onValueChange={(value: Alerta['tipo_alerta']) => setNotificationType(value)}
->
-  <SelectTrigger className="mt-2">
-    <SelectValue />
-  </SelectTrigger>
-  <SelectContent>
-    <SelectItem value="avaria">Avaria</SelectItem>
-    <SelectItem value="manutencao">Manutenção</SelectItem>
-    <SelectItem value="limpeza">Limpeza</SelectItem>
-    <SelectItem value="inspecao">Inspeção</SelectItem>
-    <SelectItem value="outro">Outro</SelectItem>
-  </SelectContent>
-</Select>
+                <Select
+                  value={notificationType}
+                  onValueChange={(value: Alerta['tipo_alerta']) => setNotificationType(value)}
+                >
+                  <SelectTrigger className="mt-2">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="avaria">Avaria</SelectItem>
+                    <SelectItem value="manutencao">Manutenção</SelectItem>
+                    <SelectItem value="limpeza">Limpeza</SelectItem>
+                    <SelectItem value="inspecao">Inspeção</SelectItem>
+                    <SelectItem value="outro">Outro</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label htmlFor="notification-title">Título</Label>

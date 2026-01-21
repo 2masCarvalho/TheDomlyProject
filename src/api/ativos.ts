@@ -72,6 +72,59 @@ export interface CreateAtivoData {
   frequencia_manutencao?: number;
 }
 
+export const manutencoesApi = {
+  createMaintenance: async (data: any) => {
+  const { data: result, error } = await supabase
+    .from('manutencoes')
+    .insert([{
+      id_ativo: data.id_ativo,
+      descricao: data.descricao,
+      data_conclusao: data.data_conclusao,
+      custo: data.custo,
+      estado: data.estado,
+      tipo_manutencao: data.tipo_manutencao // Campo adicionado para resolver image_c73a4e.jpg
+    }])
+    .select()
+    .single();
+
+  if (error) throw error;
+  return result;
+},
+
+  getAllMaintenances: async () => {
+  const { data, error } = await supabase
+    .from('manutencoes')
+    // Nota as relações: puxamos ativos e, dentro de ativos, os condominios
+    .select('*, ativos(nome, id_condominio, condominios(nome))')
+    .order('data_conclusao', { ascending: false });
+
+  if (error) throw error;
+  return data;
+},
+
+updateMaintenance: async (id: number, data: any) => {
+  const { data: result, error } = await supabase
+    .from('manutencoes')
+    .update({
+      descricao: data.descricao,
+      data_conclusao: data.data_conclusao,
+      custo: data.custo,
+      estado: data.estado,
+      tipo_manutencao: data.tipo_manutencao,
+      id_ativo: data.id_ativo
+    })
+    .eq('id_manutencao', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return result;
+}
+
+
+};
+
+
 export const ativosApi = {
   getAll: async (): Promise<Ativo[]> => {
   const { data, error } = await supabase
@@ -150,6 +203,8 @@ export const ativosApi = {
     if (error) throw error;
     return newAtivo;
   },
+
+  
 
   update: async (id: number, data: Partial<CreateAtivoData>): Promise<Ativo> => {
     const payload = { ...data };
@@ -266,4 +321,7 @@ export const ativosApi = {
     if (error) throw error;
     return data as unknown as Documento;
   }
+
+
+  
 };
