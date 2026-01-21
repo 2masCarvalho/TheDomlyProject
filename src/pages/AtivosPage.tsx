@@ -53,20 +53,27 @@ export const AtivosPage: React.FC = () => {
   };
 
   const handleFormSubmit = async (data: AtivoFormData) => {
-    if (selectedAtivo) {
-      await updateAtivo(selectedAtivo.id_ativo, data);
-    } else {
-      await createAtivo({
-        id_condominio: condominioId,
-        nome: data.nome,
-        categoria: data.categoria,
-        estado: data.estado,
-        descricao: data.descricao,
-        valor: data.valor,
-        data_instalacao: data.data_instalacao,
-      });
-    }
-  };
+  if (selectedAtivo) {
+    // Na edição, passamos o objeto 'data' completo
+    await updateAtivo(selectedAtivo.id_ativo, data);
+  } else {
+    // CORREÇÃO: Adicionar os campos que estavam em falta na criação
+    await createAtivo({
+      id_condominio: condominioId,
+      nome: data.nome,
+      categoria: data.categoria,
+      marca: data.marca,
+      modelo: data.modelo, 
+      num_serie: data.num_serie,
+      localizacao: data.localizacao,
+      estado: data.estado,
+      descricao: data.descricao,
+      valor: data.valor,
+      data_instalacao: data.data_instalacao,
+    });
+  }
+  setIsAtivoFormOpen(false); // Fecha o modal após sucesso
+};
 
   const handleConfirmDelete = async () => {
     if (selectedAtivo) {

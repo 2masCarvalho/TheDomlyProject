@@ -10,6 +10,12 @@ export interface Notificacao {
   lida: boolean;
 }
 
+export interface Foto {
+  id: number;
+  url: string;
+  created_at: string;
+}
+
 export interface Manutencao {
   id: number;
   data: string;
@@ -21,15 +27,10 @@ export interface Manutencao {
 export interface Documento {
   id: number;
   nome: string;
-  tipo: string;
+  tipo_documento: string;
   url: string;
   data_upload: string;
-}
-
-export interface Foto {
-  id: number;
-  url: string;
-  data_upload: string;
+  created_at?: string;
 }
 
 export interface Ativo {
@@ -42,19 +43,16 @@ export interface Ativo {
   num_serie?: number;
   data_instalacao?: string;
   created_at?: string;
-
-  // Fields not in DB yet but used in UI (keeping optional for now or need to be added to DB)
-  estado?: 'excelente' | 'bom' | 'regular' | 'mau';
+  estado: 'excelente' | 'bom' | 'regular' | 'mau';
   descricao?: string;
   valor?: number;
   data_proxima_manutencao?: string;
   localizacao?: string;
   observacoes?: string;
-
   notificacoes?: Notificacao[];
   manutencoes?: Manutencao[];
+  fotos?: Foto[]; // Agora recebe a lista de objetos da tabela 'fotos'
   documentos?: Documento[];
-  fotos?: string[];
 }
 
 export interface CreateAtivoData {
@@ -65,8 +63,6 @@ export interface CreateAtivoData {
   modelo?: string;
   num_serie?: number;
   data_instalacao?: string;
-
-  // Keeping these for compatibility if we add them later
   estado?: 'excelente' | 'bom' | 'regular' | 'mau';
   descricao?: string;
   valor?: number;
@@ -74,13 +70,25 @@ export interface CreateAtivoData {
 }
 
 export const ativosApi = {
+  getAll: async (): Promise<Ativo[]> => {
+  const { data, error } = await supabase
+    .from('ativos')
+    // ADICIONA fotos(*) AQUI TAMBÉM:
+    .select('*, documentos(*), fotos(*)') 
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+},
+
+  
+
   getByCondominio: async (condominioId: number): Promise<Ativo[]> => {
     const { data, error } = await supabase
       .from('ativos')
-      .select('*')
+      .select('*, documentos(*), fotos(*)') 
       .eq('id_condominio', condominioId)
       .order('created_at', { ascending: false });
-
     if (error) throw error;
     return data || [];
   },
@@ -88,16 +96,14 @@ export const ativosApi = {
   getById: async (id: number): Promise<Ativo | null> => {
     const { data, error } = await supabase
       .from('ativos')
-      .select('*')
+      .select('*, documentos(*), fotos(*)')
       .eq('id_ativo', id)
       .single();
-
     if (error) throw error;
     return data;
   },
 
   create: async (data: CreateAtivoData): Promise<Ativo> => {
-    // Filter out undefined values to avoid sending them to Supabase if columns don't exist
     const payload = {
       id_condominio: data.id_condominio,
       nome: data.nome,
@@ -112,33 +118,20 @@ export const ativosApi = {
       localizacao: data.localizacao,
     };
 
-    console.log('Sending payload to Supabase:', payload);
-
     const { data: newAtivo, error } = await supabase
       .from('ativos')
       .insert([payload])
       .select()
       .single();
 
-    if (error) {
-      console.error('Supabase error creating ativo:', error);
-      throw error;
-    }
+    if (error) throw error;
     return newAtivo;
   },
 
   update: async (id: number, data: Partial<CreateAtivoData>): Promise<Ativo> => {
     const payload = { ...data };
-    if (payload.data_instalacao === '') {
-      (payload as any).data_instalacao = null;
-    }
-    if (payload.num_serie !== undefined && Number.isNaN(payload.num_serie)) {
-      (payload as any).num_serie = null;
-    }
-    if (payload.valor !== undefined && Number.isNaN(payload.valor)) {
-      (payload as any).valor = null;
-    }
-
+    if (payload.data_instalacao === '') (payload as any).data_instalacao = null;
+    
     const { data: updatedAtivo, error } = await supabase
       .from('ativos')
       .update(payload)
@@ -158,5 +151,61 @@ export const ativosApi = {
 
     if (error) throw error;
   },
-};
 
+  uploadPhoto: async (ativoId: number, file: File): Promise<string> => {
+    const fileName = `${Date.now()}-${file.name}`;
+    const filePath = `ativos/${ativoId}/photos/${fileName}`;
+    const { error: uploadError } = await supabase.storage.from('ativos-photos').upload(filePath, file);
+    if (uploadError) throw uploadError;
+    const { data } = supabase.storage.from('ativos-photos').getPublicUrl(filePath);
+    return data.publicUrl;
+  },
+
+  savePhoto: async (ativoId: number, url: string) => {
+    const { error } = await supabase.from('fotos').insert([{ id_ativo: ativoId, url }]);
+    if (error) throw error;
+  },
+
+
+  // GESTÃO DE DOCUMENTOS
+  uploadDocument: async (ativoId: number, file: File): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = `ativos/${ativoId}/documents/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('ativos-documents')
+      .upload(filePath, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data } = supabase.storage
+      .from('ativos-documents')
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
+  },
+
+  saveDocument: async (documentData: { 
+    id_ativo: number; 
+    nome: string; 
+    tipo_documento: string; 
+    url: string; 
+  }): Promise<Documento> => {
+    const { data, error } = await supabase
+      .from('documentos' as any)
+      .insert([{
+        id_ativo: documentData.id_ativo,
+        nome: documentData.nome,
+        tipo_documento: documentData.tipo_documento,
+        url: documentData.url,
+        // Removido data_emissao para bater certo com a base de dados
+        data_upload: new Date().toISOString()
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as unknown as Documento;
+  }
+};
