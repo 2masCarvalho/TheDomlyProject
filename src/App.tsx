@@ -15,8 +15,9 @@ import SignupPage from "./pages/SignupPage";
 import { CondominiosPage } from "./pages/CondominiosPage";
 import { AtivosPage } from "./pages/AtivosPage";
 import { AtivoDetailPage } from "./pages/AtivoDetailPage";
-import { NotificacoesPage } from "./pages/NotificacoesPage";
+import { CalendarPage } from './pages/CalendarPage';
 import NotFound from "./pages/NotFound";
+import { AlertsPage } from "./pages/AlertsPage";
 
 
 
@@ -50,8 +51,9 @@ const App = () => (
 
                 <Route path="/condominios" element={<CondominiosPage />} />
                 <Route path="/condominios/:id/ativos" element={<AtivosPage />} />
-                <Route path="/condominios/:id/notificacoes" element={<NotificacoesPage />} />
                 <Route path="/condominios/:condominioId/ativos/:ativoId" element={<AtivoDetailPage />} />
+                <Route path="/calendario" element={<CalendarPage />} />
+                <Route path="/alertas" element={<AlertsPage />} />
               </Route>
 
               {/* Catch-all */}

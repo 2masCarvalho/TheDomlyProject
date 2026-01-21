@@ -33,9 +33,10 @@ export const AtivosPage: React.FC = () => {
   const ativos = getAtivosByCondominio(condominioId);
 
   // Contar notificações não lidas
-  const notificacoesNaoLidas = ativos.reduce((total, ativo) => {
-    return total + (ativo.notificacoes || []).filter((n) => !n.lida).length;
-  }, 0);
+  const alertasPendentes = (ativos || []).reduce((total, ativo) => {
+  // O uso de ?. e || [] evita que o ecrã fique branco se os dados demorarem a chegar
+  return total + (ativo.alertas || []).filter((a) => a.estado === 'pendente').length;
+}, 0);
 
   const handleCreate = () => {
     setSelectedAtivo(null);
@@ -142,22 +143,23 @@ export const AtivosPage: React.FC = () => {
 
 
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => navigate(`/condominios/${condominioId}/notificacoes`)}
-                className="gap-2 relative"
-              >
-                <Bell className="h-4 w-4" />
-                Notificações
-                {notificacoesNaoLidas > 0 && (
-                  <Badge
-                    variant="destructive"
-                    className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
-                  >
-                    {notificacoesNaoLidas}
-                  </Badge>
-                )}
-              </Button>
+  <Button
+    variant="outline"
+    onClick={() => navigate(`/condominios/${condominioId}/notificacoes`)}
+    className="gap-2 relative"
+  >
+    <Bell className="h-4 w-4" />
+    Alertas
+    {/* Usamos a nova variável aqui */}
+    {alertasPendentes > 0 && (
+      <Badge
+        variant="destructive"
+        className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+      >
+        {alertasPendentes}
+      </Badge>
+    )}
+  </Button>
               <Button onClick={handleCreate} className="gap-2 shadow-elegant">
                 <Plus className="h-4 w-4" />
                 Adicionar Ativo

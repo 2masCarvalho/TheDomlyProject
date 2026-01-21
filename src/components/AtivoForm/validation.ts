@@ -9,6 +9,12 @@ export const ativoFormSchema = z.object({
     invalid_type_error: 'Nº de série é obrigatório e deve ser um número' 
   }),
   data_instalacao: z.string().min(1, 'Data de instalação é obrigatória'),
+  // NOVOS CAMPOS AQUI:
+  ultima_manutencao: z.string().optional().or(z.literal('')),
+  frequencia_manutencao: z.number({ 
+    invalid_type_error: 'Frequência deve ser um número' 
+  }).min(1, 'Mínimo 1 mês').default(6),
+  
   estado: z.enum(['excelente', 'bom', 'regular', 'mau'], {
     required_error: 'Selecione o estado do ativo',
   }),
@@ -16,7 +22,6 @@ export const ativoFormSchema = z.object({
   valor: z.number({ 
     invalid_type_error: 'Valor é obrigatório' 
   }).min(0, 'O valor não pode ser negativo'),
-  // APENAS A LOCALIZAÇÃO É OPCIONAL
   localizacao: z.string().optional().or(z.literal('')),
 });
 

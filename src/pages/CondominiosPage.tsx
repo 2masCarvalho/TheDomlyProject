@@ -53,9 +53,9 @@ export const CondominiosPage: React.FC = () => {
       tem_elevador: data.tem_elevador,
       email_geral: data.email_geral,
       telefone: data.telefone,
-      admin_externa: data.admin_externa,
-      apolice_seguro: data.apolice_seguro,
-      companhia_seguro: data.companhia_seguro,
+      //admin_externa: data.admin_externa,
+      //apolice_seguro: data.apolice_seguro,
+      // companhia_seguro: data.companhia_seguro,
     };
 
     console.log("📦 [Page] Payload a enviar para API:", payload);

@@ -150,10 +150,31 @@ export const AtivoForm: React.FC<AtivoFormProps> = ({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="localizacao">Localização (Opcional)</Label>
-            <Input id="localizacao" {...register('localizacao')} />
-          </div>
+          <div className="grid grid-cols-2 gap-4">
+  <div className="space-y-2">
+    <Label htmlFor="ultima_manutencao">Última Manutenção (Opcional)</Label>
+    <Input type="date" {...register('ultima_manutencao')} />
+  </div>
+
+  <div className="space-y-2">
+    <Label htmlFor="frequencia_manutencao">Frequência (Meses) *</Label>
+    <Input 
+      type="number" 
+      {...register('frequencia_manutencao', { 
+        valueAsNumber: true,
+        setValueAs: (v) => v === "" ? 6 : parseInt(v, 10) 
+      })} 
+    />
+    {errors.frequencia_manutencao && (
+      <p className="text-xs text-destructive">{errors.frequencia_manutencao.message}</p>
+    )}
+  </div>
+</div>
+
+<div className="space-y-2">
+  <Label htmlFor="localizacao">Localização (Opcional)</Label>
+  <Input id="localizacao" {...register('localizacao')} />
+</div>
 
           <div className="flex justify-end gap-3 pt-4 border-t">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>

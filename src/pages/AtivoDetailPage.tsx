@@ -34,7 +34,7 @@ import { AtivoFormData } from '@/components/AtivoForm/validation';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ativosApi } from '@/api/ativos';
+import { Alerta, ativosApi } from '@/api/ativos';
 
 const estadoColors = {
   excelente: 'bg-green-500/10 text-green-500 border-green-500/20',
@@ -49,6 +49,14 @@ const notificationColors = {
   urgente: 'bg-red-500/10 text-red-500 border-red-500/20',
 };
 
+const alertCategories = [
+  { value: 'avaria', label: 'Avaria/Falha Técnica', color: 'text-red-500' },
+  { value: 'manutencao', label: 'Manutenção Necessária', color: 'text-orange-500' },
+  { value: 'limpeza', label: 'Limpeza/Conservação', color: 'text-blue-500' },
+  { value: 'inspecao', label: 'Inspeção Periódica', color: 'text-purple-500' },
+  { value: 'outro', label: 'Outra Informação', color: 'text-gray-500' },
+];
+
 export const AtivoDetailPage: React.FC = () => {
   const { condominioId, ativoId } = useParams<{ condominioId: string; ativoId: string }>();
   const navigate = useNavigate();
@@ -56,6 +64,7 @@ export const AtivoDetailPage: React.FC = () => {
   const { condominios, loading: condominiosLoading } = useCondominios();
   const { getAtivosByCondominio, updateAtivo, refreshAtivos, loading: ativosLoading } = useAtivos();
   const [uploadingDoc, setUploadingDoc] = useState(false);
+  const [uploadingPhotos, setUploadingPhotos] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [photoModalOpen, setPhotoModalOpen] = useState(false);
   const [documentModalOpen, setDocumentModalOpen] = useState(false);
@@ -66,11 +75,10 @@ export const AtivoDetailPage: React.FC = () => {
   const [maintenanceDate, setMaintenanceDate] = useState('');
   const [notificationTitle, setNotificationTitle] = useState('');
   const [notificationMessage, setNotificationMessage] = useState('');
-  const [notificationType, setNotificationType] = useState<'info' | 'aviso' | 'urgente'>('info');
-  const [uploadingPhotos, setUploadingPhotos] = useState(false);
+  
   const [viewerOpen, setViewerOpen] = useState(false);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
-
+  const [notificationType, setNotificationType] = useState<Alerta['tipo_alerta']>('outro');
   const parsedCondominioId = parseInt(condominioId || '0');
   const parsedAtivoId = parseInt(ativoId || '0');
 
@@ -100,6 +108,30 @@ export const AtivoDetailPage: React.FC = () => {
     await updateAtivo(parsedAtivoId, data);
     setEditModalOpen(false);
   };
+
+  const handleReportIncident = async () => {
+  if (!notificationTitle || !notificationMessage) {
+    toast({ title: 'Erro', description: 'Preencha o título e a descrição', variant: 'destructive' });
+    return;
+  }
+
+  try {
+    // Agora gravamos na tabela de ALERTAS que viste no esquema
+    await ativosApi.createAlert({
+      id_ativo: parsedAtivoId,
+      titulo: notificationTitle,
+      mensagem: notificationMessage,
+      tipo_alerta: notificationType, // avaria, manutencao, etc.
+      estado: 'pendente'
+    });
+
+    toast({ title: 'Ocorrência Registada', description: 'O alerta foi criado com sucesso.' });
+    setNotificationModalOpen(false);
+    if (refreshAtivos) await refreshAtivos();
+  } catch (error: any) {
+    toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+  }
+};
 
   const handleAddPhotos = async () => {
   if (selectedPhotos.length === 0) {
@@ -133,6 +165,14 @@ export const AtivoDetailPage: React.FC = () => {
   const handleNextPhoto = () => {
   if (!ativo.fotos) return;
   setCurrentPhotoIndex((prev) => (prev + 1) % ativo.fotos!.length);
+};
+
+const alertColors = {
+  avaria: 'bg-red-500/10 text-red-500 border-red-500/20',
+  manutencao: 'bg-orange-500/10 text-orange-500 border-orange-500/20',
+  limpeza: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
+  inspecao: 'bg-purple-500/10 text-purple-500 border-purple-500/20',
+  outro: 'bg-gray-500/10 text-gray-500 border-gray-500/20',
 };
 
 const handlePrevPhoto = () => {
@@ -188,6 +228,16 @@ const handlePrevPhoto = () => {
   }
 };
 
+  const handleResolveAlert = async (id_alerta: number) => {
+  try {
+    await ativosApi.updateAlertStatus(id_alerta, 'resolvido');
+    toast({ title: 'Sucesso', description: 'Alerta marcado como resolvido.' });
+    if (refreshAtivos) await refreshAtivos(); // Atualiza a lista e o contador
+  } catch (error: any) {
+    toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+  }
+};
+
   const handleScheduleMaintenance = () => {
     if (!maintenanceDate) {
       toast({
@@ -222,7 +272,7 @@ const handlePrevPhoto = () => {
     });
     setNotificationTitle('');
     setNotificationMessage('');
-    setNotificationType('info');
+    setNotificationType('outro');    
     setNotificationModalOpen(false);
   };
 
@@ -250,9 +300,11 @@ const handlePrevPhoto = () => {
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
                 <h1 className="text-3xl font-bold">{ativo.nome}</h1>
-                <Badge variant="outline" className={estadoColors[ativo.estado]}>
-                  {ativo.estado || 'Sem estado'}
+                {ativo.alertas?.some(a => a.tipo_alerta === 'avaria' && a.estado === 'pendente') && (
+                <Badge variant="destructive" className="animate-pulse">
+                  <AlertCircle className="h-3 w-3 mr-1" /> Avaria Reportada
                 </Badge>
+                )}
               </div>
               <p className="text-muted-foreground text-lg">{ativo.categoria}</p>
               <p className="text-sm text-muted-foreground mt-1">{condominio.nome}</p>
@@ -280,69 +332,74 @@ const handlePrevPhoto = () => {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Notificações */}
-            <Card className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <Bell className="h-5 w-5" />
-                  <h2 className="text-xl font-semibold">Notificações</h2>
-                  {ativo.notificacoes && ativo.notificacoes.filter(n => !n.lida).length > 0 && (
-                    <Badge variant="destructive" className="ml-2">
-                      {ativo.notificacoes.filter(n => !n.lida).length}
-                    </Badge>
-                  )}
-                </div>
-                <Button size="sm" className="gap-2" onClick={() => setNotificationModalOpen(true)}>
-                  <Plus className="h-4 w-4" />
-                  Nova
-                </Button>
+            {/* Notificações (Alertas) */}
+<Card className="p-6">
+  <div className="flex items-center justify-between mb-4">
+    <div className="flex items-center gap-2">
+      <Bell className="h-5 w-5" />
+      <h2 className="text-xl font-semibold">Alertas e Ocorrências</h2>
+      {/* Contador de Alertas Pendentes */}
+      {ativo.alertas && ativo.alertas.filter(a => a.estado === 'pendente').length > 0 && (
+        <Badge variant="destructive" className="ml-2">
+          {ativo.alertas.filter(a => a.estado === 'pendente').length}
+        </Badge>
+      )}
+    </div>
+    <Button size="sm" className="gap-2" onClick={() => setNotificationModalOpen(true)}>
+      <Plus className="h-4 w-4" />
+      Novo
+    </Button>
+  </div>
+
+  {ativo.alertas && ativo.alertas.length > 0 ? (
+    <div className="space-y-3">
+      {ativo.alertas.map((alerta) => (
+        <div
+          key={alerta.id_alerta}
+          className={`p-4 border rounded-lg transition-colors ${
+            alerta.estado === 'resolvido' ? 'bg-muted/50 opacity-70' : 'bg-background'
+          }`}
+        >
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <Badge variant="outline" className={alertColors[alerta.tipo_alerta]}>
+                  {alerta.tipo_alerta.toUpperCase()}
+                </Badge>
+                <span className="text-xs text-muted-foreground">
+                  {new Date(alerta.data_alerta).toLocaleDateString('pt-PT', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </span>
               </div>
-              {ativo.notificacoes && ativo.notificacoes.length > 0 ? (
-                <div className="space-y-3">
-                  {ativo.notificacoes.map((notificacao) => (
-                    <div
-                      key={notificacao.id}
-                      className={`p-4 border rounded-lg transition-colors ${notificacao.lida ? 'bg-muted/50' : 'bg-background'
-                        }`}
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Badge variant="outline" className={notificationColors[notificacao.tipo]}>
-                              {notificacao.tipo}
-                            </Badge>
-                            <span className="text-xs text-muted-foreground">
-                              {new Date(notificacao.data_criacao).toLocaleDateString('pt-PT', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
-                            </span>
-                          </div>
-                          <h4 className="font-semibold mb-1">{notificacao.titulo}</h4>
-                          <p className="text-sm text-muted-foreground">{notificacao.mensagem}</p>
-                        </div>
-                        {!notificacao.lida && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleMarkAsRead(notificacao.id)}
-                          >
-                            Marcar como lida
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Bell className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                  <p>Nenhuma notificação</p>
-                </div>
-              )}
-            </Card>
+              <h4 className="font-semibold mb-1">{alerta.titulo}</h4>
+              <p className="text-sm text-muted-foreground">{alerta.mensagem}</p>
+            </div>
+            {alerta.estado === 'pendente' && (
+  <Button
+    variant="ghost"
+    size="sm"
+    className="text-green-600 hover:text-green-700 hover:bg-green-50"
+    onClick={() => handleResolveAlert(alerta.id_alerta)} // <--- AQUI
+  >
+    Marcar resolvido
+  </Button>
+)}
+          </div>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <div className="text-center py-8 text-muted-foreground">
+      <Bell className="h-12 w-12 mx-auto mb-2 opacity-50" />
+      <p>Nenhuma ocorrência registada</p>
+    </div>
+  )}
+</Card>
             {/* Informações Gerais */}
             <Card className="p-6">
               <h2 className="text-xl font-semibold mb-4">Informações Gerais</h2>
@@ -524,6 +581,18 @@ const handlePrevPhoto = () => {
                   <FileText className="h-4 w-4" />
                   Adicionar Documento
                 </Button>
+                <Button 
+    variant="destructive" 
+    className="w-full justify-start gap-2 shadow-sm" 
+    onClick={() => {
+      setNotificationType('avaria'); // Pré-seleciona Avaria
+      setNotificationModalOpen(true);
+    }}
+  >
+    <AlertCircle className="h-4 w-4" />
+    Reportar Avaria
+  </Button>
+  <Separator className="my-2" />
                 <Button variant="outline" className="w-full justify-start gap-2" onClick={() => setMaintenanceModalOpen(true)}>
                   <Calendar className="h-4 w-4" />
                   Agendar Manutenção
@@ -751,16 +820,21 @@ const handlePrevPhoto = () => {
             <div className="space-y-4">
               <div>
                 <Label htmlFor="notification-type">Tipo de Notificação</Label>
-                <Select value={notificationType} onValueChange={(value: 'info' | 'aviso' | 'urgente') => setNotificationType(value)}>
-                  <SelectTrigger className="mt-2">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="info">Informação</SelectItem>
-                    <SelectItem value="aviso">Aviso</SelectItem>
-                    <SelectItem value="urgente">Urgente</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Select 
+  value={notificationType} 
+  onValueChange={(value: Alerta['tipo_alerta']) => setNotificationType(value)}
+>
+  <SelectTrigger className="mt-2">
+    <SelectValue />
+  </SelectTrigger>
+  <SelectContent>
+    <SelectItem value="avaria">Avaria</SelectItem>
+    <SelectItem value="manutencao">Manutenção</SelectItem>
+    <SelectItem value="limpeza">Limpeza</SelectItem>
+    <SelectItem value="inspecao">Inspeção</SelectItem>
+    <SelectItem value="outro">Outro</SelectItem>
+  </SelectContent>
+</Select>
               </div>
               <div>
                 <Label htmlFor="notification-title">Título</Label>

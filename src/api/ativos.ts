@@ -1,13 +1,13 @@
 import { supabase } from '@/supabase-client';
 
-export interface Notificacao {
-  id: number;
-  tipo: 'info' | 'aviso' | 'urgente';
+export interface Alerta {
+  id_alerta: number;
+  id_ativo: number;
+  tipo_alerta: 'avaria' | 'manutencao' | 'limpeza' | 'inspecao' | 'outro';
   titulo: string;
   mensagem: string;
-  data: string;
-  data_criacao: string;
-  lida: boolean;
+  estado: 'pendente' | 'resolvido';
+  data_alerta: string;
 }
 
 export interface Foto {
@@ -47,11 +47,12 @@ export interface Ativo {
   descricao?: string;
   valor?: number;
   data_proxima_manutencao?: string;
+  ultima_manutencao?: string;
+  frequencia_manutencao?: number;
   localizacao?: string;
   observacoes?: string;
-  notificacoes?: Notificacao[];
-  manutencoes?: Manutencao[];
-  fotos?: Foto[]; // Agora recebe a lista de objetos da tabela 'fotos'
+  alertas?: Alerta[];       // Adiciona isto para resolver o erro da image_1f5583
+  fotos?: Foto[];
   documentos?: Documento[];
 }
 
@@ -67,6 +68,8 @@ export interface CreateAtivoData {
   descricao?: string;
   valor?: number;
   localizacao?: string;
+  ultima_manutencao?: string;
+  frequencia_manutencao?: number;
 }
 
 export const ativosApi = {
@@ -81,7 +84,25 @@ export const ativosApi = {
   return data || [];
 },
 
-  
+  getAllAlerts: async (): Promise<any[]> => {
+  const { data, error } = await supabase
+    .from('alertas')
+    .select(`
+      *,
+      ativos (
+        nome,
+        id_ativo,
+        id_condominio,
+        condominios (
+          nome
+        )
+      )
+    `)
+    .order('data_alerta', { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+},
 
   getByCondominio: async (condominioId: number): Promise<Ativo[]> => {
     const { data, error } = await supabase
@@ -96,7 +117,7 @@ export const ativosApi = {
   getById: async (id: number): Promise<Ativo | null> => {
     const { data, error } = await supabase
       .from('ativos')
-      .select('*, documentos(*), fotos(*)')
+      .select('*, documentos(*), fotos(*), alertas(*)') // ADICIONADO alertas(*)
       .eq('id_ativo', id)
       .single();
     if (error) throw error;
@@ -112,6 +133,8 @@ export const ativosApi = {
       modelo: data.modelo,
       num_serie: (data.num_serie !== undefined && !Number.isNaN(data.num_serie)) ? data.num_serie : null,
       data_instalacao: data.data_instalacao || null,
+      ultima_manutencao: data.ultima_manutencao || null,
+      frequencia_manutencao: data.frequencia_manutencao || 6,
       estado: data.estado,
       descricao: data.descricao,
       valor: (data.valor !== undefined && !Number.isNaN(data.valor)) ? data.valor : null,
@@ -166,6 +189,41 @@ export const ativosApi = {
     if (error) throw error;
   },
 
+  createAlert: async (alertData: { 
+    id_ativo: number; 
+    titulo: string; 
+    mensagem: string; 
+    tipo_alerta: string; 
+    estado: string 
+  }) => {
+    const { data, error } = await supabase
+      .from('alertas')
+      .insert([{
+        id_ativo: alertData.id_ativo,
+        tipo_alerta: alertData.tipo_alerta,
+        estado: alertData.estado,
+        titulo: alertData.titulo,
+        mensagem: alertData.mensagem,
+        data_alerta: new Date().toISOString()
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  updateAlertStatus: async (id_alerta: number, novoEstado: 'pendente' | 'resolvido') => {
+  const { data, error } = await supabase
+    .from('alertas')
+    .update({ estado: novoEstado })
+    .eq('id_alerta', id_alerta)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+},
 
   // GESTÃO DE DOCUMENTOS
   uploadDocument: async (ativoId: number, file: File): Promise<string> => {
