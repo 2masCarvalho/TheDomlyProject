@@ -43,24 +43,32 @@ export const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
   }, [selectedCondoId, ativos]);
 
     useEffect(() => {
-    if (fixedAtivoId) {
-      setFormData(prev => ({ ...prev, id_ativo: fixedAtivoId.toString() }));
-    }
-    if (initialData && open) {
-      setFormData({
-        id_ativo: initialData.id_ativo.toString(),
-        descricao: initialData.descricao || '',
-        custo: initialData.custo?.toString() || '',
-        data_conclusao: initialData.data_conclusao || '',
-        estado: initialData.estado,
-        tipo_manutencao: initialData.tipo_manutencao || 'preventiva'
-      });
-      setSelectedCondoId(initialData.ativos?.id_condominio?.toString() || '');
-    } else if (open) {
-      setFormData({ id_ativo: '', descricao: '', custo: '', data_conclusao: '', estado: 'pendente', tipo_manutencao: 'preventiva' });
-      setSelectedCondoId('');
-    }
-}, [fixedAtivoId, open]);
+  if (!open) return; // Só executa quando o modal abre
+
+  if (initialData) {
+    // Modo Edição
+    setFormData({
+      id_ativo: initialData.id_ativo.toString(),
+      descricao: initialData.descricao || '',
+      custo: initialData.custo?.toString() || '',
+      data_conclusao: initialData.data_conclusao || '',
+      estado: initialData.estado,
+      tipo_manutencao: initialData.tipo_manutencao || 'preventiva'
+    });
+    setSelectedCondoId(initialData.ativos?.id_condominio?.toString() || '');
+  } else {
+    // Modo Novo Registo (Prioriza o fixedAtivoId se existir)
+    setFormData({ 
+      id_ativo: fixedAtivoId ? fixedAtivoId.toString() : '', 
+      descricao: '', 
+      custo: '', 
+      data_conclusao: '', 
+      estado: 'pendente', 
+      tipo_manutencao: 'preventiva' 
+    });
+    setSelectedCondoId('');
+  }
+}, [open, initialData, fixedAtivoId]);
 
 const resetForm = () => {
     setFormData({ 

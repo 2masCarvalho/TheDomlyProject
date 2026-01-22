@@ -245,28 +245,31 @@ export const ativosApi = {
   },
 
   createAlert: async (alertData: { 
-    id_ativo: number; 
-    titulo: string; 
-    mensagem: string; 
-    tipo_alerta: string; 
-    estado: string 
-  }) => {
-    const { data, error } = await supabase
-      .from('alertas')
-      .insert([{
-        id_ativo: alertData.id_ativo,
-        tipo_alerta: alertData.tipo_alerta,
-        estado: alertData.estado,
-        titulo: alertData.titulo,
-        mensagem: alertData.mensagem,
-        data_alerta: new Date().toISOString()
-      }])
-      .select()
-      .single();
+  id_ativo: number; 
+  titulo: string; 
+  mensagem: string; 
+  tipo_alerta: string; 
+  estado: string 
+}) => {
+  const { data, error } = await supabase
+    .from('alertas')
+    .insert([{
+      id_ativo: alertData.id_ativo,
+      tipo_alerta: alertData.tipo_alerta, // avaria, manutencao, etc.
+      estado: alertData.estado || 'pendente',
+      titulo: alertData.titulo,
+      mensagem: alertData.mensagem,
+      data_alerta: new Date().toISOString()
+    }])
+    .select()
+    .single();
 
-    if (error) throw error;
-    return data;
-  },
+  if (error) {
+    console.error("Erro ao criar alerta:", error);
+    throw error;
+  }
+  return data;
+},
 
   updateAlertStatus: async (id_alerta: number, novoEstado: 'pendente' | 'resolvido') => {
   const { data, error } = await supabase

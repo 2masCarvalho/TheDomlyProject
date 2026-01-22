@@ -294,7 +294,7 @@ export const AtivoDetailPage: React.FC = () => {
     setMaintenanceModalOpen(false);
   };
 
-  const handleAddNotification = () => {
+  const handleAddNotification = async () => {
     if (!notificationTitle || !notificationMessage) {
       toast({
         title: 'Erro',
@@ -304,14 +304,37 @@ export const AtivoDetailPage: React.FC = () => {
       return;
     }
 
-    toast({
-      title: 'Notificação criada',
-      description: 'A notificação foi adicionada com sucesso',
-    });
-    setNotificationTitle('');
-    setNotificationMessage('');
-    setNotificationType('outro');
-    setNotificationModalOpen(false);
+    try {
+      // CHAMADA REAL À API PARA GRAVAR NA BASE DE DADOS
+      await ativosApi.createAlert({
+        id_ativo: parsedAtivoId,
+        titulo: notificationTitle,
+        mensagem: notificationMessage,
+        tipo_alerta: notificationType,
+        estado: 'pendente'
+      });
+
+      toast({
+        title: 'Notificação criada',
+        description: 'A notificação foi adicionada com sucesso',
+      });
+
+      // Limpar campos e fechar modal
+      setNotificationTitle('');
+      setNotificationMessage('');
+      setNotificationType('outro');
+      setNotificationModalOpen(false);
+
+      // REFRESH para os dados aparecerem no ecrã e na sidebar
+      if (refreshAtivos) await refreshAtivos();
+
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao criar',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
   };
 
   const handleMarkAsRead = (notificationId: number) => {
@@ -587,9 +610,9 @@ export const AtivoDetailPage: React.FC = () => {
                   <Wrench className="h-5 w-5 text-primary" />
                   <h2 className="text-xl font-semibold">Plano de Manutenção</h2>
                 </div>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
+                <Button
+                  size="sm"
+                  variant="outline"
                   className="gap-2"
                   onClick={() => setIsMaintenanceModalOpen(true)}
                 >
@@ -637,8 +660,8 @@ export const AtivoDetailPage: React.FC = () => {
                 </div>
               )}
             </Card>
-          
-            
+
+
           </div>
 
           {/* Sidebar */}
