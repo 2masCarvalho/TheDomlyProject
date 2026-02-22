@@ -8,6 +8,9 @@ import { LanguageProvider } from "@/context/LanguageContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { CondominiosProvider } from "@/context/CondominiosContext";
 import { AtivosProvider } from "@/context/AtivosContext";
+import { OcorrenciasProvider } from "@/context/OcorrenciasContext";
+import { TrabalhosProvider } from "@/context/TrabalhosContext";
+import { TecnicosProvider } from "@/context/TecnicosContext";
 import { AppLayout } from "@/components/AppLayout";
 import { LandingPage } from "./pages/LandingPage";
 import { LoginPage } from "./pages/LoginPage";
@@ -20,6 +23,14 @@ import NotFound from "./pages/NotFound";
 import { AlertsPage } from "./pages/AlertsPage";
 import { MaintenancePage } from "./pages/MaintenancePage";
 import { DashboardPage } from "./pages/DashboardPage";
+import { OcorrenciasPage } from "./pages/OcorrenciasPage";
+import { OcorrenciaDetailPage } from "./pages/OcorrenciaDetailPage";
+import { TrabalhosPage } from "./pages/TrabalhosPage";
+import { TrabalhoDetailPage } from "./pages/TrabalhoDetailPage";
+import { TecnicosPage } from "./pages/TecnicosPage";
+import { OnboardingPage } from "./pages/OnboardingPage";
+import { TrabalhoPublicoPage } from "./pages/TrabalhoPublicoPage";
+import { ConformidadePage } from "./pages/ConformidadePage";
 
 
 
@@ -37,6 +48,8 @@ const App = () => (
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
+              <Route path="/onboarding" element={<OnboardingPage />} />
+              <Route path="/t/:token" element={<TrabalhoPublicoPage />} />
 
               {/* Rotas protegidas */}
               <Route
@@ -44,13 +57,18 @@ const App = () => (
                   <ProtectedRoute>
                     <CondominiosProvider>
                       <AtivosProvider>
-                        <AppLayout />
+                        <OcorrenciasProvider>
+                          <TrabalhosProvider>
+                            <TecnicosProvider>
+                              <AppLayout />
+                            </TecnicosProvider>
+                          </TrabalhosProvider>
+                        </OcorrenciasProvider>
                       </AtivosProvider>
                     </CondominiosProvider>
                   </ProtectedRoute>
                 }
               >
-
                 <Route path="/condominios" element={<CondominiosPage />} />
                 <Route path="/condominios/:id/ativos" element={<AtivosPage />} />
                 <Route path="/condominios/:condominioId/ativos/:ativoId" element={<AtivoDetailPage />} />
@@ -58,6 +76,15 @@ const App = () => (
                 <Route path="/alertas" element={<AlertsPage />} />
                 <Route path="/manutencao" element={<MaintenancePage />} />
                 <Route path="/dashboard" element={<DashboardPage />} />
+                {/* Feature 2: Occurrences */}
+                <Route path="/ocorrencias" element={<OcorrenciasPage />} />
+                <Route path="/ocorrencias/:id" element={<OcorrenciaDetailPage />} />
+                {/* Feature 1: Jobs + Technicians */}
+                <Route path="/trabalhos" element={<TrabalhosPage />} />
+                <Route path="/trabalhos/novo" element={<TrabalhosPage />} />
+                <Route path="/trabalhos/:id" element={<TrabalhoDetailPage />} />
+                <Route path="/tecnicos" element={<TecnicosPage />} />
+                <Route path="/conformidade" element={<ConformidadePage />} />
               </Route>
 
               {/* Catch-all */}

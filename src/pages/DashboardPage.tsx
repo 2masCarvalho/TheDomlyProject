@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import confetti from 'canvas-confetti';
+import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,20 +13,34 @@ import {
     TrendingUp,
     ArrowRight,
     CheckCircle2,
-    Clock
+    Clock,
+    ClipboardList,
+    CalendarClock,
 } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 import { useCondominios } from '@/context/CondominiosContext';
 import { useAtivos } from '@/context/AtivosContext';
+import { useOcorrencias } from '@/context/OcorrenciasContext';
 import { manutencoesApi } from '@/api/ativos';
+import { getExpiryStatus } from '@/api/ativos';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { format, isAfter, addDays } from 'date-fns';
 import { pt } from 'date-fns/locale';
 
+const prioridadeConfig: Record<string, { label: string; color: string }> = {
+    critica: { label: 'Crítica', color: 'text-red-600' },
+    alta: { label: 'Alta', color: 'text-orange-500' },
+    media: { label: 'Média', color: 'text-yellow-600' },
+    baixa: { label: 'Baixa', color: 'text-green-600' },
+};
+
 export const DashboardPage = () => {
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [showBanner, setShowBanner] = useState(false);
     const { condominios, loading: condoLoading } = useCondominios();
     const { ativos, loading: ativosLoading } = useAtivos();
+    const { ocorrencias, loading: ocorrenciasLoading } = useOcorrencias();
     const [maintenances, setMaintenances] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -42,6 +58,15 @@ export const DashboardPage = () => {
         };
 
         loadData();
+    }, []);
+
+    useEffect(() => {
+        if (searchParams.get('onboarding') === '1') {
+            setShowBanner(true);
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            setTimeout(() => confetti.reset?.(), 3500);
+            setSearchParams({}, { replace: true });
+        }
     }, []);
 
     // CÁLCULOS DE DADOS INTERESSANTES
@@ -65,7 +90,35 @@ export const DashboardPage = () => {
         };
     }, [maintenances, ativos]);
 
-    if (loading || condoLoading || ativosLoading) return <LoadingSpinner />;
+    // Upcoming asset renewals (within 60 days)
+    const upcomingRenewals = useMemo(() => {
+        const today = new Date();
+        const in60days = addDays(today, 60);
+        return ativos
+            .filter((a) => {
+                const dateStr = (a as any).data_expiracao || (a as any).data_proxima_manutencao;
+                if (!dateStr) return false;
+                const d = new Date(dateStr);
+                return d <= in60days;
+            })
+            .sort((a, b) => {
+                const da = new Date((a as any).data_expiracao || (a as any).data_proxima_manutencao || '');
+                const db = new Date((b as any).data_expiracao || (b as any).data_proxima_manutencao || '');
+                return da.getTime() - db.getTime();
+            })
+            .slice(0, 5);
+    }, [ativos]);
+
+    // Open occurrences summary
+    const openOcorrencias = useMemo(() => ocorrencias.filter((o) => !['resolvida', 'fechada'].includes(o.estado)), [ocorrencias]);
+    const ocorrenciasByPriority = useMemo(() => ({
+        critica: openOcorrencias.filter((o) => o.prioridade === 'critica').length,
+        alta: openOcorrencias.filter((o) => o.prioridade === 'alta').length,
+        media: openOcorrencias.filter((o) => o.prioridade === 'media').length,
+        baixa: openOcorrencias.filter((o) => o.prioridade === 'baixa').length,
+    }), [openOcorrencias]);
+
+    if (loading || condoLoading || ativosLoading || ocorrenciasLoading) return <LoadingSpinner />;
 
     return (
         <div className="p-8 space-y-8 bg-gradient-subtle min-h-screen">
@@ -75,6 +128,17 @@ export const DashboardPage = () => {
                     <p className="text-muted-foreground">Visão geral da sua conta e operações em curso.</p>
                 </div>
             </div>
+
+            {/* Onboarding success banner */}
+            {showBanner && (
+                <div className="flex items-center justify-between bg-green-50 border border-green-200 text-green-800 rounded-lg px-4 py-3">
+                    <div className="flex items-center gap-2">
+                        <CheckCircle2 className="h-5 w-5 text-green-600" />
+                        <span className="font-medium">Configuração concluída! Aqui está o seu painel automatizado.</span>
+                    </div>
+                    <button onClick={() => setShowBanner(false)} className="text-green-600 hover:text-green-800 ml-4">✕</button>
+                </div>
+            )}
 
             {/* 1. ROW: ESTATÍSTICAS TIPO "KPI" */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -200,6 +264,86 @@ export const DashboardPage = () => {
                                     </div>
                                 ))}
                         </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* NEW: Occurrences + Upcoming Renewals row */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Ocorrências em aberto */}
+                <Card className="border-none shadow-elegant">
+                    <CardHeader className="flex flex-row items-center justify-between border-b bg-white/50">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                            <ClipboardList className="h-5 w-5 text-primary" />
+                            Ocorrências em Aberto
+                        </CardTitle>
+                        <Button variant="ghost" size="sm" onClick={() => navigate('/ocorrencias')}>
+                            Ver todas <ArrowRight className="ml-2 h-4 w-4" />
+                        </Button>
+                    </CardHeader>
+                    <CardContent className="p-4 space-y-3">
+                        <div className="flex items-center justify-between text-sm font-medium mb-2">
+                            <span className="text-muted-foreground">Total em aberto</span>
+                            <span className="text-2xl font-bold">{openOcorrencias.length}</span>
+                        </div>
+                        {Object.entries(ocorrenciasByPriority).map(([pri, count]) => (
+                            <div key={pri} className="flex items-center justify-between">
+                                <span className={`text-sm ${prioridadeConfig[pri]?.color}`}>
+                                    {prioridadeConfig[pri]?.label}
+                                </span>
+                                <Badge variant="secondary">{count}</Badge>
+                            </div>
+                        ))}
+                        {openOcorrencias.slice(0, 3).map((o) => (
+                            <div key={o.id_ocorrencia} className="p-2 bg-muted/30 rounded-lg text-sm border">
+                                <p className="font-medium truncate">{o.titulo}</p>
+                                <p className="text-xs text-muted-foreground capitalize">{o.categoria} · {o.responsabilidade}</p>
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
+
+                {/* Renovações e Manutenções Próximas */}
+                <Card className="border-none shadow-elegant">
+                    <CardHeader className="flex flex-row items-center justify-between border-b bg-white/50">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                            <CalendarClock className="h-5 w-5 text-primary" />
+                            Renovações Próximas (60 dias)
+                        </CardTitle>
+                        <Button variant="ghost" size="sm" onClick={() => navigate('/condominios')}>
+                            Ver ativos <ArrowRight className="ml-2 h-4 w-4" />
+                        </Button>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                        {upcomingRenewals.length === 0 ? (
+                            <p className="p-4 text-sm text-muted-foreground">Nenhuma renovação ou manutenção nos próximos 60 dias.</p>
+                        ) : (
+                            <div className="divide-y">
+                                {upcomingRenewals.map((a) => {
+                                    const dateStr = (a as any).data_expiracao || (a as any).data_proxima_manutencao;
+                                    const status = getExpiryStatus((a as any).data_expiracao, (a as any).data_proxima_manutencao);
+                                    return (
+                                        <div key={a.id_ativo} className="p-4 flex items-center justify-between hover:bg-muted/30 transition-colors">
+                                            <div>
+                                                <p className="font-semibold text-sm">{a.nome}</p>
+                                                <p className="text-xs text-muted-foreground">{a.categoria}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-xs font-medium">
+                                                    {dateStr ? format(new Date(dateStr), 'dd MMM yyyy', { locale: pt }) : '—'}
+                                                </p>
+                                                <Badge
+                                                    variant={status === 'overdue' ? 'destructive' : 'outline'}
+                                                    className={`text-xs ${status === 'soon' ? 'border-orange-400 text-orange-600' : ''}`}
+                                                >
+                                                    {status === 'overdue' ? 'Expirado' : status === 'soon' ? 'Em breve' : 'OK'}
+                                                </Badge>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </div>

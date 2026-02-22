@@ -68,7 +68,7 @@ export const LandingPage: React.FC = () => {
             <Button variant="ghost" onClick={() => navigate("/login")} className="text-sm">
               {t("nav.login")}
             </Button>
-            <Button onClick={() => setIsDemoModalOpen(true)} className="text-sm">
+            <Button onClick={() => navigate('/onboarding')} className="text-sm">
               {t("nav.cta")}
             </Button>
           </div>
@@ -93,10 +93,12 @@ export const LandingPage: React.FC = () => {
             </p>
             
             <div className="flex flex-wrap gap-4">
-              <Button size="lg" onClick={() => setIsDemoModalOpen(true)} className="btn-hover-lift btn-hover-glow">
-                {t("nav.cta")}
+              <Button size="lg" onClick={() => navigate('/onboarding')} className="btn-hover-lift btn-hover-glow">
+                Começar Grátis
               </Button>
-              
+              <Button size="lg" variant="outline" onClick={() => navigate('/t/demo')} className="btn-hover-lift">
+                Ver demo do técnico
+              </Button>
             </div>
           </div>
 
@@ -292,7 +294,7 @@ export const LandingPage: React.FC = () => {
                 <span className="text-foreground">{t("pricing.emailSupport")}</span>
               </li>
             </ul>
-            <Button variant="outline" className="w-full btn-hover-lift" onClick={() => setIsDemoModalOpen(true)}>
+            <Button variant="outline" className="w-full btn-hover-lift" onClick={() => navigate('/onboarding')}>
               {t("pricing.getStarted")}
             </Button>
           </div>
@@ -334,7 +336,7 @@ export const LandingPage: React.FC = () => {
                 <span>{t("pricing.prioritySupport")}</span>
               </li>
             </ul>
-            <Button variant="secondary" className="w-full bg-background text-foreground hover:bg-background/90 btn-hover-lift btn-hover-glow" onClick={() => setIsDemoModalOpen(true)}>
+            <Button variant="secondary" className="w-full bg-background text-foreground hover:bg-background/90 btn-hover-lift btn-hover-glow" onClick={() => navigate('/onboarding')}>
               {t("pricing.getStarted")}
             </Button>
           </div>
@@ -373,7 +375,7 @@ export const LandingPage: React.FC = () => {
                 <span className="text-foreground">{t("pricing.predictiveFinancial")}</span>
               </li>
             </ul>
-            <Button variant="outline" className="w-full btn-hover-lift" onClick={() => setIsDemoModalOpen(true)}>
+            <Button variant="outline" className="w-full btn-hover-lift" onClick={() => navigate('/onboarding')}>
               {t("pricing.getStarted")}
             </Button>
           </div>
@@ -518,7 +520,7 @@ export const LandingPage: React.FC = () => {
           <p className="text-lg text-primary-foreground/90 mb-8 max-w-3xl mx-auto">
             {t("cta.subtitle")}
           </p>
-          <Button size="lg" variant="secondary" className="bg-background text-foreground hover:bg-background/90 mb-4 btn-hover-lift btn-hover-glow" onClick={() => setIsDemoModalOpen(true)}>
+          <Button size="lg" variant="secondary" className="bg-background text-foreground hover:bg-background/90 mb-4 btn-hover-lift btn-hover-glow" onClick={() => navigate('/onboarding')}>
             {t("nav.cta")}
           </Button>
         </div>

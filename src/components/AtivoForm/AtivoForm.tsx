@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
 
 interface AtivoFormProps {
   open: boolean;
@@ -35,6 +36,8 @@ export const AtivoForm: React.FC<AtivoFormProps> = ({
   });
 
   const estado = watch('estado');
+  const tipoAtivo = watch('tipo_ativo');
+  const estadoLicenca = watch('estado_licenca');
 
   useEffect(() => {
     if (open) {
@@ -66,8 +69,7 @@ export const AtivoForm: React.FC<AtivoFormProps> = ({
         <DialogHeader>
           <DialogTitle>{initialData ? 'Editar Ativo' : 'Novo Ativo'}</DialogTitle>
         </DialogHeader>
-        
-        {/* Adicionado log de erros para ajudar no desenvolvimento */}
+
         <form onSubmit={handleSubmit(handleFormSubmit, (err) => console.log("Erros Ativos:", err))} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -99,12 +101,12 @@ export const AtivoForm: React.FC<AtivoFormProps> = ({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="num_serie">Nº Série *</Label>
-              <Input 
-                type="number" 
-                {...register('num_serie', { 
+              <Input
+                type="number"
+                {...register('num_serie', {
                   valueAsNumber: true,
-                  setValueAs: (v) => v === "" ? undefined : parseInt(v, 10) 
-                })} 
+                  setValueAs: (v) => v === "" ? undefined : parseInt(v, 10)
+                })}
               />
               {errors.num_serie && <p className="text-xs text-destructive">{errors.num_serie.message}</p>}
             </div>
@@ -135,7 +137,7 @@ export const AtivoForm: React.FC<AtivoFormProps> = ({
               <Input
                 type="number"
                 step="0.01"
-                {...register('valor', { 
+                {...register('valor', {
                   valueAsNumber: true,
                   setValueAs: (v) => v === "" ? undefined : parseFloat(v)
                 })}
@@ -151,30 +153,85 @@ export const AtivoForm: React.FC<AtivoFormProps> = ({
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-  <div className="space-y-2">
-    <Label htmlFor="ultima_manutencao">Última Manutenção (Opcional)</Label>
-    <Input type="date" {...register('ultima_manutencao')} />
-  </div>
+            <div className="space-y-2">
+              <Label htmlFor="ultima_manutencao">Última Manutenção (Opcional)</Label>
+              <Input type="date" {...register('ultima_manutencao')} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="frequencia_manutencao">Frequência (Meses) *</Label>
+              <Input
+                type="number"
+                {...register('frequencia_manutencao', {
+                  valueAsNumber: true,
+                  setValueAs: (v) => v === "" ? 6 : parseInt(v, 10)
+                })}
+              />
+              {errors.frequencia_manutencao && (
+                <p className="text-xs text-destructive">{errors.frequencia_manutencao.message}</p>
+              )}
+            </div>
+          </div>
 
-  <div className="space-y-2">
-    <Label htmlFor="frequencia_manutencao">Frequência (Meses) *</Label>
-    <Input 
-      type="number" 
-      {...register('frequencia_manutencao', { 
-        valueAsNumber: true,
-        setValueAs: (v) => v === "" ? 6 : parseInt(v, 10) 
-      })} 
-    />
-    {errors.frequencia_manutencao && (
-      <p className="text-xs text-destructive">{errors.frequencia_manutencao.message}</p>
-    )}
-  </div>
-</div>
+          <div className="space-y-2">
+            <Label htmlFor="localizacao">Localização (Opcional)</Label>
+            <Input id="localizacao" {...register('localizacao')} />
+          </div>
 
-<div className="space-y-2">
-  <Label htmlFor="localizacao">Localização (Opcional)</Label>
-  <Input id="localizacao" {...register('localizacao')} />
-</div>
+          <Separator />
+          <p className="text-sm font-semibold text-muted-foreground">Licença / Conformidade (Opcional)</p>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Tipo de Ativo</Label>
+              <Select value={tipoAtivo || ''} onValueChange={(v) => setValue('tipo_ativo', v as any)}>
+                <SelectTrigger><SelectValue placeholder="Selecione o tipo" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="extintor">Extintor</SelectItem>
+                  <SelectItem value="sadi">SADI</SelectItem>
+                  <SelectItem value="sadc">SADC</SelectItem>
+                  <SelectItem value="inspecao_gas">Inspeção de Gás</SelectItem>
+                  <SelectItem value="painel_solar">Painel Solar</SelectItem>
+                  <SelectItem value="seguro">Seguro</SelectItem>
+                  <SelectItem value="licenca_elevador">Licença de Elevador</SelectItem>
+                  <SelectItem value="outro">Outro</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Estado da Licença</Label>
+              <Select value={estadoLicenca || ''} onValueChange={(v) => setValue('estado_licenca', v as any)}>
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ativo">Ativo</SelectItem>
+                  <SelectItem value="expirado">Expirado</SelectItem>
+                  <SelectItem value="pendente_renovacao">Pendente Renovação</SelectItem>
+                  <SelectItem value="desativado">Desativado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="data_expiracao">Data de Expiração</Label>
+              <Input type="date" {...register('data_expiracao')} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="data_ultima_manutencao">Última Manutenção (Conformidade)</Label>
+              <Input type="date" {...register('data_ultima_manutencao')} />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="empresa_responsavel">Empresa Responsável</Label>
+              <Input id="empresa_responsavel" {...register('empresa_responsavel')} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="contacto_empresa">Contacto da Empresa</Label>
+              <Input id="contacto_empresa" {...register('contacto_empresa')} />
+            </div>
+          </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>

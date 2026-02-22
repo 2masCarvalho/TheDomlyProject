@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(cd /c/Users/tomas/Desktop/Domly/TheDomlyProject && supabase status 2>&1)",
+      "Bash(cd /c/Users/tomas/Desktop/Domly/TheDomlyProject && npx supabase --version 2>&1)",
+      "Bash(cd /c/Users/tomas/Desktop/Domly/TheDomlyProject && npx supabase projects list 2>&1)",
+      "Bash(cd /c/Users/tomas/Desktop/Domly/TheDomlyProject && npx tsc --noEmit 2>&1)"
+    ]
+  }
+}
