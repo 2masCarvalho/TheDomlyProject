@@ -58,41 +58,59 @@ export type Database = {
       ativo: {
         Row: {
           categoria: string
+          contacto_empresa: string | null
           created_at: string
           data_criacao: string
+          data_expiracao: string | null
           data_instalacao: string | null
+          data_ultima_manutencao: string | null
+          empresa_responsavel: string | null
+          estado_licenca: string | null
           id_ativo: string
           id_condominio: string
           marca: string | null
           modelo: string | null
           nome: string
           num_serie: string | null
+          tipo_ativo: string | null
           updated_at: string
         }
         Insert: {
           categoria: string
+          contacto_empresa?: string | null
           created_at?: string
           data_criacao?: string
+          data_expiracao?: string | null
           data_instalacao?: string | null
+          data_ultima_manutencao?: string | null
+          empresa_responsavel?: string | null
+          estado_licenca?: string | null
           id_ativo?: string
           id_condominio: string
           marca?: string | null
           modelo?: string | null
           nome: string
           num_serie?: string | null
+          tipo_ativo?: string | null
           updated_at?: string
         }
         Update: {
           categoria?: string
+          contacto_empresa?: string | null
           created_at?: string
           data_criacao?: string
+          data_expiracao?: string | null
           data_instalacao?: string | null
+          data_ultima_manutencao?: string | null
+          empresa_responsavel?: string | null
+          estado_licenca?: string | null
           id_ativo?: string
           id_condominio?: string
           marca?: string | null
           modelo?: string | null
           nome?: string
           num_serie?: string | null
+          tipo_ativo?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -102,6 +120,212 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "condominio"
             referencedColumns: ["id_condominio"]
+          },
+        ]
+      }
+      candidaturas_trabalho: {
+        Row: {
+          created_at: string
+          estado: string
+          id_candidatura: number
+          id_tecnico: number
+          id_trabalho: number
+          mensagem: string | null
+          preco_proposto: number | null
+        }
+        Insert: {
+          created_at?: string
+          estado?: string
+          id_candidatura?: number
+          id_tecnico: number
+          id_trabalho: number
+          mensagem?: string | null
+          preco_proposto?: number | null
+        }
+        Update: {
+          created_at?: string
+          estado?: string
+          id_candidatura?: number
+          id_tecnico?: number
+          id_trabalho?: number
+          mensagem?: string | null
+          preco_proposto?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidaturas_trabalho_id_tecnico_fkey"
+            columns: ["id_tecnico"]
+            isOneToOne: false
+            referencedRelation: "tecnicos"
+            referencedColumns: ["id_tecnico"]
+          },
+          {
+            foreignKeyName: "candidaturas_trabalho_id_trabalho_fkey"
+            columns: ["id_trabalho"]
+            isOneToOne: false
+            referencedRelation: "trabalhos_manutencao"
+            referencedColumns: ["id_trabalho"]
+          },
+        ]
+      }
+      ocorrencias: {
+        Row: {
+          categoria: string
+          created_at: string
+          descricao: string | null
+          estado: string
+          id_condominio: number
+          id_ocorrencia: number
+          id_trabalho_manutencao: number | null
+          notas: string | null
+          prioridade: string
+          reportado_por: string | null
+          resolved_at: string | null
+          responsabilidade: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          categoria: string
+          created_at?: string
+          descricao?: string | null
+          estado?: string
+          id_condominio: number
+          id_ocorrencia?: number
+          id_trabalho_manutencao?: number | null
+          notas?: string | null
+          prioridade?: string
+          reportado_por?: string | null
+          resolved_at?: string | null
+          responsabilidade: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          categoria?: string
+          created_at?: string
+          descricao?: string | null
+          estado?: string
+          id_condominio?: number
+          id_ocorrencia?: number
+          id_trabalho_manutencao?: number | null
+          notas?: string | null
+          prioridade?: string
+          reportado_por?: string | null
+          resolved_at?: string | null
+          responsabilidade?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ocorrencias_id_condominio_fkey"
+            columns: ["id_condominio"]
+            isOneToOne: false
+            referencedRelation: "condominios"
+            referencedColumns: ["id_comdominio"]
+          },
+        ]
+      }
+      tecnicos: {
+        Row: {
+          avaliacao_media: number | null
+          created_at: string
+          email: string | null
+          especialidades: string[] | null
+          estado_disponibilidade: string
+          id_tecnico: number
+          nome: string
+          telefone: string | null
+          total_trabalhos_concluidos: number | null
+          zona: string | null
+        }
+        Insert: {
+          avaliacao_media?: number | null
+          created_at?: string
+          email?: string | null
+          especialidades?: string[] | null
+          estado_disponibilidade?: string
+          id_tecnico?: number
+          nome: string
+          telefone?: string | null
+          total_trabalhos_concluidos?: number | null
+          zona?: string | null
+        }
+        Update: {
+          avaliacao_media?: number | null
+          created_at?: string
+          email?: string | null
+          especialidades?: string[] | null
+          estado_disponibilidade?: string
+          id_tecnico?: number
+          nome?: string
+          telefone?: string | null
+          total_trabalhos_concluidos?: number | null
+          zona?: string | null
+        }
+        Relationships: []
+      }
+      trabalhos_manutencao: {
+        Row: {
+          categoria: string
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          descricao: string | null
+          estado: string
+          id_condominio: number
+          id_ocorrencia: number | null
+          id_tecnico_atribuido: number | null
+          id_trabalho: number
+          titulo: string
+          updated_at: string
+          urgencia: string
+        }
+        Insert: {
+          categoria: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          descricao?: string | null
+          estado?: string
+          id_condominio: number
+          id_ocorrencia?: number | null
+          id_tecnico_atribuido?: number | null
+          id_trabalho?: number
+          titulo: string
+          updated_at?: string
+          urgencia?: string
+        }
+        Update: {
+          categoria?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          descricao?: string | null
+          estado?: string
+          id_condominio?: number
+          id_ocorrencia?: number | null
+          id_tecnico_atribuido?: number | null
+          id_trabalho?: number
+          titulo?: string
+          updated_at?: string
+          urgencia?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trabalhos_id_condominio_fkey"
+            columns: ["id_condominio"]
+            isOneToOne: false
+            referencedRelation: "condominios"
+            referencedColumns: ["id_comdominio"]
+          },
+          {
+            foreignKeyName: "trabalhos_id_tecnico_fkey"
+            columns: ["id_tecnico_atribuido"]
+            isOneToOne: false
+            referencedRelation: "tecnicos"
+            referencedColumns: ["id_tecnico"]
           },
         ]
       }

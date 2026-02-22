@@ -58,7 +58,6 @@ export const AtivosPage: React.FC = () => {
       // Na edição, passamos o objeto 'data' completo
       await updateAtivo(selectedAtivo.id_ativo, data);
     } else {
-      // CORREÇÃO: Adicionar os campos que estavam em falta na criação
       await createAtivo({
         id_condominio: condominioId,
         nome: data.nome,
@@ -71,6 +70,12 @@ export const AtivosPage: React.FC = () => {
         descricao: data.descricao,
         valor: data.valor,
         data_instalacao: data.data_instalacao,
+        tipo_ativo: data.tipo_ativo,
+        data_expiracao: data.data_expiracao,
+        data_ultima_manutencao: data.data_ultima_manutencao,
+        empresa_responsavel: data.empresa_responsavel,
+        contacto_empresa: data.contacto_empresa,
+        estado_licenca: data.estado_licenca,
       });
     }
     setIsAtivoFormOpen(false); // Fecha o modal após sucesso

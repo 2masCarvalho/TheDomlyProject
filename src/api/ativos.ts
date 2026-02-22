@@ -33,6 +33,9 @@ export interface Documento {
   created_at?: string;
 }
 
+export type TipoAtivo = 'extintor' | 'sadi' | 'sadc' | 'inspecao_gas' | 'painel_solar' | 'seguro' | 'licenca_elevador' | 'outro';
+export type EstadoLicenca = 'ativo' | 'expirado' | 'pendente_renovacao' | 'desativado';
+
 export interface Ativo {
   id_ativo: number;
   id_condominio: number;
@@ -43,6 +46,7 @@ export interface Ativo {
   num_serie?: number;
   data_instalacao?: string;
   created_at?: string;
+  updated_at?: string;
   estado: 'excelente' | 'bom' | 'regular' | 'mau';
   descricao?: string;
   valor?: number;
@@ -51,7 +55,14 @@ export interface Ativo {
   frequencia_manutencao?: number;
   localizacao?: string;
   observacoes?: string;
-  alertas?: Alerta[];       // Adiciona isto para resolver o erro da image_1f5583
+  // Feature 3 fields
+  tipo_ativo?: TipoAtivo;
+  data_expiracao?: string;
+  data_ultima_manutencao?: string;
+  empresa_responsavel?: string;
+  contacto_empresa?: string;
+  estado_licenca?: EstadoLicenca;
+  alertas?: Alerta[];
   fotos?: Foto[];
   documentos?: Documento[];
 }
@@ -70,7 +81,38 @@ export interface CreateAtivoData {
   localizacao?: string;
   ultima_manutencao?: string;
   frequencia_manutencao?: number;
+  // Feature 3 fields
+  tipo_ativo?: TipoAtivo;
+  data_expiracao?: string;
+  data_ultima_manutencao?: string;
+  empresa_responsavel?: string;
+  contacto_empresa?: string;
+  estado_licenca?: EstadoLicenca;
 }
+
+export interface AtivoComCondominio extends Ativo {
+  condominios?: { nome: string; id_comdominio: number };
+}
+
+export const getAllAtivosAcrossBuildings = async (): Promise<AtivoComCondominio[]> => {
+  const { data, error } = await supabase
+    .from('ativos')
+    .select('*, condominios(nome, id_comdominio)')
+    .order('data_expiracao', { ascending: true, nullsFirst: false });
+  if (error) throw error;
+  return (data || []) as AtivoComCondominio[];
+};
+
+export const getExpiryStatus = (dataExpiracao?: string, dataProximaManutencao?: string): 'overdue' | 'soon' | 'ok' | null => {
+  const date = dataExpiracao || dataProximaManutencao;
+  if (!date) return null;
+  const today = new Date();
+  const target = new Date(date);
+  const diffDays = Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  if (diffDays < 0) return 'overdue';
+  if (diffDays <= 30) return 'soon';
+  return 'ok';
+};
 
 export const manutencoesApi = {
   createMaintenance: async (data: any) => {
@@ -192,6 +234,13 @@ export const ativosApi = {
       descricao: data.descricao,
       valor: (data.valor !== undefined && !Number.isNaN(data.valor)) ? data.valor : null,
       localizacao: data.localizacao,
+      // Feature 3 fields
+      tipo_ativo: data.tipo_ativo || null,
+      data_expiracao: data.data_expiracao || null,
+      data_ultima_manutencao: data.data_ultima_manutencao || null,
+      empresa_responsavel: data.empresa_responsavel || null,
+      contacto_empresa: data.contacto_empresa || null,
+      estado_licenca: data.estado_licenca || null,
     };
 
     const { data: newAtivo, error } = await supabase
