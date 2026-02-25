@@ -6,7 +6,7 @@ export interface Condominio {
   cidade: string;
   morada: string;
   codigo_postal: string;
-  nif: number;
+  nif?: number | null;
   iban?: string;
   banco?: string;
   num_fracoes?: number;
@@ -28,7 +28,7 @@ export interface CreateCondominioData {
   cidade: string;
   morada: string;
   codigo_postal: string;
-  nif: number;
+  nif?: number | null;
   iban?: string;
   banco?: string;
   num_fracoes?: number;
