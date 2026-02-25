@@ -244,7 +244,6 @@ export const OnboardingPage: React.FC = () => {
           num_fracoes: data.num_fracoes,
           cidade: '',
           codigo_postal: '',
-          nif: 0,
           id_user: userId,
         }])
         .select()
