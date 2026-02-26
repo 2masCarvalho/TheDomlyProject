@@ -89,20 +89,18 @@ const ProgressBar: React.FC<{ step: number }> = ({ step }) => (
         <React.Fragment key={stepNum}>
           <div className="flex flex-col items-center">
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
-                isCompleted
-                  ? 'bg-primary text-primary-foreground'
-                  : isActive
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${isCompleted
+                ? 'bg-primary text-primary-foreground'
+                : isActive
                   ? 'bg-primary text-primary-foreground ring-4 ring-primary/20'
                   : 'bg-muted text-muted-foreground'
-              }`}
+                }`}
             >
               {isCompleted ? '✓' : stepNum}
             </div>
             <span
-              className={`text-xs mt-1 hidden sm:block ${
-                isActive ? 'text-primary font-medium' : 'text-muted-foreground'
-              }`}
+              className={`text-xs mt-1 hidden sm:block ${isActive ? 'text-primary font-medium' : 'text-muted-foreground'
+                }`}
             >
               {label}
             </span>
@@ -122,14 +120,14 @@ const AtivoCard: React.FC<{ ativo: any }> = ({ ativo }) => {
     status === 'overdue'
       ? 'border-red-400'
       : status === 'soon'
-      ? 'border-orange-400'
-      : 'border-green-400';
+        ? 'border-orange-400'
+        : 'border-green-400';
   const badgeClass =
     status === 'overdue'
       ? 'bg-red-100 text-red-700'
       : status === 'soon'
-      ? 'bg-orange-100 text-orange-700'
-      : 'bg-green-100 text-green-700';
+        ? 'bg-orange-100 text-orange-700'
+        : 'bg-green-100 text-green-700';
   const badgeLabel = status === 'overdue' ? 'Expirado' : status === 'soon' ? 'Em breve' : 'OK';
 
   return (
@@ -418,14 +416,14 @@ export const OnboardingPage: React.FC = () => {
           {step === 2 && (
             <div className="bg-card rounded-2xl border shadow-lg p-8">
               <div className="mb-6">
-                <h2 className="text-2xl font-bold mb-1">O seu primeiro edifício</h2>
+                <h2 className="text-2xl font-bold mb-1">Adicione o seu primeiro condomínio</h2>
                 <p className="text-muted-foreground text-sm">
-                  Vamos criar o seu primeiro condomínio no sistema.
+                  Vamos adicionar o seu primeiro condomínio no sistema.
                 </p>
               </div>
               <form onSubmit={step2Form.handleSubmit(handleStep2Submit)} className="space-y-4">
                 <div>
-                  <Label htmlFor="nome_edificio">Nome do Edifício</Label>
+                  <Label htmlFor="nome_edificio">Nome do Condomínio</Label>
                   <Input
                     id="nome_edificio"
                     placeholder="Condomínio Central"
@@ -483,7 +481,7 @@ export const OnboardingPage: React.FC = () => {
                   {stepData.condominioNome}
                 </div>
                 <h2 className="text-2xl font-bold mb-1">
-                  Qual é o maior problema neste edifício agora?
+                  Qual é o maior problema neste condomínio no momento?
                 </h2>
                 <p className="text-muted-foreground text-sm">
                   Vamos registar o seu primeiro item em 30 segundos.
@@ -521,10 +519,10 @@ export const OnboardingPage: React.FC = () => {
                     <ClipboardList className="h-4 w-4 text-primary" /> Nova Ocorrência
                   </p>
                   <div>
-                    <Label htmlFor="oc_titulo">Título</Label>
+                    <Label htmlFor="oc_titulo">Nome da Ocorrência</Label>
                     <Input
                       id="oc_titulo"
-                      placeholder="Ex: Infiltração no tecto do corredor"
+                      placeholder="Ex: Infiltração no tecto da fração 101"
                       {...ocorrenciaForm.register('titulo')}
                     />
                     {ocorrenciaForm.formState.errors.titulo && (
