@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CreateOcorrenciaData, Ocorrencia } from '@/api/ocorrencias';
 import { useCondominios } from '@/context/CondominiosContext';
+import { suggestFromTitulo } from '@/utils/ocorrenciaAutofill';
 
 const ocorrenciaSchema = z.object({
   id_condominio: z.number({ required_error: 'Selecione um condomínio' }),
@@ -53,16 +54,35 @@ export const OcorrenciaForm: React.FC<OcorrenciaFormProps> = ({
     formState: { errors, isSubmitting },
     reset,
     setValue,
+    getValues,
     watch,
   } = useForm<OcorrenciaFormData>({
     resolver: zodResolver(ocorrenciaSchema),
     defaultValues: {},
   });
 
+  const titulo = watch('titulo');
   const categoria = watch('categoria');
   const responsabilidade = watch('responsabilidade');
   const prioridade = watch('prioridade');
   const condominioId = watch('id_condominio');
+
+  useEffect(() => {
+    if (!open) return;
+    const t = (titulo || '').trim();
+    if (!t) return;
+
+    const suggestion = suggestFromTitulo(t);
+    const currentCategoria = getValues('categoria');
+    const currentPrioridade = getValues('prioridade');
+
+    if (!currentCategoria && suggestion.categoria) {
+      setValue('categoria', suggestion.categoria, { shouldValidate: true });
+    }
+    if (!currentPrioridade && suggestion.prioridade) {
+      setValue('prioridade', suggestion.prioridade, { shouldValidate: true });
+    }
+  }, [titulo, open, getValues, setValue]);
 
   useEffect(() => {
     if (open) {
@@ -140,7 +160,10 @@ export const OcorrenciaForm: React.FC<OcorrenciaFormProps> = ({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Categoria *</Label>
-              <Select value={categoria || ''} onValueChange={(v) => setValue('categoria', v as any, { shouldValidate: true })}>
+              <Select
+                value={categoria || ''}
+                onValueChange={(v) => setValue('categoria', v as OcorrenciaFormData['categoria'], { shouldValidate: true })}
+              >
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="estrutural">Estrutural</SelectItem>
@@ -157,7 +180,12 @@ export const OcorrenciaForm: React.FC<OcorrenciaFormProps> = ({
 
             <div className="space-y-2">
               <Label>Responsabilidade *</Label>
-              <Select value={responsabilidade || ''} onValueChange={(v) => setValue('responsabilidade', v as any, { shouldValidate: true })}>
+              <Select
+                value={responsabilidade || ''}
+                onValueChange={(v) =>
+                  setValue('responsabilidade', v as OcorrenciaFormData['responsabilidade'], { shouldValidate: true })
+                }
+              >
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="condominio">Condomínio</SelectItem>
@@ -171,7 +199,10 @@ export const OcorrenciaForm: React.FC<OcorrenciaFormProps> = ({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Prioridade *</Label>
-              <Select value={prioridade || ''} onValueChange={(v) => setValue('prioridade', v as any, { shouldValidate: true })}>
+              <Select
+                value={prioridade || ''}
+                onValueChange={(v) => setValue('prioridade', v as OcorrenciaFormData['prioridade'], { shouldValidate: true })}
+              >
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="critica">Crítica</SelectItem>
