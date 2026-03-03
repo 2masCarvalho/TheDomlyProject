@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -8,6 +8,8 @@ import { useAuth } from '@/context/AuthContext';
 import { ocorrenciasApi } from '@/api/ocorrencias';
 import { tecnicosApi, type Tecnico } from '@/api/tecnicos';
 import { getExpiryStatus } from '@/api/ativos';
+import { loadOnboardingState, markSkipped, patchOnboardingDraft, patchOnboardingState } from '@/utils/onboardingState';
+import { suggestFromTitulo } from '@/utils/ocorrenciaAutofill';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -158,6 +160,7 @@ const AtivoCard: React.FC<{ ativo: any }> = ({ ativo }) => {
 
 export const OnboardingPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [emailSent, setEmailSent] = useState(false);
@@ -179,13 +182,173 @@ export const OnboardingPage: React.FC = () => {
   const ocorrenciaForm = useForm<OcorrenciaForm>({ resolver: zodResolver(ocorrenciaSchema) });
   const ativoForm = useForm<AtivoForm>({ resolver: zodResolver(ativoSchema) });
 
-  // Auto-detect authenticated user → skip to step 2
+  const resumeRequested = new URLSearchParams(location.search).get('resume') === '1';
+
+  const step2Nome = step2Form.watch('nome');
+  const step2Morada = step2Form.watch('morada');
+  const step2NumFracoes = step2Form.watch('num_fracoes');
+
+  const ocorrenciaTitulo = ocorrenciaForm.watch('titulo');
+  const ocorrenciaCategoria = ocorrenciaForm.watch('categoria');
+  const ocorrenciaPrioridade = ocorrenciaForm.watch('prioridade');
+
+  const ativoNome = ativoForm.watch('nome');
+  const ativoTipo = ativoForm.watch('tipo_ativo');
+  const ativoDataExp = ativoForm.watch('data_expiracao');
+
+  // Auto-detect authenticated user → resume to best step
   useEffect(() => {
-    if (user && step === 1) {
-      ensureProfileExists(user);
-      setStep(2);
+    let cancelled = false;
+
+    const run = async () => {
+      if (!user) return;
+
+      const userId = user.id as string;
+      patchOnboardingState({ hasAccount: true }, userId);
+
+      await ensureProfileExists(user);
+
+      let existingCondo: { id_comdominio: number; nome: string } | null = null;
+      try {
+        const { data, error } = await supabase
+          .from('condominios')
+          .select('id_comdominio,nome')
+          .eq('id_user', userId)
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (!error && Array.isArray(data) && data.length > 0) {
+          existingCondo = data[0] as { id_comdominio: number; nome: string };
+        }
+      } catch {
+        // ignore
+      }
+
+      if (cancelled) return;
+
+      if (existingCondo) {
+        setStepData((prev) => ({
+          ...prev,
+          condominioId: existingCondo!.id_comdominio,
+          condominioNome: existingCondo!.nome,
+        }));
+        patchOnboardingState({ hasCondominio: true }, userId);
+      } else {
+        patchOnboardingState({ hasCondominio: false }, userId);
+      }
+
+      const st = loadOnboardingState(userId);
+
+      setStep((current) => {
+        if (current !== 1 && !resumeRequested) return current;
+
+        if (!existingCondo) return 2;
+        if (st.didQuickWin) return 4;
+        return 3;
+      });
+    };
+
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [user, resumeRequested, location.search]);
+
+  // Persist drafts while typing
+  useEffect(() => {
+    if (step !== 2) return;
+    if (!step2Nome && !step2Morada && (step2NumFracoes === undefined || step2NumFracoes === null)) return;
+    patchOnboardingDraft(
+      {
+        step2: { nome: step2Nome, morada: step2Morada, num_fracoes: step2NumFracoes ?? null },
+      },
+      user?.id ?? null
+    );
+  }, [step2Nome, step2Morada, step2NumFracoes, user?.id, step]);
+
+  useEffect(() => {
+    if (step !== 3) return;
+    patchOnboardingDraft({ selectedPath }, user?.id ?? null);
+  }, [selectedPath, user?.id, step]);
+
+  useEffect(() => {
+    if (step !== 3 || selectedPath !== 'ocorrencia') return;
+    patchOnboardingDraft(
+      {
+        ocorrencia: {
+          titulo: ocorrenciaTitulo,
+          categoria: ocorrenciaCategoria,
+          prioridade: ocorrenciaPrioridade,
+        },
+      },
+      user?.id ?? null
+    );
+  }, [ocorrenciaTitulo, ocorrenciaCategoria, ocorrenciaPrioridade, selectedPath, user?.id, step]);
+
+  useEffect(() => {
+    if (step !== 3 || selectedPath !== 'ativo') return;
+    patchOnboardingDraft(
+      {
+        ativo: {
+          nome: ativoNome,
+          tipo_ativo: ativoTipo,
+          data_expiracao: ativoDataExp ?? null,
+        },
+      },
+      user?.id ?? null
+    );
+  }, [ativoNome, ativoTipo, ativoDataExp, selectedPath, user?.id, step]);
+
+  // Apply drafts on resume/back
+  useEffect(() => {
+    if (!user?.id) return;
+    const st = loadOnboardingState(user.id);
+    const d = st.draft;
+    if (!d) return;
+
+    if (step === 2 && d.step2) {
+      const current = step2Form.getValues();
+      const isEmpty =
+        !current.nome &&
+        !current.morada &&
+        (current.num_fracoes === undefined || current.num_fracoes === null || Number.isNaN(current.num_fracoes));
+
+      if (isEmpty) {
+        if (typeof d.step2.nome === 'string') step2Form.setValue('nome', d.step2.nome);
+        if (typeof d.step2.morada === 'string') step2Form.setValue('morada', d.step2.morada);
+        if (typeof d.step2.num_fracoes === 'number') step2Form.setValue('num_fracoes', d.step2.num_fracoes);
+      }
     }
-  }, [user]);
+
+    if (step === 3) {
+      if (!selectedPath && (d.selectedPath === 'ocorrencia' || d.selectedPath === 'ativo')) {
+        setSelectedPath(d.selectedPath);
+      }
+
+      if (selectedPath === 'ocorrencia' && d.ocorrencia) {
+        const current = ocorrenciaForm.getValues();
+        const isEmpty = !current.titulo && !current.categoria && !current.prioridade;
+        if (isEmpty) {
+          if (typeof d.ocorrencia.titulo === 'string') ocorrenciaForm.setValue('titulo', d.ocorrencia.titulo);
+          if (typeof d.ocorrencia.categoria === 'string')
+            ocorrenciaForm.setValue('categoria', d.ocorrencia.categoria as OcorrenciaForm['categoria']);
+          if (typeof d.ocorrencia.prioridade === 'string')
+            ocorrenciaForm.setValue('prioridade', d.ocorrencia.prioridade as OcorrenciaForm['prioridade']);
+        }
+      }
+
+      if (selectedPath === 'ativo' && d.ativo) {
+        const current = ativoForm.getValues();
+        const isEmpty = !current.nome && !current.tipo_ativo && !current.data_expiracao;
+        if (isEmpty) {
+          if (typeof d.ativo.nome === 'string') ativoForm.setValue('nome', d.ativo.nome);
+          if (typeof d.ativo.tipo_ativo === 'string')
+            ativoForm.setValue('tipo_ativo', d.ativo.tipo_ativo as AtivoForm['tipo_ativo']);
+          if (typeof d.ativo.data_expiracao === 'string') ativoForm.setValue('data_expiracao', d.ativo.data_expiracao);
+        }
+      }
+    }
+  }, [step, user?.id, selectedPath, step2Form, ocorrenciaForm, ativoForm]);
 
   const ensureProfileExists = async (u: any) => {
     try {
@@ -234,24 +397,43 @@ export const OnboardingPage: React.FC = () => {
     try {
       const { data: userData } = await supabase.auth.getUser();
       const userId = userData?.user?.id;
-      const { data: result, error } = await supabase
-        .from('condominios')
-        .insert([{
-          nome: data.nome,
-          morada: data.morada,
-          num_fracoes: data.num_fracoes,
-          cidade: '',
-          codigo_postal: '',
-          id_user: userId,
-        }])
-        .select()
-        .single();
+      const isUpdate = typeof stepData.condominioId === 'number';
+
+      const { data: result, error } = isUpdate
+        ? await supabase
+            .from('condominios')
+            .update({
+              nome: data.nome,
+              morada: data.morada,
+              num_fracoes: data.num_fracoes,
+            })
+            .eq('id_comdominio', stepData.condominioId)
+            .select()
+            .single()
+        : await supabase
+            .from('condominios')
+            .insert([
+              {
+                nome: data.nome,
+                morada: data.morada,
+                num_fracoes: data.num_fracoes,
+                cidade: '',
+                codigo_postal: '',
+                id_user: userId,
+              },
+            ])
+            .select()
+            .single();
+
       if (error) throw error;
       setStepData(prev => ({
         ...prev,
         condominioId: result.id_comdominio,
         condominioNome: result.nome,
       }));
+      if (userId) {
+        patchOnboardingState({ hasCondominio: true, skipped: { step2: false } }, userId);
+      }
       setStep(3);
     } catch (err: any) {
       step2Form.setError('nome', { message: err.message || 'Erro ao criar edifício' });
@@ -264,23 +446,51 @@ export const OnboardingPage: React.FC = () => {
     setSelectedPath(path);
   };
 
+  const watchedOcorrenciaTitulo = ocorrenciaForm.watch('titulo');
+  useEffect(() => {
+    if (step !== 3 || selectedPath !== 'ocorrencia') return;
+    const t = (watchedOcorrenciaTitulo || '').trim();
+    if (!t) return;
+
+    const suggestion = suggestFromTitulo(t);
+    const currentCategoria = ocorrenciaForm.getValues('categoria');
+    const currentPrioridade = ocorrenciaForm.getValues('prioridade');
+
+    if (!currentCategoria && suggestion.categoria) {
+      ocorrenciaForm.setValue('categoria', suggestion.categoria, { shouldValidate: true });
+    }
+    if (!currentPrioridade && suggestion.prioridade) {
+      ocorrenciaForm.setValue('prioridade', suggestion.prioridade, { shouldValidate: true });
+    }
+  }, [watchedOcorrenciaTitulo, selectedPath, step, ocorrenciaForm]);
+
   const handleOcorrenciaSubmit = async (data: OcorrenciaForm) => {
     if (!stepData.condominioId) return;
     setSubmitting(true);
     try {
-      const result = await ocorrenciasApi.create({
+      const isUpdate = stepData.quickWinPath === 'ocorrencia' && typeof stepData.createdItemId === 'number';
+
+      const payload = {
         titulo: data.titulo,
         categoria: data.categoria,
         prioridade: data.prioridade,
         id_condominio: stepData.condominioId,
-        responsabilidade: 'condominio',
-      });
+        responsabilidade: 'condominio' as const,
+      };
+
+      const result = isUpdate
+        ? await ocorrenciasApi.update(stepData.createdItemId, payload)
+        : await ocorrenciasApi.create(payload);
+
       setStepData(prev => ({
         ...prev,
         quickWinPath: 'ocorrencia',
         createdItemId: result.id_ocorrencia,
         createdItemData: result,
       }));
+      if (user?.id) {
+        patchOnboardingState({ didQuickWin: true, skipped: { step3: false } }, user.id);
+      }
       setLoadingTecnicos(true);
       try {
         const tecnicos = await tecnicosApi.getAll();
@@ -301,18 +511,34 @@ export const OnboardingPage: React.FC = () => {
     if (!stepData.condominioId) return;
     setSubmitting(true);
     try {
-      const { data: result, error } = await supabase
-        .from('ativos')
-        .insert([{
-          nome: data.nome,
-          tipo_ativo: data.tipo_ativo,
-          data_expiracao: data.data_expiracao || null,
-          id_condominio: stepData.condominioId,
-          categoria: 'compliance',
-          estado: 'bom',
-        }])
-        .select()
-        .single();
+      const isUpdate = stepData.quickWinPath === 'ativo' && typeof stepData.createdItemId === 'string';
+
+      const { data: result, error } = isUpdate
+        ? await supabase
+            .from('ativos')
+            .update({
+              nome: data.nome,
+              tipo_ativo: data.tipo_ativo,
+              data_expiracao: data.data_expiracao || null,
+            })
+            .eq('id_ativo', stepData.createdItemId)
+            .select()
+            .single()
+        : await supabase
+            .from('ativos')
+            .insert([
+              {
+                nome: data.nome,
+                tipo_ativo: data.tipo_ativo,
+                data_expiracao: data.data_expiracao || null,
+                id_condominio: stepData.condominioId,
+                categoria: 'compliance',
+                estado: 'bom',
+              },
+            ])
+            .select()
+            .single();
+
       if (error) throw error;
       setStepData(prev => ({
         ...prev,
@@ -320,6 +546,9 @@ export const OnboardingPage: React.FC = () => {
         createdItemId: result.id_ativo,
         createdItemData: result,
       }));
+      if (user?.id) {
+        patchOnboardingState({ didQuickWin: true, skipped: { step3: false } }, user.id);
+      }
       setStep(4);
     } catch (err: any) {
       ativoForm.setError('nome', { message: err.message || 'Erro ao criar ativo' });
@@ -333,6 +562,34 @@ export const OnboardingPage: React.FC = () => {
     setTimeout(() => {
       navigate('/dashboard?onboarding=1');
     }, 1500);
+  };
+
+  const handleSkipStep2 = () => {
+    if (user?.id) {
+      markSkipped(2, user.id);
+      patchOnboardingState({ hasCondominio: false }, user.id);
+    } else {
+      markSkipped(2);
+    }
+    navigate('/condominios');
+  };
+
+  const handleSkipStep3 = () => {
+    if (user?.id) {
+      markSkipped(3, user.id);
+      patchOnboardingState({ didQuickWin: false }, user.id);
+    } else {
+      markSkipped(3);
+    }
+    navigate('/dashboard');
+  };
+
+  const handleBackToStep2 = () => {
+    setStep(2);
+  };
+
+  const handleBackToStep3 = () => {
+    setStep(3);
   };
 
   return (
@@ -468,6 +725,15 @@ export const OnboardingPage: React.FC = () => {
                   Criar Edifício
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full"
+                  onClick={handleSkipStep2}
+                  disabled={submitting}
+                >
+                  Saltar por agora (podes completar mais tarde nas Definições)
+                </Button>
               </form>
             </div>
           )}
@@ -486,27 +752,35 @@ export const OnboardingPage: React.FC = () => {
                 <p className="text-muted-foreground text-sm">
                   Vamos registar o seu primeiro item em 30 segundos.
                 </p>
+                <Button type="button" variant="ghost" className="px-0 mt-3" onClick={handleBackToStep2}>
+                  ← Voltar (Edifício)
+                </Button>
               </div>
 
               {!selectedPath && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
-                  <button
-                    onClick={() => handlePathSelect('ocorrencia')}
-                    className="p-6 border-2 border-border rounded-xl text-left hover:border-primary hover:bg-primary/5 transition-all group"
-                  >
-                    <ClipboardList className="h-8 w-8 text-primary mb-3 group-hover:scale-110 transition-transform" />
-                    <p className="font-semibold text-sm">Registar uma ocorrência em aberto</p>
-                    <p className="text-xs text-muted-foreground mt-1">Avaria, reclamação ou incidente</p>
-                  </button>
-                  <button
-                    onClick={() => handlePathSelect('ativo')}
-                    className="p-6 border-2 border-border rounded-xl text-left hover:border-primary hover:bg-primary/5 transition-all group"
-                  >
-                    <Package className="h-8 w-8 text-primary mb-3 group-hover:scale-110 transition-transform" />
-                    <p className="font-semibold text-sm">Adicionar um ativo crítico</p>
-                    <p className="text-xs text-muted-foreground mt-1">Licença, seguro ou equipamento</p>
-                  </button>
-                </div>
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
+                    <button
+                      onClick={() => handlePathSelect('ocorrencia')}
+                      className="p-6 border-2 border-border rounded-xl text-left hover:border-primary hover:bg-primary/5 transition-all group"
+                    >
+                      <ClipboardList className="h-8 w-8 text-primary mb-3 group-hover:scale-110 transition-transform" />
+                      <p className="font-semibold text-sm">Registar uma ocorrência em aberto</p>
+                      <p className="text-xs text-muted-foreground mt-1">Avaria, reclamação ou incidente</p>
+                    </button>
+                    <button
+                      onClick={() => handlePathSelect('ativo')}
+                      className="p-6 border-2 border-border rounded-xl text-left hover:border-primary hover:bg-primary/5 transition-all group"
+                    >
+                      <Package className="h-8 w-8 text-primary mb-3 group-hover:scale-110 transition-transform" />
+                      <p className="font-semibold text-sm">Adicionar um ativo crítico</p>
+                      <p className="text-xs text-muted-foreground mt-1">Licença, seguro ou equipamento</p>
+                    </button>
+                  </div>
+                  <Button type="button" variant="ghost" className="w-full" onClick={handleSkipStep3}>
+                    Saltar por agora (podes completar mais tarde nas Definições)
+                  </Button>
+                </>
               )}
 
               {/* Ocorrência mini-form */}
@@ -533,7 +807,15 @@ export const OnboardingPage: React.FC = () => {
                   </div>
                   <div>
                     <Label>Categoria</Label>
-                    <Select onValueChange={(v) => ocorrenciaForm.setValue('categoria', v as any)}>
+                    <Select
+                      value={ocorrenciaForm.watch('categoria') || ''}
+                      onValueChange={(v) =>
+                        ocorrenciaForm.setValue('categoria', v as OcorrenciaForm['categoria'], {
+                          shouldValidate: true,
+                          shouldDirty: true,
+                        })
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecionar categoria" />
                       </SelectTrigger>
@@ -551,7 +833,15 @@ export const OnboardingPage: React.FC = () => {
                   </div>
                   <div>
                     <Label>Prioridade</Label>
-                    <Select onValueChange={(v) => ocorrenciaForm.setValue('prioridade', v as any)}>
+                    <Select
+                      value={ocorrenciaForm.watch('prioridade') || ''}
+                      onValueChange={(v) =>
+                        ocorrenciaForm.setValue('prioridade', v as OcorrenciaForm['prioridade'], {
+                          shouldValidate: true,
+                          shouldDirty: true,
+                        })
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecionar prioridade" />
                       </SelectTrigger>
@@ -609,7 +899,15 @@ export const OnboardingPage: React.FC = () => {
                   </div>
                   <div>
                     <Label>Tipo de Ativo</Label>
-                    <Select onValueChange={(v) => ativoForm.setValue('tipo_ativo', v as any)}>
+                    <Select
+                      value={ativoForm.watch('tipo_ativo') || ''}
+                      onValueChange={(v) =>
+                        ativoForm.setValue('tipo_ativo', v as AtivoForm['tipo_ativo'], {
+                          shouldValidate: true,
+                          shouldDirty: true,
+                        })
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecionar tipo" />
                       </SelectTrigger>
@@ -651,6 +949,20 @@ export const OnboardingPage: React.FC = () => {
           {/* Step 4 — Magic Resolution */}
           {step === 4 && (
             <div className="bg-card rounded-2xl border shadow-lg p-8">
+              <Button type="button" variant="ghost" className="px-0 mb-4" onClick={handleBackToStep3}>
+                ← Voltar (Ação)
+              </Button>
+              {!stepData.quickWinPath && (
+                <div className="mb-6">
+                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
+                    <CheckCircle2 className="h-6 w-6 text-primary" />
+                  </div>
+                  <h2 className="text-2xl font-bold mb-1">Tudo pronto!</h2>
+                  <p className="text-muted-foreground text-sm">
+                    Se ainda tiveres passos pendentes, podes completá-los mais tarde nas Definições.
+                  </p>
+                </div>
+              )}
               {stepData.quickWinPath === 'ocorrencia' && (
                 <>
                   <div className="mb-6">

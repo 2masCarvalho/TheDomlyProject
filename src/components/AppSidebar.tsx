@@ -37,7 +37,7 @@ export function AppSidebar() {
     { title: "Alertas", url: "/alertas", icon: Shield, badge: pendingCount },
     { title: "Manutenção", url: "/manutencao", icon: Camera },
     { title: "Suporte", url: "/suporte", icon: MessageSquare },
-    { title: "Definições", url: "/configuracoes", icon: Settings },
+    { title: "Definições", url: "/definicoes", icon: Settings },
   ];
 
 
