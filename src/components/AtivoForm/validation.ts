@@ -22,7 +22,24 @@ export const ativoFormSchema = z.object({
   }).min(0, 'O valor não pode ser negativo'),
   localizacao: z.string().optional().or(z.literal('')),
   // Feature 3: License & compliance fields
-  tipo_ativo: z.enum(['extintor', 'sadi', 'sadc', 'inspecao_gas', 'painel_solar', 'seguro', 'licenca_elevador', 'outro']).optional(),
+  tipo_ativo: z
+    .enum([
+      'elevador',
+      'extintor',
+      'boca_incendio',
+      'sadi',
+      'sadc',
+      'detecao_gas',
+      'inspecao_gas',
+      'painel_solar',
+      'para_raios',
+      'iluminacao_emergencia',
+      'portas_corta_fogo',
+      'seguro',
+      'licenca_elevador',
+      'outro',
+    ])
+    .optional(),
   data_expiracao: z.string().optional().or(z.literal('')),
   data_ultima_manutencao: z.string().optional().or(z.literal('')),
   empresa_responsavel: z.string().optional().or(z.literal('')),

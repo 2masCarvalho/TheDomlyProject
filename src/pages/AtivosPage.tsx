@@ -9,10 +9,11 @@ import { AtivosList } from '@/components/AtivosList/AtivosList';
 import { AtivoForm } from '@/components/AtivoForm/AtivoForm';
 import { AtivoFormData } from '@/components/AtivoForm/validation';
 import { ConfirmModal } from '@/components/ConfirmModal/ConfirmModal';
-import { Ativo } from '@/api/ativos';
+import { Ativo, getExpiryStatus } from '@/api/ativos';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 import { Input } from '@/components/ui/input';
+import { computeNextMaintenanceDate } from '@/utils/maintenanceDates';
 
 export const AtivosPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -27,6 +28,7 @@ export const AtivosPage: React.FC = () => {
   // o setSearchTerm é a função que atualiza o searchTerm
   // ('') significa que começa vazio
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'ok' | 'soon' | 'overdue'>('all');
 
   const condominioId = parseInt(id || '0');
   const condominio = condominios.find((c) => c.id_comdominio === condominioId);
@@ -54,9 +56,18 @@ export const AtivosPage: React.FC = () => {
   };
 
   const handleFormSubmit = async (data: AtivoFormData) => {
+    const dataProximaManutencao = computeNextMaintenanceDate({
+      dataInstalacao: data.data_instalacao,
+      ultimaManutencao: data.ultima_manutencao,
+      frequencyMonths: data.frequencia_manutencao,
+    });
+
     if (selectedAtivo) {
       // Na edição, passamos o objeto 'data' completo
-      await updateAtivo(selectedAtivo.id_ativo, data);
+      await updateAtivo(selectedAtivo.id_ativo, {
+        ...data,
+        data_proxima_manutencao: dataProximaManutencao || undefined,
+      });
     } else {
       await createAtivo({
         id_condominio: condominioId,
@@ -70,6 +81,9 @@ export const AtivosPage: React.FC = () => {
         descricao: data.descricao,
         valor: data.valor,
         data_instalacao: data.data_instalacao,
+        ultima_manutencao: data.ultima_manutencao,
+        frequencia_manutencao: data.frequencia_manutencao,
+        data_proxima_manutencao: dataProximaManutencao || undefined,
         tipo_ativo: data.tipo_ativo,
         data_expiracao: data.data_expiracao,
         data_ultima_manutencao: data.data_ultima_manutencao,
@@ -91,12 +105,18 @@ export const AtivosPage: React.FC = () => {
 
   // 1. pegamos na lista original de ativos
   // 2. a funcao filter percorre cada ativo
-  const filteredAtivos = ativos.filter((ativo) => {
+  const filteredAtivos = ativos
+    .filter((ativo) => {
     const nomeAtivo = ativo.nome.toLowerCase();
     const searchTermLower = searchTerm.toLowerCase();
     // Devolvemos true se o nome do ativo contiver o termo de pesquisa
     return nomeAtivo.includes(searchTermLower);
-  });
+    })
+    .filter((ativo) => {
+      if (statusFilter === 'all') return true;
+      const s = getExpiryStatus(ativo.data_expiracao, ativo.data_proxima_manutencao);
+      return s === statusFilter;
+    });
 
   if (condominiosLoading) {
     return <LoadingSpinner />;
@@ -144,6 +164,40 @@ export const AtivosPage: React.FC = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="max-w-md"
               />
+              <div className="flex flex-wrap gap-2 mt-3">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={statusFilter === 'all' ? 'default' : 'outline'}
+                  onClick={() => setStatusFilter('all')}
+                >
+                  Todos
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={statusFilter === 'ok' ? 'default' : 'outline'}
+                  onClick={() => setStatusFilter('ok')}
+                >
+                  Em dia
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={statusFilter === 'soon' ? 'default' : 'outline'}
+                  onClick={() => setStatusFilter('soon')}
+                >
+                  Vence em breve
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={statusFilter === 'overdue' ? 'default' : 'outline'}
+                  onClick={() => setStatusFilter('overdue')}
+                >
+                  Expirado
+                </Button>
+              </div>
             </div>
 
 

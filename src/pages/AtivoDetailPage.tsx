@@ -38,6 +38,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alerta, ativosApi, manutencoesApi } from '@/api/ativos';
 import { MaintenanceForm } from '@/components/MaintenanceForm/MaintenanceForm';
+import { computeNextMaintenanceDate } from '@/utils/maintenanceDates';
 
 const estadoColors = {
   excelente: 'bg-green-500/10 text-green-500 border-green-500/20',
@@ -112,7 +113,15 @@ export const AtivoDetailPage: React.FC = () => {
   }
 
   const handleEditAtivo = async (data: AtivoFormData) => {
-    await updateAtivo(parsedAtivoId, data);
+    const dataProximaManutencao = computeNextMaintenanceDate({
+      dataInstalacao: data.data_instalacao,
+      ultimaManutencao: data.ultima_manutencao,
+      frequencyMonths: data.frequencia_manutencao,
+    });
+    await updateAtivo(parsedAtivoId, {
+      ...data,
+      data_proxima_manutencao: dataProximaManutencao || undefined,
+    });
     setEditModalOpen(false);
   };
 
