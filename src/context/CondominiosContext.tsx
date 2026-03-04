@@ -8,9 +8,13 @@ interface CondominiosContextType {
   loading: boolean;
   searchTerm: string;
   setSearchTerm: (term: string) => void;
+  includeInactive: boolean;
+  setIncludeInactive: (val: boolean) => void;
   createCondominio: (data: CreateCondominioData) => Promise<void>;
   updateCondominio: (id: number, data: Partial<CreateCondominioData>) => Promise<void>;
   deleteCondominio: (id: number) => Promise<void>;
+  deactivateCondominio: (id: number) => Promise<void>;
+  reactivateCondominio: (id: number) => Promise<void>;
   refreshCondominios: () => Promise<void>;
 }
 
@@ -20,12 +24,13 @@ export const CondominiosProvider: React.FC<{ children: ReactNode }> = ({ childre
   const [condominios, setCondominios] = useState<Condominio[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [includeInactive, setIncludeInactive] = useState(false);
   const { toast } = useToast();
 
   const loadCondominios = async () => {
     try {
       setLoading(true);
-      const data = await condominiosApi.getAll();
+      const data = await condominiosApi.getAll({ includeInactive });
       setCondominios(data);
     } catch (error) {
       toast({ title: 'Erro', description: 'Não foi possível carregar os condomínios', variant: 'destructive' });
@@ -34,7 +39,9 @@ export const CondominiosProvider: React.FC<{ children: ReactNode }> = ({ childre
     }
   };
 
-  useEffect(() => { loadCondominios(); }, []);
+  useEffect(() => {
+    loadCondominios();
+  }, [includeInactive]);
 
   const filteredCondominios = condominios.filter(c =>
     c.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -57,8 +64,46 @@ export const CondominiosProvider: React.FC<{ children: ReactNode }> = ({ childre
     catch (error) { toast({ title: 'Erro', description: 'Não foi possível eliminar o condomínio', variant: 'destructive' }); throw error; }
   };
 
+  const deactivateCondominio = async (id: number) => {
+    try {
+      await condominiosApi.deactivate(id);
+      await loadCondominios();
+      toast({ title: 'Sucesso', description: 'Condomínio desativado' });
+    } catch (error) {
+      toast({ title: 'Erro', description: 'Não foi possível desativar o condomínio', variant: 'destructive' });
+      throw error;
+    }
+  };
+
+  const reactivateCondominio = async (id: number) => {
+    try {
+      await condominiosApi.reactivate(id);
+      await loadCondominios();
+      toast({ title: 'Sucesso', description: 'Condomínio reativado' });
+    } catch (error) {
+      toast({ title: 'Erro', description: 'Não foi possível reativar o condomínio', variant: 'destructive' });
+      throw error;
+    }
+  };
+
   return (
-    <CondominiosContext.Provider value={{ condominios, filteredCondominios, loading, searchTerm, setSearchTerm, createCondominio, updateCondominio, deleteCondominio, refreshCondominios: loadCondominios }}>
+    <CondominiosContext.Provider
+      value={{
+        condominios,
+        filteredCondominios,
+        loading,
+        searchTerm,
+        setSearchTerm,
+        includeInactive,
+        setIncludeInactive,
+        createCondominio,
+        updateCondominio,
+        deleteCondominio,
+        deactivateCondominio,
+        reactivateCondominio,
+        refreshCondominios: loadCondominios,
+      }}
+    >
       {children}
     </CondominiosContext.Provider>
   );

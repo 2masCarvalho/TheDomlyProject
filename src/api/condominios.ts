@@ -6,6 +6,7 @@ export interface Condominio {
   cidade: string;
   morada: string;
   codigo_postal: string;
+  is_active?: boolean;
   nif?: number | null;
   iban?: string;
   banco?: string;
@@ -25,9 +26,9 @@ export interface Condominio {
 
 export interface CreateCondominioData {
   nome: string;
-  cidade: string;
+  cidade?: string;
   morada: string;
-  codigo_postal: string;
+  codigo_postal?: string;
   nif?: number | null;
   iban?: string;
   banco?: string;
@@ -44,11 +45,12 @@ export interface CreateCondominioData {
 }
 
 export const condominiosApi = {
-  getAll: async (): Promise<Condominio[]> => {
-    const { data, error } = await supabase
-      .from('condominios')
-      .select('*')
-      .order('created_at', { ascending: false });
+  getAll: async (opts?: { includeInactive?: boolean }): Promise<Condominio[]> => {
+    let query = supabase.from('condominios').select('*');
+    if (!opts?.includeInactive) {
+      query = query.eq('is_active', true);
+    }
+    const { data, error } = await query.order('created_at', { ascending: false });
 
     if (error) throw error;
     return data;
@@ -73,6 +75,28 @@ export const condominiosApi = {
 
     if (error) throw error;
     return data;
+  },
+
+  deactivate: async (id: number) => {
+    const { data, error } = await supabase
+      .from('condominios')
+      .update({ is_active: false })
+      .eq('id_comdominio', id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data as Condominio;
+  },
+
+  reactivate: async (id: number) => {
+    const { data, error } = await supabase
+      .from('condominios')
+      .update({ is_active: true })
+      .eq('id_comdominio', id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data as Condominio;
   },
 
   delete: async (id: number) => {

@@ -1,9 +1,10 @@
 import React from 'react';
 import { Ativo, getExpiryStatus } from '@/api/ativos';
+import { getRuleForType } from '@/config/assetMaintenanceRules';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2, Eye, Euro, MapPin, AlertTriangle, Clock, CheckCircle } from 'lucide-react';
+import { Edit, Trash2, Eye, Euro, MapPin, AlertTriangle, Clock, CheckCircle, CalendarDays } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 interface AtivosListProps {
@@ -17,17 +18,6 @@ const estadoColors: Record<string, string> = {
   bom: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
   regular: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20',
   mau: 'bg-red-500/10 text-red-500 border-red-500/20',
-};
-
-const tipoAtivoLabels: Record<string, string> = {
-  extintor: 'Extintor',
-  sadi: 'SADI',
-  sadc: 'SADC',
-  inspecao_gas: 'Gás',
-  painel_solar: 'Solar',
-  seguro: 'Seguro',
-  licenca_elevador: 'Elevador',
-  outro: 'Outro',
 };
 
 const ExpiryIndicator: React.FC<{ ativo: Ativo }> = ({ ativo }) => {
@@ -79,6 +69,9 @@ export const AtivosList: React.FC<AtivosListProps> = ({ ativos, onEdit, onDelete
           : expiryStatus === 'soon'
           ? 'border-orange-300 bg-orange-50/20'
           : '';
+        const tipoLabel = ativo.tipo_ativo
+          ? (getRuleForType(ativo.tipo_ativo)?.label || ativo.tipo_ativo)
+          : null;
 
         return (
           <Card key={ativo.id_ativo} className={`hover:shadow-lg transition-shadow ${cardBorder}`}>
@@ -89,9 +82,9 @@ export const AtivosList: React.FC<AtivosListProps> = ({ ativos, onEdit, onDelete
                   <Badge variant="outline" className={ativo.estado ? estadoColors[ativo.estado] : ''}>
                     {ativo.estado || 'Sem estado'}
                   </Badge>
-                  {ativo.tipo_ativo && (
+                  {tipoLabel && (
                     <Badge variant="secondary" className="text-xs">
-                      {tipoAtivoLabels[ativo.tipo_ativo] || ativo.tipo_ativo}
+                      {tipoLabel}
                     </Badge>
                   )}
                 </div>
@@ -114,6 +107,12 @@ export const AtivosList: React.FC<AtivosListProps> = ({ ativos, onEdit, onDelete
                 <p className="text-sm flex items-center gap-1">
                   <MapPin className="h-3 w-3" />
                   {ativo.localizacao}
+                </p>
+              )}
+              {ativo.data_proxima_manutencao && (
+                <p className="text-sm flex items-center gap-1">
+                  <CalendarDays className="h-3 w-3" />
+                  Próx. manutenção: {new Date(ativo.data_proxima_manutencao).toLocaleDateString('pt-PT')}
                 </p>
               )}
               <ExpiryIndicator ativo={ativo} />

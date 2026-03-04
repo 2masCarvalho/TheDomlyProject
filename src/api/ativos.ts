@@ -1,3 +1,4 @@
+import { AssetType } from '@/config/assetMaintenanceRules';
 import { supabase } from '@/supabase-client';
 
 export interface Alerta {
@@ -33,7 +34,7 @@ export interface Documento {
   created_at?: string;
 }
 
-export type TipoAtivo = 'extintor' | 'sadi' | 'sadc' | 'inspecao_gas' | 'painel_solar' | 'seguro' | 'licenca_elevador' | 'outro';
+export type TipoAtivo = AssetType;
 export type EstadoLicenca = 'ativo' | 'expirado' | 'pendente_renovacao' | 'desativado';
 
 export interface Ativo {
@@ -75,6 +76,7 @@ export interface CreateAtivoData {
   modelo?: string;
   num_serie?: number;
   data_instalacao?: string;
+  data_proxima_manutencao?: string;
   estado?: 'excelente' | 'bom' | 'regular' | 'mau';
   descricao?: string;
   valor?: number;
@@ -229,6 +231,7 @@ export const ativosApi = {
       num_serie: (data.num_serie !== undefined && !Number.isNaN(data.num_serie)) ? data.num_serie : null,
       data_instalacao: data.data_instalacao || null,
       ultima_manutencao: data.ultima_manutencao || null,
+      data_proxima_manutencao: data.data_proxima_manutencao || null,
       frequencia_manutencao: data.frequencia_manutencao || 6,
       estado: data.estado,
       descricao: data.descricao,
@@ -256,8 +259,18 @@ export const ativosApi = {
   
 
   update: async (id: number, data: Partial<CreateAtivoData>): Promise<Ativo> => {
-    const payload = { ...data };
-    if (payload.data_instalacao === '') (payload as any).data_instalacao = null;
+    const payload: Record<string, unknown> = { ...data };
+    const nullableDateFields = [
+      'data_instalacao',
+      'ultima_manutencao',
+      'data_proxima_manutencao',
+      'data_expiracao',
+      'data_ultima_manutencao',
+    ] as const;
+
+    for (const field of nullableDateFields) {
+      if (payload[field] === '') payload[field] = null;
+    }
     
     const { data: updatedAtivo, error } = await supabase
       .from('ativos')
