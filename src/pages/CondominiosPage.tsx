@@ -22,19 +22,23 @@ export const CondominiosPage: React.FC = () => {
     loading,
     searchTerm,
     setSearchTerm,
+    includeInactive,
+    setIncludeInactive,
     createCondominio,
     updateCondominio,
-    deleteCondominio
+    deactivateCondominio,
+    reactivateCondominio,
   } = useCondominios();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeactivateModalOpen, setIsDeactivateModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedCondominio, setSelectedCondominio] = useState<Condominio | null>(null);
 
   const handleCreate = () => { setSelectedCondominio(null); setIsFormOpen(true); };
   const handleEdit = (condominio: Condominio) => { setSelectedCondominio(condominio); setIsFormOpen(true); };
-  const handleDelete = (condominio: Condominio) => { setSelectedCondominio(condominio); setIsDeleteModalOpen(true); };
+  const handleDeactivate = (condominio: Condominio) => { setSelectedCondominio(condominio); setIsDeactivateModalOpen(true); };
+  const handleReactivate = async (condominio: Condominio) => { await reactivateCondominio(condominio.id_comdominio); };
 
   const handleFormSubmit = async (data: CondominioFormData) => {
     // Converter dados do formulário para o tipo obrigatório CreateCondominioData
@@ -43,7 +47,7 @@ export const CondominiosPage: React.FC = () => {
       cidade: data.cidade || '',
       morada: data.morada || '',
       codigo_postal: data.codigo_postal || '',
-      nif: data.nif || 0,
+      nif: data.nif ?? null,
       image_url: data.image_url,
       iban: data.iban,
       banco: data.banco,
@@ -74,9 +78,9 @@ export const CondominiosPage: React.FC = () => {
     }
   };
 
-  const confirmDelete = async () => {
-    if (selectedCondominio) await deleteCondominio(selectedCondominio.id_comdominio);
-    setIsDeleteModalOpen(false);
+  const confirmDeactivate = async () => {
+    if (selectedCondominio) await deactivateCondominio(selectedCondominio.id_comdominio);
+    setIsDeactivateModalOpen(false);
   };
 
   const handleImportCondominios = async (data: CreateCondominioData[]) => {
@@ -93,6 +97,12 @@ export const CondominiosPage: React.FC = () => {
         <h1 className="text-2xl font-bold flex items-center gap-2"><Building2 className="h-6 w-6" /> Meus Condomínios</h1>
         <div className="flex gap-2">
           <Input placeholder="Pesquisar..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+          <Button
+            variant={includeInactive ? 'secondary' : 'outline'}
+            onClick={() => setIncludeInactive(!includeInactive)}
+          >
+            {includeInactive ? 'A mostrar desativados' : 'Mostrar desativados'}
+          </Button>
           <Button variant="outline" onClick={() => setIsImportModalOpen(true)}>
             <Upload className="h-4 w-4 mr-1" /> Importar
           </Button>
@@ -101,7 +111,16 @@ export const CondominiosPage: React.FC = () => {
         </div>
       </div>
 
-      {loading ? <LoadingSpinner /> : <CondominioList condominios={filteredCondominios} onEdit={handleEdit} onDelete={handleDelete} />}
+      {loading ? (
+        <LoadingSpinner />
+      ) : (
+        <CondominioList
+          condominios={filteredCondominios}
+          onEdit={handleEdit}
+          onDeactivate={handleDeactivate}
+          onReactivate={handleReactivate}
+        />
+      )}
 
       <CondominioForm
         open={isFormOpen}
@@ -111,11 +130,11 @@ export const CondominiosPage: React.FC = () => {
       />
 
       <ConfirmModal
-        open={isDeleteModalOpen}
-        onOpenChange={setIsDeleteModalOpen}
-        onConfirm={confirmDelete}
-        title="Eliminar Condomínio"
-        description="Tem a certeza que pretende eliminar este condomínio?"
+        open={isDeactivateModalOpen}
+        onOpenChange={setIsDeactivateModalOpen}
+        onConfirm={confirmDeactivate}
+        title="Desativar Condomínio"
+        description="Este condomínio ficará oculto por defeito. Pode reativá-lo mais tarde."
       />
 
       <CondominioImportModal

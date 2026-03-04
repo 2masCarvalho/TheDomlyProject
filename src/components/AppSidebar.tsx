@@ -1,4 +1,4 @@
-import { Home, Calendar, LayoutDashboard, Building2, MessageSquare, Camera, Shield, Key, Settings, LogOut, Wrench, ClipboardList, Users, ShieldCheck } from "lucide-react";
+import { Home, Calendar, LayoutDashboard, Building2, MessageSquare, Camera, Shield, Key, Settings, LogOut, Wrench, ClipboardList, Users, ShieldCheck, FileText } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/context/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -32,12 +32,15 @@ export function AppSidebar() {
     { title: "Ocorrências", url: "/ocorrencias", icon: ClipboardList, badge: openOcorrencias },
     { title: "Trabalhos", url: "/trabalhos", icon: Wrench },
     { title: "Técnicos", url: "/tecnicos", icon: Users },
+    { title: "Utilizadores", url: "/utilizadores", icon: Users },
+    { title: "Templates", url: "/templates", icon: FileText },
+    { title: "Gerar PDF", url: "/documentos/gerar", icon: FileText },
     { title: "Conformidade", url: "/conformidade", icon: ShieldCheck },
     { title: "Calendário", url: "/calendario", icon: Calendar },
     { title: "Alertas", url: "/alertas", icon: Shield, badge: pendingCount },
     { title: "Manutenção", url: "/manutencao", icon: Camera },
     { title: "Suporte", url: "/suporte", icon: MessageSquare },
-    { title: "Definições", url: "/configuracoes", icon: Settings },
+    { title: "Definições", url: "/definicoes", icon: Settings },
   ];
 
 
