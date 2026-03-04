@@ -6,10 +6,11 @@ import { Building2 } from 'lucide-react';
 interface CondominioListProps {
   condominios: Condominio[];
   onEdit: (condominio: Condominio) => void;
-  onDelete: (condominio: Condominio) => void;
+  onDeactivate: (condominio: Condominio) => void;
+  onReactivate: (condominio: Condominio) => void;
 }
 
-export const CondominioList: React.FC<CondominioListProps> = ({ condominios, onEdit, onDelete }) => {
+export const CondominioList: React.FC<CondominioListProps> = ({ condominios, onEdit, onDeactivate, onReactivate }) => {
   if (condominios.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -25,7 +26,13 @@ export const CondominioList: React.FC<CondominioListProps> = ({ condominios, onE
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {condominios.map((condominio) => (
-        <CondominioCard key={condominio.id_comdominio} condominio={condominio} onEdit={onEdit} onDelete={onDelete} />
+        <CondominioCard
+          key={condominio.id_comdominio}
+          condominio={condominio}
+          onEdit={onEdit}
+          onDeactivate={onDeactivate}
+          onReactivate={onReactivate}
+        />
       ))}
     </div>
   );

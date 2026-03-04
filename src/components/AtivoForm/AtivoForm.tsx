@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AtivoFormData, ativoFormSchema } from './validation';
+import { assetTypeOptions, getRuleForType } from '@/config/assetMaintenanceRules';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { computeNextMaintenanceDate } from '@/utils/maintenanceDates';
 
 interface AtivoFormProps {
   open: boolean;
@@ -26,10 +28,11 @@ export const AtivoForm: React.FC<AtivoFormProps> = ({
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, dirtyFields },
     reset,
     setValue,
     watch,
+    getValues,
   } = useForm<AtivoFormData>({
     resolver: zodResolver(ativoFormSchema),
     defaultValues: initialData || {},
@@ -38,6 +41,16 @@ export const AtivoForm: React.FC<AtivoFormProps> = ({
   const estado = watch('estado');
   const tipoAtivo = watch('tipo_ativo');
   const estadoLicenca = watch('estado_licenca');
+  const dataInstalacao = watch('data_instalacao');
+  const ultimaManutencao = watch('ultima_manutencao');
+  const frequenciaManutencao = watch('frequencia_manutencao');
+
+  const rule = getRuleForType(tipoAtivo || null);
+  const nextMaintenance = computeNextMaintenanceDate({
+    dataInstalacao,
+    ultimaManutencao,
+    frequencyMonths: frequenciaManutencao,
+  });
 
   useEffect(() => {
     if (open) {
@@ -45,14 +58,38 @@ export const AtivoForm: React.FC<AtivoFormProps> = ({
         reset(initialData);
       } else {
         reset({
-          nome: '', categoria: '', marca: '', modelo: '',
-          num_serie: undefined, estado: undefined as any,
-          descricao: '', valor: undefined, data_instalacao: '',
+          nome: '',
+          categoria: '',
+          marca: '',
+          modelo: '',
+          num_serie: undefined,
+          estado: 'bom',
+          descricao: '',
+          valor: undefined,
+          data_instalacao: '',
+          ultima_manutencao: '',
+          frequencia_manutencao: 6,
           localizacao: '',
         });
       }
     }
   }, [initialData, open, reset]);
+
+  useEffect(() => {
+    if (!open) return;
+    if (!rule) return;
+
+    if (!dirtyFields.frequencia_manutencao) {
+      setValue('frequencia_manutencao', rule.frequencyMonths, { shouldValidate: true });
+    }
+
+    if (!dirtyFields.categoria) {
+      const current = getValues('categoria') || '';
+      if (current.trim() === '') {
+        setValue('categoria', rule.label, { shouldValidate: true });
+      }
+    }
+  }, [dirtyFields.categoria, dirtyFields.frequencia_manutencao, getValues, open, rule, setValue]);
 
   const handleFormSubmit = async (data: AtivoFormData) => {
     try {
@@ -112,7 +149,10 @@ export const AtivoForm: React.FC<AtivoFormProps> = ({
             </div>
             <div className="space-y-2">
               <Label>Estado *</Label>
-              <Select value={estado} onValueChange={(v) => setValue('estado', v as any, { shouldValidate: true })}>
+              <Select
+                value={estado}
+                onValueChange={(v) => setValue('estado', v as AtivoFormData['estado'], { shouldValidate: true })}
+              >
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="excelente">Excelente</SelectItem>
@@ -173,6 +213,14 @@ export const AtivoForm: React.FC<AtivoFormProps> = ({
           </div>
 
           <div className="space-y-2">
+            <Label>Próxima manutenção prevista</Label>
+            <Input type="date" value={nextMaintenance || ''} readOnly disabled />
+            <p className="text-xs text-muted-foreground">
+              Calculado automaticamente a partir da instalação/última manutenção e da frequência.
+            </p>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="localizacao">Localização (Opcional)</Label>
             <Input id="localizacao" {...register('localizacao')} />
           </div>
@@ -182,24 +230,27 @@ export const AtivoForm: React.FC<AtivoFormProps> = ({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Tipo de Ativo</Label>
-              <Select value={tipoAtivo || ''} onValueChange={(v) => setValue('tipo_ativo', v as any)}>
+              <Label>Tipo (regra preventiva)</Label>
+              <Select
+                value={tipoAtivo || ''}
+                onValueChange={(v) => setValue('tipo_ativo', v as AtivoFormData['tipo_ativo'])}
+              >
                 <SelectTrigger><SelectValue placeholder="Selecione o tipo" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="extintor">Extintor</SelectItem>
-                  <SelectItem value="sadi">SADI</SelectItem>
-                  <SelectItem value="sadc">SADC</SelectItem>
-                  <SelectItem value="inspecao_gas">Inspeção de Gás</SelectItem>
-                  <SelectItem value="painel_solar">Painel Solar</SelectItem>
-                  <SelectItem value="seguro">Seguro</SelectItem>
-                  <SelectItem value="licenca_elevador">Licença de Elevador</SelectItem>
-                  <SelectItem value="outro">Outro</SelectItem>
+                  {assetTypeOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
               <Label>Estado da Licença</Label>
-              <Select value={estadoLicenca || ''} onValueChange={(v) => setValue('estado_licenca', v as any)}>
+              <Select
+                value={estadoLicenca || ''}
+                onValueChange={(v) => setValue('estado_licenca', v as AtivoFormData['estado_licenca'])}
+              >
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ativo">Ativo</SelectItem>
@@ -210,6 +261,16 @@ export const AtivoForm: React.FC<AtivoFormProps> = ({
               </Select>
             </div>
           </div>
+
+          {rule && (
+            <div className="rounded-lg border bg-muted/20 p-3">
+              <p className="text-sm font-medium">Regra sugerida</p>
+              <p className="text-sm text-muted-foreground">
+                Frequência: <span className="font-medium text-foreground">{rule.frequencyMonths} meses</span>
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">{rule.legalReference}</p>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
