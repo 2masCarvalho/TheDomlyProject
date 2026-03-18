@@ -14,10 +14,13 @@ type Profile = {
 type AuthContextType = {
   user: User | null;
   profile: Profile | null;
+  avatarUrl: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (payload: SignupForm) => Promise<void>;
   logout: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
+  setAvatarUrl: (url: string | null) => void;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -31,6 +34,7 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -40,6 +44,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (session?.user) {
         await fetchProfile(session.user.id);
+        const { data } = supabase.storage.from('avatars').getPublicUrl(`${session.user.id}/avatar`);
+        setAvatarUrl(data.publicUrl);
       }
 
       setLoading(false);
@@ -51,8 +57,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (session?.user) {
         fetchProfile(session.user.id);
+        const { data } = supabase.storage.from('avatars').getPublicUrl(`${session.user.id}/avatar`);
+        setAvatarUrl(data.publicUrl);
       } else {
         setProfile(null);
+        setAvatarUrl(null);
       }
     });
 
@@ -75,20 +84,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setProfile(data);
   };
 
+  const refreshProfile = async () => {
+    if (user) await fetchProfile(user.id);
+  };
+
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) throw error;
-
-      if (!data.user.email_confirmed_at) {
-        await supabase.auth.signOut();
-        throw new Error("Confirma o teu email antes de entrar.");
-      }
     } finally {
       setLoading(false);
     }
@@ -133,7 +141,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, profile, avatarUrl, loading, login, signup, logout, refreshProfile, setAvatarUrl }}>
       {children}
     </AuthContext.Provider>
   );

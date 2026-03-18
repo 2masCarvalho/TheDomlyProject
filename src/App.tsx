@@ -31,6 +31,8 @@ import { TecnicosPage } from "./pages/TecnicosPage";
 import { OnboardingPage } from "./pages/OnboardingPage";
 import { TrabalhoPublicoPage } from "./pages/TrabalhoPublicoPage";
 import { ConformidadePage } from "./pages/ConformidadePage";
+import { SettingsPage } from "./pages/SettingsPage";
+import { SuportePage } from "./pages/SuportePage";
 
 
 
@@ -85,6 +87,8 @@ const App = () => (
                 <Route path="/trabalhos/:id" element={<TrabalhoDetailPage />} />
                 <Route path="/tecnicos" element={<TecnicosPage />} />
                 <Route path="/conformidade" element={<ConformidadePage />} />
+                <Route path="/configuracoes" element={<SettingsPage />} />
+                <Route path="/suporte" element={<SuportePage />} />
               </Route>
 
               {/* Catch-all */}

@@ -6,7 +6,11 @@
       "Bash(cd /c/Users/tomas/Desktop/Domly/TheDomlyProject && supabase status 2>&1)",
       "Bash(cd /c/Users/tomas/Desktop/Domly/TheDomlyProject && npx supabase --version 2>&1)",
       "Bash(cd /c/Users/tomas/Desktop/Domly/TheDomlyProject && npx supabase projects list 2>&1)",
-      "Bash(cd /c/Users/tomas/Desktop/Domly/TheDomlyProject && npx tsc --noEmit 2>&1)"
+      "Bash(cd /c/Users/tomas/Desktop/Domly/TheDomlyProject && npx tsc --noEmit 2>&1)",
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx vite:*)",
+      "Bash(node -e \"require\\(''./node_modules/@google/generative-ai/dist/index.js''\\)\")"
     ]
   }
 }
