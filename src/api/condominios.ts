@@ -45,9 +45,13 @@ export interface CreateCondominioData {
 
 export const condominiosApi = {
   getAll: async (): Promise<Condominio[]> => {
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData?.user?.id;
+
     const { data, error } = await supabase
       .from('condominios')
       .select('*')
+      .eq('id_user', userId)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
