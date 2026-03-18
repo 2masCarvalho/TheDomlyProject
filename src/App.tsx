@@ -31,11 +31,8 @@ import { TecnicosPage } from "./pages/TecnicosPage";
 import { OnboardingPage } from "./pages/OnboardingPage";
 import { TrabalhoPublicoPage } from "./pages/TrabalhoPublicoPage";
 import { ConformidadePage } from "./pages/ConformidadePage";
-import { DefinicoesPage } from "./pages/DefinicoesPage";
-import { UtilizadoresPage } from "./pages/UtilizadoresPage";
-import { CondominioDocumentosPage } from "./pages/CondominioDocumentosPage";
-import { TemplatesPage } from "./pages/TemplatesPage";
-import { GerarDocumentoPage } from "./pages/GerarDocumentoPage";
+import { SettingsPage } from "./pages/SettingsPage";
+import { SuportePage } from "./pages/SuportePage";
 
 
 
@@ -76,7 +73,6 @@ const App = () => (
               >
                 <Route path="/condominios" element={<CondominiosPage />} />
                 <Route path="/condominios/:id/ativos" element={<AtivosPage />} />
-                <Route path="/condominios/:id/documentos" element={<CondominioDocumentosPage />} />
                 <Route path="/condominios/:condominioId/ativos/:ativoId" element={<AtivoDetailPage />} />
                 <Route path="/calendario" element={<CalendarPage />} />
                 <Route path="/alertas" element={<AlertsPage />} />
@@ -90,11 +86,9 @@ const App = () => (
                 <Route path="/trabalhos/novo" element={<TrabalhosPage />} />
                 <Route path="/trabalhos/:id" element={<TrabalhoDetailPage />} />
                 <Route path="/tecnicos" element={<TecnicosPage />} />
-                <Route path="/utilizadores" element={<UtilizadoresPage />} />
-                <Route path="/templates" element={<TemplatesPage />} />
-                <Route path="/documentos/gerar" element={<GerarDocumentoPage />} />
                 <Route path="/conformidade" element={<ConformidadePage />} />
-                <Route path="/definicoes" element={<DefinicoesPage />} />
+                <Route path="/configuracoes" element={<SettingsPage />} />
+                <Route path="/suporte" element={<SuportePage />} />
               </Route>
 
               {/* Catch-all */}
