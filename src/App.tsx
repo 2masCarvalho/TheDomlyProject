@@ -16,6 +16,7 @@ import { LandingPage } from "./pages/LandingPage";
 import { LoginPage } from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import { CondominiosPage } from "./pages/CondominiosPage";
+import { CondominioDetailPage } from "./pages/CondominioDetailPage";
 import { AtivosPage } from "./pages/AtivosPage";
 import { AtivoDetailPage } from "./pages/AtivoDetailPage";
 import { CalendarPage } from './pages/CalendarPage';
@@ -33,8 +34,6 @@ import { TrabalhoPublicoPage } from "./pages/TrabalhoPublicoPage";
 import { ConformidadePage } from "./pages/ConformidadePage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { SuportePage } from "./pages/SuportePage";
-
-
 
 const queryClient = new QueryClient();
 
@@ -72,20 +71,25 @@ const App = () => (
                 }
               >
                 <Route path="/condominios" element={<CondominiosPage />} />
+                <Route path="/condominios/:id" element={<CondominioDetailPage />} /> {/* <-- ROTA ADICIONADA AQUI */}
                 <Route path="/condominios/:id/ativos" element={<AtivosPage />} />
                 <Route path="/condominios/:condominioId/ativos/:ativoId" element={<AtivoDetailPage />} />
+                
                 <Route path="/calendario" element={<CalendarPage />} />
                 <Route path="/alertas" element={<AlertsPage />} />
                 <Route path="/manutencao" element={<MaintenancePage />} />
                 <Route path="/dashboard" element={<DashboardPage />} />
+                
                 {/* Feature 2: Occurrences */}
                 <Route path="/ocorrencias" element={<OcorrenciasPage />} />
                 <Route path="/ocorrencias/:id" element={<OcorrenciaDetailPage />} />
+                
                 {/* Feature 1: Jobs + Technicians */}
                 <Route path="/trabalhos" element={<TrabalhosPage />} />
                 <Route path="/trabalhos/novo" element={<TrabalhosPage />} />
                 <Route path="/trabalhos/:id" element={<TrabalhoDetailPage />} />
                 <Route path="/tecnicos" element={<TecnicosPage />} />
+                
                 <Route path="/conformidade" element={<ConformidadePage />} />
                 <Route path="/configuracoes" element={<SettingsPage />} />
                 <Route path="/suporte" element={<SuportePage />} />
