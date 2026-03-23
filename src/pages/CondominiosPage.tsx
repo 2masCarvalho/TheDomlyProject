@@ -9,14 +9,20 @@ import { ConfirmModal } from '@/components/ConfirmModal/ConfirmModal';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Building2, Plus, LogOut, Upload } from 'lucide-react';
+import { Building2, Plus, Upload, Search, Eye, EyeOff, MoreVertical } from 'lucide-react';
 import { CondominioFormData } from '@/components/CondominioForm/validation';
 import { CreateCondominioData } from '@/api/condominios';
 import { CondominioImportModal } from '@/components/CondominioImportModal/CondominioImportModal';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export const CondominiosPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const {
     filteredCondominios,
     loading,
@@ -41,7 +47,6 @@ export const CondominiosPage: React.FC = () => {
   const handleReactivate = async (condominio: Condominio) => { await reactivateCondominio(condominio.id_comdominio); };
 
   const handleFormSubmit = async (data: CondominioFormData) => {
-    // Converter dados do formulário para o tipo obrigatório CreateCondominioData
     const payload: CreateCondominioData = {
       nome: data.nome || '',
       cidade: data.cidade || '',
@@ -57,24 +62,16 @@ export const CondominiosPage: React.FC = () => {
       tem_elevador: data.tem_elevador,
       email_geral: data.email_geral,
       telefone: data.telefone,
-      //admin_externa: data.admin_externa,
-      //apolice_seguro: data.apolice_seguro,
-      // companhia_seguro: data.companhia_seguro,
     };
-
-    console.log("📦 [Page] Payload a enviar para API:", payload);
 
     try {
       if (selectedCondominio) {
-        console.log("🔄 [Page] A atualizar condomínio ID:", selectedCondominio.id_comdominio);
         await updateCondominio(selectedCondominio.id_comdominio, payload);
       } else {
-        console.log("✨ [Page] A criar novo condomínio");
         await createCondominio(payload);
       }
-      console.log("✅ [Page] Operação concluída com sucesso!");
     } catch (error) {
-      console.error('❌ [Page] Erro ao salvar condomínio:', error);
+      console.error('Erro ao salvar condomínio:', error);
     }
   };
 
@@ -91,26 +88,88 @@ export const CondominiosPage: React.FC = () => {
 
   if (!user) return <div>Necessita de autenticação.</div>;
 
+  const activeCount = filteredCondominios.filter(c => (c as any).is_active !== false).length;
+  const totalCount = filteredCondominios.length;
+
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold flex items-center gap-2"><Building2 className="h-6 w-6" /> Meus Condomínios</h1>
-        <div className="flex gap-2">
-          <Input placeholder="Pesquisar..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-          <Button
-            variant={includeInactive ? 'secondary' : 'outline'}
-            onClick={() => setIncludeInactive(!includeInactive)}
-          >
-            {includeInactive ? 'A mostrar desativados' : 'Mostrar desativados'}
-          </Button>
-          <Button variant="outline" onClick={() => setIsImportModalOpen(true)}>
-            <Upload className="h-4 w-4 mr-1" /> Importar
-          </Button>
-          <Button onClick={handleCreate}><Plus className="h-4 w-4 mr-1" /> Novo</Button>
-          <Button variant="destructive" onClick={logout}><LogOut className="h-4 w-4 mr-1" /> Sair</Button>
+    <div className="p-6 lg:p-8 min-h-screen bg-[#fafbfc]">
+
+      {/* ── Header ───────────────────────────────────── */}
+      <div className="flex flex-col gap-5 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-blue-50 ring-1 ring-blue-500/10">
+                <Building2 className="h-5 w-5 text-blue-500" />
+              </div>
+              Condomínios
+            </h1>
+            <p className="text-sm text-slate-500 mt-1 ml-[3.25rem]">
+              {totalCount === 0
+                ? 'Nenhum condomínio encontrado'
+                : `${activeCount} ativo${activeCount !== 1 ? 's' : ''}${includeInactive && totalCount > activeCount ? ` · ${totalCount - activeCount} desativado${totalCount - activeCount !== 1 ? 's' : ''}` : ''}`
+              }
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs gap-1.5"
+              onClick={() => setIsImportModalOpen(true)}
+            >
+              <Upload className="h-3.5 w-3.5" />
+              Importar
+            </Button>
+            <Button
+              size="sm"
+              className="text-xs gap-1.5"
+              onClick={handleCreate}
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Novo condomínio
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => setIncludeInactive(!includeInactive)} className="text-xs gap-2 cursor-pointer">
+                  {includeInactive
+                    ? <><EyeOff className="h-3.5 w-3.5" /> Ocultar desativados</>
+                    : <><Eye className="h-3.5 w-3.5" /> Mostrar desativados</>
+                  }
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+
+        {/* ── Search & Filter bar ─────────────────────── */}
+        <div className="flex items-center gap-3">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+            <Input
+              placeholder="Pesquisar por nome, morada ou cidade..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9 h-10 bg-white border-slate-200 text-sm focus-visible:ring-blue-500/20"
+            />
+          </div>
+
+          {includeInactive && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 text-[11px] font-medium text-slate-500">
+              <Eye className="h-3 w-3" /> A mostrar desativados
+            </span>
+          )}
         </div>
       </div>
 
+      {/* ── Content ──────────────────────────────────── */}
       {loading ? (
         <LoadingSpinner />
       ) : (
@@ -122,6 +181,7 @@ export const CondominiosPage: React.FC = () => {
         />
       )}
 
+      {/* ── Modals ───────────────────────────────────── */}
       <CondominioForm
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
