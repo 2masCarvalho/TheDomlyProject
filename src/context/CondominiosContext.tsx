@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Condominio, CreateCondominioData, condominiosApi } from '@/api/condominios';
+import { membershipsApi } from '@/api/memberships';
 import { useToast } from '@/hooks/use-toast';
 
 interface CondominiosContextType {
@@ -30,8 +31,22 @@ export const CondominiosProvider: React.FC<{ children: ReactNode }> = ({ childre
   const loadCondominios = async () => {
     try {
       setLoading(true);
-      const data = await condominiosApi.getAll({ includeInactive });
-      setCondominios(data);
+      const owned = await condominiosApi.getAll({ includeInactive });
+
+      // Member condominios are loaded separately — a failure here must never
+      // prevent the owner's own condominios from showing.
+      let memberCondominios: typeof owned = [];
+      try {
+        const memberRows = await membershipsApi.getMemberCondominios();
+        const ownedIds = new Set(owned.map((c) => c.id_comdominio));
+        memberCondominios = memberRows
+          .filter((r) => !ownedIds.has(r.condominio.id_comdominio))
+          .map((r) => ({ ...r.condominio, memberRole: r.role }));
+      } catch {
+        // silently ignore — member fetch failing should not hide owned condominios
+      }
+
+      setCondominios([...owned, ...memberCondominios]);
     } catch (error) {
       toast({ title: 'Erro', description: 'Não foi possível carregar os condomínios', variant: 'destructive' });
     } finally {
@@ -50,8 +65,16 @@ export const CondominiosProvider: React.FC<{ children: ReactNode }> = ({ childre
   );
 
   const createCondominio = async (data: CreateCondominioData) => {
-    try { await condominiosApi.create(data); await loadCondominios(); toast({ title: 'Sucesso', description: 'Condomínio criado com sucesso' }); }
-    catch (error) { toast({ title: 'Erro', description: 'Não foi possível criar o condomínio', variant: 'destructive' }); throw error; }
+    try { 
+      await condominiosApi.create(data); 
+      await loadCondominios(); 
+      toast({ title: 'Sucesso', description: 'Condomínio criado com sucesso' }); 
+    }
+    catch (error: any) { 
+      const errorMsg = error?.message || error?.details || JSON.stringify(error);
+      toast({ title: 'Erro', description: `Não foi possível criar. Erro: ${errorMsg}`, variant: 'destructive' }); 
+      throw error; 
+    }
   };
 
   const updateCondominio = async (id: number, data: Partial<CreateCondominioData>) => {

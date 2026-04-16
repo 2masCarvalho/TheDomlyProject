@@ -20,7 +20,10 @@ export interface Condominio {
   companhia_seguro?: string;
   id_user: string;
   image_url?: string;
+  is_active: boolean;
   created_at: string;
+  /** Set by the app layer when this condominio is accessed via membership (not owned). */
+  memberRole?: 'residente' | 'tecnico';
 }
 
 export interface CreateCondominioData {
@@ -44,16 +47,21 @@ export interface CreateCondominioData {
 }
 
 export const condominiosApi = {
-  getAll: async (): Promise<Condominio[]> => {
+  getAll: async (options?: { includeInactive?: boolean }): Promise<Condominio[]> => {
     const { data: userData } = await supabase.auth.getUser();
     const userId = userData?.user?.id;
 
-    const { data, error } = await supabase
+    let query = supabase
       .from('condominios')
       .select('*')
       .eq('id_user', userId)
       .order('created_at', { ascending: false });
 
+    if (!options?.includeInactive) {
+      query = query.eq('is_active', true);
+    }
+
+    const { data, error } = await query;
     if (error) throw error;
     return data;
   },
@@ -61,18 +69,37 @@ export const condominiosApi = {
   create: async (condominio: CreateCondominioData) => {
     const { data: userData } = await supabase.auth.getUser();
     const userId = userData?.user?.id;
+    
+    // Clean up empty strings or undefined to avoid DB check constraint errors (e.g. on codigo_postal)
+    const payload: any = { ...condominio, id_user: userId };
+    Object.keys(payload).forEach(key => {
+      if (payload[key] === '' || payload[key] === undefined) {
+        payload[key] = null;
+      }
+    });
+
     const { data, error } = await supabase
       .from('condominios')
-      .insert([{ ...condominio, id_user: userId }]);
+      .insert([payload]);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase Insert Error:', error);
+      throw error;
+    }
     return data;
   },
 
   update: async (id: number, condominio: Partial<CreateCondominioData>) => {
+    const payload: any = { ...condominio };
+    Object.keys(payload).forEach(key => {
+      if (payload[key] === '' || payload[key] === undefined) {
+        payload[key] = null;
+      }
+    });
+
     const { data, error } = await supabase
       .from('condominios')
-      .update(condominio)
+      .update(payload)
       .eq('id_comdominio', id);
 
     if (error) throw error;
@@ -83,6 +110,24 @@ export const condominiosApi = {
     const { error } = await supabase
       .from('condominios')
       .delete()
+      .eq('id_comdominio', id);
+
+    if (error) throw error;
+  },
+
+  deactivate: async (id: number) => {
+    const { error } = await supabase
+      .from('condominios')
+      .update({ is_active: false })
+      .eq('id_comdominio', id);
+
+    if (error) throw error;
+  },
+
+  reactivate: async (id: number) => {
+    const { error } = await supabase
+      .from('condominios')
+      .update({ is_active: true })
       .eq('id_comdominio', id);
 
     if (error) throw error;

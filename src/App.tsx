@@ -34,6 +34,7 @@ import { TrabalhoPublicoPage } from "./pages/TrabalhoPublicoPage";
 import { ConformidadePage } from "./pages/ConformidadePage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { SuportePage } from "./pages/SuportePage";
+import { JoinPage } from "./pages/JoinPage";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +52,7 @@ const App = () => (
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/onboarding" element={<OnboardingPage />} />
               <Route path="/t/:token" element={<TrabalhoPublicoPage />} />
+              <Route path="/join/:token" element={<JoinPage />} />
 
               {/* Rotas protegidas */}
               <Route
