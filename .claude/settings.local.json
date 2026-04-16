@@ -10,7 +10,8 @@
       "Bash(npm install:*)",
       "Bash(npx tsc:*)",
       "Bash(npx vite:*)",
-      "Bash(node -e \"require\\(''./node_modules/@google/generative-ai/dist/index.js''\\)\")"
+      "Bash(node -e \"require\\(''./node_modules/@google/generative-ai/dist/index.js''\\)\")",
+      "Bash(xargs grep:*)"
     ]
   }
 }
