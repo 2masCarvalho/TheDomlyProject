@@ -157,9 +157,6 @@ export const LandingPage: React.FC = () => {
               </CarouselItem>)}
           </CarouselContent>
         </Carousel>
-
-        {/* Security Assurance Strip */}
-        
       </section>
 
       {/* Features Section */}
@@ -294,7 +291,8 @@ export const LandingPage: React.FC = () => {
                 <span className="text-foreground">{t("pricing.emailSupport")}</span>
               </li>
             </ul>
-            <Button variant="outline" className="w-full btn-hover-lift" onClick={() => navigate('/onboarding')}>
+            {/* FIX: passa ?plan=starter para o onboarding */}
+            <Button variant="outline" className="w-full btn-hover-lift" onClick={() => navigate('/onboarding?plan=starter')}>
               {t("pricing.getStarted")}
             </Button>
           </div>
@@ -336,7 +334,8 @@ export const LandingPage: React.FC = () => {
                 <span>{t("pricing.prioritySupport")}</span>
               </li>
             </ul>
-            <Button variant="secondary" className="w-full bg-background text-foreground hover:bg-background/90 btn-hover-lift btn-hover-glow" onClick={() => navigate('/onboarding')}>
+            {/* FIX: passa ?plan=growth para o onboarding */}
+            <Button variant="secondary" className="w-full bg-background text-foreground hover:bg-background/90 btn-hover-lift btn-hover-glow" onClick={() => navigate('/onboarding?plan=growth')}>
               {t("pricing.getStarted")}
             </Button>
           </div>
@@ -375,7 +374,8 @@ export const LandingPage: React.FC = () => {
                 <span className="text-foreground">{t("pricing.predictiveFinancial")}</span>
               </li>
             </ul>
-            <Button variant="outline" className="w-full btn-hover-lift" onClick={() => navigate('/onboarding')}>
+            {/* FIX: passa ?plan=pro para o onboarding */}
+            <Button variant="outline" className="w-full btn-hover-lift" onClick={() => navigate('/onboarding?plan=pro')}>
               {t("pricing.getStarted")}
             </Button>
           </div>
@@ -393,7 +393,6 @@ export const LandingPage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {/* Testimonial 1 */}
             <div className="bg-card border rounded-2xl p-8">
               <div className="flex gap-1 mb-4">
                 {[1, 2, 3, 4, 5].map(i => <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />)}
@@ -412,7 +411,6 @@ export const LandingPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Testimonial 2 */}
             <div className="bg-card border rounded-2xl p-8">
               <div className="flex gap-1 mb-4">
                 {[1, 2, 3, 4, 5].map(i => <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />)}
@@ -432,7 +430,6 @@ export const LandingPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Testimonial 3 */}
             <div className="bg-card border rounded-2xl p-8">
               <div className="flex gap-1 mb-4">
                 {[1, 2, 3, 4, 5].map(i => <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />)}
@@ -530,7 +527,6 @@ export const LandingPage: React.FC = () => {
       <footer className="bg-[#1a1d29] text-white">
         <div className="container mx-auto px-4 py-12 md:py-16">
           <div className="grid grid-cols-1 md:grid-cols-5 gap-12 mb-12">
-            {/* Brand Column */}
             <div className="md:col-span-2">
               <div className="flex items-center gap-2 mb-4">
                 <img src={domlyLogoWhite} alt="Domly AI" className="h-8" />
@@ -540,7 +536,6 @@ export const LandingPage: React.FC = () => {
               </p>
             </div>
 
-            {/* Product Column */}
             <div>
               <h3 className="font-semibold mb-4 text-white">{t("footer.product")}</h3>
               <ul className="space-y-3 text-sm">
@@ -562,7 +557,6 @@ export const LandingPage: React.FC = () => {
               </ul>
             </div>
 
-            {/* Company Column */}
             <div>
               <h3 className="font-semibold mb-4 text-white">{t("footer.company")}</h3>
               <ul className="space-y-3 text-sm">
@@ -589,7 +583,6 @@ export const LandingPage: React.FC = () => {
               </ul>
             </div>
 
-            {/* Legal Column */}
             <div>
               <h3 className="font-semibold mb-4 text-white">{t("footer.legal")}</h3>
               <ul className="space-y-3 text-sm">
@@ -612,7 +605,6 @@ export const LandingPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Bottom Bar */}
           <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-gray-400">© 2024 Domly. {t("footer.rights")}</p>
 

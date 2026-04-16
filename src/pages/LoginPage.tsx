@@ -112,7 +112,7 @@ export const LoginPage: React.FC = () => {
 
           <p className="text-center text-sm text-gray-500">
             Não tens conta?{' '}
-            <Link to="/signup" className="text-primary hover:underline font-medium">
+            <Link to="/onboarding" className="text-primary hover:underline font-medium">
               Cria uma agora
             </Link>
           </p>

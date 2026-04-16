@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { ClipboardList, Star, CheckCircle2, Loader2, Building2, ChevronRight, Check, Eye, EyeOff, MapPin, FileUp } from 'lucide-react';
+import { ClipboardList, Star, CheckCircle2, Loader2, Building2, ChevronRight, Check, Eye, EyeOff, MapPin, FileUp, Sparkles, CreditCard } from 'lucide-react';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 
@@ -50,13 +50,13 @@ const tipoAtivoLabels: Record<string, string> = {
   outro: 'Outro',
 };
 
-const stepLabels = ['Conta', 'Propriedade', 'Ação', 'Resultado', 'Dashboard'];
+const stepLabels = ['Plano', 'Conta', 'Pagamento', 'Propriedade', 'Ação', 'Resultado'];
 
 const step1Schema = z.object({
   nome_completo: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
   empresa: z.string().min(1, 'Empresa é obrigatória'),
   email: z.string().email('Email inválido'),
-  password: z.string().min(8, 'A password deve ter pelo menos 8 caracteres'),
+  password: z.string().min(6, 'A password deve ter pelo menos 6 caracteres'),
 });
 
 const tipoPropriedadeOptions = [
@@ -95,45 +95,43 @@ type Step2Form = z.infer<typeof step2Schema>;
 type OcorrenciaForm = z.infer<typeof ocorrenciaSchema>;
 type AtivoForm = z.infer<typeof ativoSchema>;
 
-const ProgressBar: React.FC<{ step: number; onStepClick: (s: number) => void }> = ({ step, onStepClick }) => {
-  const total = stepLabels.length;
-  const progressPct = ((step - 1) / (total - 1)) * 100;
+const ProgressBar: React.FC<{ step: number; onStepClick: (s: number) => void; hasPreSelectedPlan: boolean }> = ({ step, onStepClick, hasPreSelectedPlan }) => {
+  // Ajustamos os labels e a contagem se o plano já veio pré-selecionado (saltamos o label "Plano")
+  const displayLabels = hasPreSelectedPlan ? stepLabels.slice(1) : stepLabels;
+  const displayStep = hasPreSelectedPlan ? step - 1 : step;
+  
+  const total = displayLabels.length;
+  const progressPct = ((Math.min(displayStep, total) - 1) / (total - 1)) * 100;
 
   return (
-    <div className="relative flex items-start justify-between mb-8">
-      {/* Background track */}
+    <div className="relative flex items-start justify-between mb-8 hidden md:flex">
       <div className="absolute left-[18px] right-[18px] top-[18px] -translate-y-1/2 h-[2px] bg-white/20 z-0">
-        {/* Animated fill — path-tracing effect */}
         <div
           className="h-full bg-blue-400 transition-all duration-700 ease-in-out"
-          style={{ width: `${progressPct}%` }}
+          style={{ width: `${Math.max(0, progressPct)}%` }}
         />
       </div>
 
-      {stepLabels.map((label, i) => {
-        const stepNum = i + 1;
-        const isActive = stepNum === step;
-        const isCompleted = stepNum < step;
+      {displayLabels.map((label, i) => {
+        const visualStepNum = i + 1;
+        const actualStepNum = hasPreSelectedPlan ? visualStepNum + 1 : visualStepNum;
+        
+        const isActive = visualStepNum === displayStep;
+        const isCompleted = visualStepNum < displayStep;
 
         const circleNode = (
           <div className="relative w-9 h-9 flex items-center justify-center">
-            {/* Outer glow ring for active step */}
             {isActive && (
               <div className="absolute inset-0 rounded-full bg-blue-500/25 scale-[1.45] transition-opacity duration-300" />
             )}
-
-            {/* Solid base circle — color delayed so fill line appears to "reach" it first */}
             <div
-              className={`absolute inset-0 rounded-full transition-colors duration-300 delay-[400ms] ${
-                isCompleted
+              className={`absolute inset-0 rounded-full transition-colors duration-300 delay-[400ms] ${isCompleted
                   ? 'bg-green-500'
                   : isActive
-                  ? 'bg-blue-500'
-                  : 'bg-[#1B2A4A] ring-2 ring-white/15'
-              }`}
+                    ? 'bg-blue-500'
+                    : 'bg-[#1B2A4A] ring-2 ring-white/15'
+                }`}
             />
-
-            {/* Pulse animation for active step */}
             {isActive && (
               <motion.div
                 className="absolute inset-0 rounded-full bg-blue-400/40"
@@ -141,25 +139,23 @@ const ProgressBar: React.FC<{ step: number; onStepClick: (s: number) => void }> 
                 transition={{ repeat: Infinity, duration: 1.8, ease: 'easeOut' }}
               />
             )}
-
-            {/* Icon / Number */}
             <span className="relative z-10 flex items-center justify-center text-sm font-semibold">
               {isCompleted ? (
                 <Check className="h-4 w-4 text-white" />
               ) : (
-                <span className={isActive ? 'text-white' : 'text-white/30'}>{stepNum}</span>
+                <span className={isActive ? 'text-white' : 'text-white/30'}>{visualStepNum}</span>
               )}
             </span>
           </div>
         );
 
         return (
-          <div key={stepNum} className="relative z-10 flex flex-col items-center">
+          <div key={actualStepNum} className="relative z-10 flex flex-col items-center flex-1">
             {isCompleted ? (
               <button
-                onClick={() => onStepClick(stepNum)}
+                onClick={() => onStepClick(actualStepNum)}
                 className="transition-transform duration-200 hover:scale-110 cursor-pointer focus:outline-none"
-                aria-label={`Voltar ao passo ${stepNum}: ${label}`}
+                aria-label={`Voltar ao passo ${visualStepNum}: ${label}`}
               >
                 {circleNode}
               </button>
@@ -168,15 +164,13 @@ const ProgressBar: React.FC<{ step: number; onStepClick: (s: number) => void }> 
                 {circleNode}
               </div>
             )}
-
             <span
-              className={`text-xs mt-1.5 hidden sm:block transition-colors duration-300 delay-[400ms] ${
-                isCompleted
+              className={`text-xs mt-1.5 hidden sm:block transition-colors duration-300 delay-[400ms] ${isCompleted
                   ? 'text-green-400 font-medium'
                   : isActive
-                  ? 'text-blue-400 font-medium'
-                  : 'text-white/40'
-              }`}
+                    ? 'text-blue-400 font-medium'
+                    : 'text-white/40'
+                }`}
             >
               {label}
             </span>
@@ -187,52 +181,27 @@ const ProgressBar: React.FC<{ step: number; onStepClick: (s: number) => void }> 
   );
 };
 
-const AtivoCard: React.FC<{ ativo: any }> = ({ ativo }) => {
-  const status = getExpiryStatus(ativo.data_expiracao);
-  const borderClass =
-    status === 'overdue'
-      ? 'border-red-400'
-      : status === 'soon'
-        ? 'border-orange-400'
-        : 'border-green-400';
-  const badgeClass =
-    status === 'overdue'
-      ? 'bg-red-100 text-red-700'
-      : status === 'soon'
-        ? 'bg-orange-100 text-orange-700'
-        : 'bg-green-100 text-green-700';
-  const badgeLabel = status === 'overdue' ? 'Expirado' : status === 'soon' ? 'Em breve' : 'OK';
-
-  return (
-    <div className={`p-4 border-2 rounded-xl mb-4 ${borderClass} bg-white`}>
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="font-semibold">{ativo.nome}</p>
-          {ativo.tipo_ativo && (
-            <Badge variant="secondary" className="text-xs mt-1">
-              {tipoAtivoLabels[ativo.tipo_ativo] || ativo.tipo_ativo}
-            </Badge>
-          )}
-          {ativo.data_expiracao && (
-            <p className="text-xs text-muted-foreground mt-1">
-              Expira em: {format(new Date(ativo.data_expiracao), 'dd MMM yyyy', { locale: pt })}
-            </p>
-          )}
-        </div>
-        {status && (
-          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 ${badgeClass}`}>
-            {badgeLabel}
-          </span>
-        )}
-      </div>
-    </div>
-  );
-};
-
 export const OnboardingPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [step, setStep] = useState(1);
+  
+  // Lê o plano do URL (ex: ?plan=starter, ?plan=growth, ?plan=pro)
+  const urlParams = new URLSearchParams(window.location.search);
+  const planFromUrl = urlParams.get('plan');
+  
+  const [hasPreSelectedPlan] = useState(!!planFromUrl);
+
+  // Se tem plano no URL, começa no Passo 2 (Conta). Senão, começa no Passo 1 (Escolher Plano)
+  const [step, setStep] = useState(hasPreSelectedPlan ? 2 : 1);
+  
+  const [formData, setFormData] = useState({
+    plano: planFromUrl || '',
+    step1: null as Step1Form | null,
+    step2: null as Step2Form | null,
+    ocorrencia: null as OcorrenciaForm | null,
+    documento: null as File | null,
+  });
+
   const [emailSent, setEmailSent] = useState(false);
   const [savedEmail, setSavedEmail] = useState('');
   const [stepData, setStepData] = useState<StepData>({
@@ -242,6 +211,7 @@ export const OnboardingPage: React.FC = () => {
     createdItemId: null,
     createdItemData: null,
   });
+  
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -252,42 +222,25 @@ export const OnboardingPage: React.FC = () => {
   const [suggestedTecnicos, setSuggestedTecnicos] = useState<Tecnico[]>([]);
   const [loadingTecnicos, setLoadingTecnicos] = useState(false);
 
-  // All useForm hooks first, then watch() calls that depend on them
   const step1Form = useForm<Step1Form>({ resolver: zodResolver(step1Schema) });
   const step2Form = useForm<Step2Form>({ resolver: zodResolver(step2Schema) });
   const ocorrenciaForm = useForm<OcorrenciaForm>({ resolver: zodResolver(ocorrenciaSchema) });
-  const ativoForm = useForm<AtivoForm>({ resolver: zodResolver(ativoSchema) });
 
   const tipoPropriedade = step2Form.watch('tipo_propriedade');
   const isMoradia = tipoPropriedade === 'moradia';
-  // Controlled values for the AI-pre-filled selects (must come after ocorrenciaForm is declared)
   const watchedCategoria = ocorrenciaForm.watch('categoria');
   const watchedPrioridade = ocorrenciaForm.watch('prioridade');
   const watchedTitulo = ocorrenciaForm.watch('titulo');
 
-  // Only auto-advance when returning from Google OAuth redirect (URL contains OAuth callback params)
   useEffect(() => {
     const hash = window.location.hash;
     const params = new URLSearchParams(window.location.search);
     const isOAuthCallback = hash.includes('access_token') || params.has('code');
-    if (user && step === 1 && isOAuthCallback) {
+    if (user && step <= 2 && isOAuthCallback) {
       ensureProfileExists(user);
-      setStep(2);
+      setStep(3); // Vai para o Pagamento
     }
   }, [user]);
-
-  const handleGoogleSignIn = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin + '/onboarding',
-      },
-    });
-    if (error) {
-      step1Form.setError('email', { message: error.message || 'Erro ao iniciar sessão com Google' });
-    }
-  };
-
 
   const ensureProfileExists = async (u: any) => {
     try {
@@ -300,80 +253,52 @@ export const OnboardingPage: React.FC = () => {
         await supabase.from('users').insert({
           id_user: u.id,
           primeiro_nome: u.user_metadata?.primeiro_nome || u.email?.split('@')[0] || '',
-          ultimo_nome: '',
+          ultimo_nome: u.user_metadata?.ultimo_nome || '',
           empresa: u.user_metadata?.empresa || '',
+          plano: formData.plano || 'starter'
         });
       }
     } catch {
-      // Ignore — profile may already exist
+      // Ignore
     }
+  };
+
+  const handleGoogleSignIn = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin + '/onboarding' + (hasPreSelectedPlan ? `?plan=${formData.plano}` : ''),
+      },
+    });
+    if (error) {
+      step1Form.setError('email', { message: error.message || 'Erro ao iniciar sessão com Google' });
+    }
+  };
+
+  const handlePlanSelection = (plano: string) => {
+    setFormData(prev => ({ ...prev, plano }));
+    setStep(2); 
   };
 
   const handleStep1Submit = async (data: Step1Form) => {
-    // If already authenticated, go straight to step 2
     if (user) {
       await ensureProfileExists(user);
-      setStep(2);
+      setStep(3);
       return;
     }
-    setSubmitting(true);
-    try {
-      const nameParts = data.nome_completo.trim().split(' ');
-      const primeiro_nome = nameParts[0];
-      const { data: signUpData, error } = await supabase.auth.signUp({
-        email: data.email,
-        password: data.password,
-        options: {
-          data: { primeiro_nome, empresa: data.empresa ?? '' },
-          emailRedirectTo: window.location.origin + '/onboarding',
-        },
-      });
-      if (error) throw error;
-      // If there's an active session the user can proceed immediately;
-      // otherwise email confirmation is required
-      if (signUpData.session) {
-        await ensureProfileExists(signUpData.user);
-        setStep(2);
-      } else {
-        setSavedEmail(data.email);
-        setEmailSent(true);
-      }
-    } catch (err: any) {
-      step1Form.setError('email', { message: err.message || 'Erro ao criar conta' });
-    } finally {
-      setSubmitting(false);
-    }
+    setFormData(prev => ({ ...prev, step1: data }));
+    setStep(3);
+  };
+
+  const handlePaymentSimulationSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setStep(4);
   };
 
   const handleStep2Submit = async (data: Step2Form) => {
-    setSubmitting(true);
-    try {
-      const { data: userData } = await supabase.auth.getUser();
-      const userId = userData?.user?.id;
-      const { data: result, error } = await supabase
-        .from('condominios')
-        .insert([{
-          nome: data.nome,
-          morada: data.morada,
-          num_fracoes: data.num_fracoes,
-          cidade: '',
-          codigo_postal: data.codigo_postal,
-          id_user: userId,
-        }])
-        .select()
-        .single();
-      if (error) throw error;
-      setStepData(prev => ({
-        ...prev,
-        condominioId: result.id_comdominio,
-        condominioNome: result.nome,
-      }));
-      setStep(3);
-    } catch (err: any) {
-      step2Form.setError('nome', { message: err.message || 'Erro ao criar edifício' });
-    } finally {
-      setSubmitting(false);
-    }
+    setFormData(prev => ({ ...prev, step2: data }));
+    setStepData(prev => ({ ...prev, condominioNome: data.nome }));
+    setStep(5);
   };
 
   const handlePathSelect = (path: QuickWinPath) => {
@@ -381,70 +306,32 @@ export const OnboardingPage: React.FC = () => {
   };
 
   const handleOcorrenciaSubmit = async (data: OcorrenciaForm) => {
-    if (!stepData.condominioId) return;
-    setSubmitting(true);
+    setFormData(prev => ({ ...prev, ocorrencia: data }));
+    setStepData(prev => ({ ...prev, quickWinPath: 'ocorrencia' }));
+    
+    setLoadingTecnicos(true);
     try {
-      const result = await ocorrenciasApi.create({
-        titulo: data.titulo,
-        categoria: data.categoria,
-        prioridade: data.prioridade,
-        id_condominio: stepData.condominioId,
-        responsabilidade: 'condominio',
-      });
-      setStepData(prev => ({
-        ...prev,
-        quickWinPath: 'ocorrencia',
-        createdItemId: result.id_ocorrencia,
-        createdItemData: result,
-      }));
-      setLoadingTecnicos(true);
-      try {
-        const tecnicos = await tecnicosApi.getAll();
-        const available = tecnicos.filter(t => t.estado_disponibilidade === 'disponivel').slice(0, 3);
-        setSuggestedTecnicos(available);
-      } finally {
-        setLoadingTecnicos(false);
-      }
-      setStep(4);
-    } catch (err: any) {
-      ocorrenciaForm.setError('titulo', { message: err.message || 'Erro ao criar ocorrência' });
+      const tecnicos = await tecnicosApi.getAll();
+      const available = tecnicos.filter(t => t.estado_disponibilidade === 'disponivel').slice(0, 3);
+      setSuggestedTecnicos(available);
+    } catch (err) {
+      console.error(err);
     } finally {
-      setSubmitting(false);
+      setLoadingTecnicos(false);
     }
+    setStep(6);
   };
 
-  const handleAtivoSubmit = async (data: AtivoForm) => {
-    if (!stepData.condominioId) return;
-    setSubmitting(true);
-    try {
-      const { data: result, error } = await supabase
-        .from('ativos')
-        .insert([{
-          nome: data.nome,
-          tipo_ativo: data.tipo_ativo,
-          data_expiracao: data.data_expiracao || null,
-          id_condominio: stepData.condominioId,
-          categoria: 'compliance',
-          estado: 'bom',
-        }])
-        .select()
-        .single();
-      if (error) throw error;
-      setStepData(prev => ({
-        ...prev,
-        quickWinPath: 'ativo',
-        createdItemId: result.id_ativo,
-        createdItemData: result,
-      }));
-      setStep(4);
-    } catch (err: any) {
-      ativoForm.setError('nome', { message: err.message || 'Erro ao criar ativo' });
-    } finally {
-      setSubmitting(false);
-    }
+  const handleDocumentoSubmit = () => {
+    setFormData(prev => ({ ...prev, documento: uploadedFile }));
+    setStepData(prev => ({
+      ...prev,
+      quickWinPath: 'documento',
+      createdItemData: uploadedFile ? { nome: uploadedFile.name } : null,
+    }));
+    setStep(6);
   };
 
-  // Normalise Gemini's label → form enum value, tolerating case/accent variation
   const normaliseCategoria = (raw: string): string | undefined => {
     const map: Record<string, string> = {
       'estrutural': 'estrutural',
@@ -485,11 +372,8 @@ export const OnboardingPage: React.FC = () => {
     setClassifyError(null);
     try {
       const result = await classifyOccurrence(titulo);
-      console.log("[onboarding] Classification result:", result);
-
       const cat = normaliseCategoria(result.categoria);
       const pri = normalisePrioridade(result.prioridade);
-      console.log("[onboarding] Normalised categoria:", cat, "| prioridade:", pri);
 
       if (!cat || !pri) {
         throw new Error(`Gemini devolveu valores inesperados — categoria: "${result.categoria}", prioridade: "${result.prioridade}"`);
@@ -500,7 +384,6 @@ export const OnboardingPage: React.FC = () => {
       setClassifySuccess(true);
     } catch (err: any) {
       const raw = err?.message ?? String(err);
-      console.error("[onboarding] Classification failed:", raw);
       const msg = raw.includes('429') || raw.includes('quota')
         ? 'Limite da API atingido. Tente novamente em breve.'
         : 'Não foi possível classificar. Preencha manualmente.';
@@ -510,20 +393,90 @@ export const OnboardingPage: React.FC = () => {
     }
   };
 
-  const handleDocumentoSubmit = () => {
-    setStepData(prev => ({
-      ...prev,
-      quickWinPath: 'documento',
-      createdItemData: uploadedFile ? { nome: uploadedFile.name } : null,
-    }));
-    setStep(4);
+  const finalizarOnboarding = async () => {
+    setStep(7);
+
+    try {
+      let currentUserId = user?.id;
+
+      if (!currentUserId && formData.step1) {
+        const nameParts = formData.step1.nome_completo.trim().split(' ');
+        const primeiro_nome = nameParts[0];
+        const ultimo_nome = nameParts.slice(1).join(' ');
+
+        const { data: signUpData, error } = await supabase.auth.signUp({
+          email: formData.step1.email,
+          password: formData.step1.password,
+          options: {
+            data: { primeiro_nome, ultimo_nome, empresa: formData.step1.empresa ?? '' },
+          },
+        });
+        
+        if (error) throw error;
+        
+        if (!signUpData.session) {
+          setSavedEmail(formData.step1.email);
+          setEmailSent(true);
+          setStep(2); 
+          return; 
+        }
+        
+        currentUserId = signUpData.user?.id;
+        
+        if (currentUserId) {
+          await supabase.from('users').insert({
+            id_user: currentUserId,
+            primeiro_nome,
+            ultimo_nome,
+            empresa: formData.step1.empresa,
+            plano: formData.plano || 'starter'
+          });
+        }
+      }
+
+      let newCondominioId = null;
+      if (currentUserId && formData.step2) {
+        const { data: condResult, error: condError } = await supabase
+          .from('condominios')
+          .insert([{
+            nome: formData.step2.nome,
+            morada: formData.step2.morada,
+            num_fracoes: formData.step2.num_fracoes,
+            codigo_postal: formData.step2.codigo_postal,
+            id_user: currentUserId,
+          }])
+          .select()
+          .single();
+
+        if (condError) throw condError;
+        newCondominioId = condResult.id_comdominio;
+      }
+
+      if (newCondominioId && formData.ocorrencia) {
+        await ocorrenciasApi.create({
+          titulo: formData.ocorrencia.titulo,
+          categoria: formData.ocorrencia.categoria,
+          prioridade: formData.ocorrencia.prioridade,
+          id_condominio: newCondominioId,
+          responsabilidade: 'condominio',
+        });
+      }
+
+      navigate('/dashboard?onboarding=1');
+
+    } catch (error: any) {
+      console.error("Erro no submit master:", error);
+      alert("Ocorreu um erro a finalizar o registo: " + error.message);
+      setStep(6); 
+    }
   };
 
-  const handleGoToDashboard = () => {
-    setStep(5);
-    setTimeout(() => {
-      navigate('/dashboard?onboarding=1');
-    }, 1500);
+  const getPlanPrice = (plan: string) => {
+    switch (plan) {
+      case 'growth': return '99€';
+      case 'pro': return '299€';
+      default: return '39€';
+    }
   };
 
   return (
@@ -535,11 +488,95 @@ export const OnboardingPage: React.FC = () => {
       }}
     >
       <div className="w-full max-w-lg">
-        {step < 5 && <ProgressBar step={step} onStepClick={setStep} />}
+        {step < 7 && <ProgressBar step={step} onStepClick={setStep} hasPreSelectedPlan={hasPreSelectedPlan} />}
 
         <div key={step} className="animate-slide-in-left">
-          {/* Step 1 — Magic Link Signup */}
-          {step === 1 && (
+
+          {/* PASSO 1 — Escolher Plano (Só aparece se NÃO houver plano no URL) */}
+          {step === 1 && !hasPreSelectedPlan && (
+            <div className="bg-card rounded-2xl border shadow-lg p-8">
+              <div className="mb-6 text-center">
+                <h2 className="text-2xl font-bold mb-1">Escolha o seu plano</h2>
+                <p className="text-muted-foreground text-sm">
+                  Selecione o plano que melhor se adapta às suas necessidades.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4">
+                <button
+                  onClick={() => handlePlanSelection('starter')}
+                  className="p-5 border-2 rounded-xl text-left hover:border-blue-400 hover:bg-blue-50/50 transition-all group flex flex-col justify-between"
+                >
+                  <div className="w-full flex justify-between items-start mb-2">
+                    <div>
+                      <h3 className="font-bold text-lg">Starter</h3>
+                      <p className="text-xs text-muted-foreground">Para pequenos condomínios autogeridos</p>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-extrabold text-xl">€39</span>
+                      <span className="text-xs text-muted-foreground font-medium">/mês</span>
+                    </div>
+                  </div>
+                  <ul className="text-xs text-muted-foreground space-y-1.5 mt-2">
+                    <li className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-blue-500" /> 1 condomínio (até 10 frações)</li>
+                    <li className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-blue-500" /> Gestão de Documentos</li>
+                    <li className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-blue-500" /> OCR via IA</li>
+                    <li className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-blue-500" /> Dashboard Básico</li>
+                  </ul>
+                </button>
+
+                <button
+                  onClick={() => handlePlanSelection('growth')}
+                  className="p-5 border-2 border-blue-500 bg-blue-500 text-white rounded-xl text-left hover:bg-blue-600 transition-all relative overflow-hidden group"
+                >
+                  <div className="absolute top-0 right-1/2 translate-x-1/2 bg-black text-white text-[10px] font-bold px-3 py-0.5 rounded-b-md">
+                    Mais Popular
+                  </div>
+                  <div className="w-full flex justify-between items-start mt-3 mb-2">
+                    <div>
+                      <h3 className="font-bold text-lg">Growth</h3>
+                      <p className="text-xs text-blue-100">Para portfólios em crescimento</p>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-extrabold text-xl">€99</span>
+                      <span className="text-xs text-blue-200 font-medium">/mês</span>
+                    </div>
+                  </div>
+                  <ul className="text-xs text-blue-50 space-y-1.5 mt-2">
+                    <li className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-white" /> Até 3 condomínios (até 50 frações)</li>
+                    <li className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-white" /> Gestão de Documentos Avançada</li>
+                    <li className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-white" /> Dashboard Financeiro</li>
+                    <li className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-white" /> App Mobile para Residentes</li>
+                  </ul>
+                </button>
+
+                <button
+                  onClick={() => handlePlanSelection('pro')}
+                  className="p-5 border-2 rounded-xl text-left hover:border-blue-400 hover:bg-blue-50/50 transition-all group"
+                >
+                  <div className="w-full flex justify-between items-start mb-2">
+                    <div>
+                      <h3 className="font-bold text-lg">Pro</h3>
+                      <p className="text-xs text-muted-foreground">Para gestores profissionais</p>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-extrabold text-xl">€299</span>
+                      <span className="text-xs text-muted-foreground font-medium">/mês</span>
+                    </div>
+                  </div>
+                  <ul className="text-xs text-muted-foreground space-y-1.5 mt-2">
+                    <li className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-blue-500" /> Até 10 condomínios (até 250 frações)</li>
+                    <li className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-blue-500" /> Todas as funcionalidades Growth</li>
+                    <li className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-blue-500" /> Integrações Personalizadas</li>
+                    <li className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-blue-500" /> Planeamento Financeiro Preditivo</li>
+                  </ul>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* PASSO 2 — Signup da Conta */}
+          {step === 2 && (
             <div className="bg-card rounded-2xl border shadow-lg p-8">
               {emailSent ? (
                 <div className="text-center py-4">
@@ -562,8 +599,12 @@ export const OnboardingPage: React.FC = () => {
               ) : (
                 <>
                   <div className="mb-6">
-                    <h2 className="text-2xl font-bold mb-1">Crie a sua conta gratuita</h2>
-                    <p className="text-muted-foreground text-sm">Sem cartão de crédito. Sem compromissos.</p>
+                    <h2 className="text-2xl font-bold mb-1">Crie a sua conta</h2>
+                    {formData.plano && (
+                      <Badge variant="secondary" className="mt-2 text-xs uppercase bg-blue-100 text-blue-800">
+                        Plano: {formData.plano}
+                      </Badge>
+                    )}
                   </div>
                   <form onSubmit={step1Form.handleSubmit(handleStep1Submit)} className="space-y-4">
                     <div>
@@ -612,7 +653,7 @@ export const OnboardingPage: React.FC = () => {
                         <Input
                           id="password"
                           type={showPassword ? 'text' : 'password'}
-                          placeholder="Mínimo 8 caracteres"
+                          placeholder="Mínimo 6 caracteres"
                           className="pr-10"
                           {...step1Form.register('password')}
                         />
@@ -632,16 +673,8 @@ export const OnboardingPage: React.FC = () => {
                         </p>
                       )}
                     </div>
-                    {/* confirmPassword removed — eye toggle lets users verify what they typed */}
-                    <div className="hidden">
-                      {step1Form.formState.errors.root && (
-                        <p className="text-sm text-destructive mt-1">
-                          {step1Form.formState.errors.root.message}
-                        </p>
-                      )}
-                    </div>
+                    
                     <Button type="submit" className="w-full" disabled={submitting}>
-                      {submitting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
                       Continuar
                       <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
@@ -672,8 +705,60 @@ export const OnboardingPage: React.FC = () => {
             </div>
           )}
 
-          {/* Step 2 — First Condominium */}
-          {step === 2 && (
+          {/* PASSO 3 — Pagamento */}
+          {step === 3 && (
+            <div className="bg-card rounded-2xl border shadow-lg p-8">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold mb-1">Pagamento</h2>
+                <p className="text-muted-foreground text-sm">
+                  Configuração de faturação para a sua subscrição.
+                </p>
+              </div>
+
+              <form onSubmit={handlePaymentSimulationSubmit} className="space-y-4">
+                <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl mb-6 flex justify-between items-center">
+                  <div>
+                    <p className="font-semibold text-blue-900">
+                      Plano {formData.plano.charAt(0).toUpperCase() + formData.plano.slice(1)}
+                    </p>
+                    <p className="text-xs text-blue-700/80">Faturação Mensal</p>
+                  </div>
+                  <p className="font-bold text-xl text-blue-700">
+                    {getPlanPrice(formData.plano)}
+                  </p>
+                </div>
+
+                <div>
+                  <Label>Nome no Cartão</Label>
+                  <Input placeholder="Ex: João Miguel Silva" required />
+                </div>
+                <div>
+                  <Label>Número do Cartão</Label>
+                  <div className="relative">
+                    <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input placeholder="0000 0000 0000 0000" maxLength={19} className="pl-9" required />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Validade</Label>
+                    <Input placeholder="MM/AA" maxLength={5} required />
+                  </div>
+                  <div>
+                    <Label>CVC</Label>
+                    <Input placeholder="123" maxLength={3} type="password" required />
+                  </div>
+                </div>
+
+                <Button type="submit" className="w-full mt-4">
+                  Confirmar Pagamento <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </form>
+            </div>
+          )}
+
+          {/* PASSO 4 — Condomínio */}
+          {step === 4 && (
             <div className="bg-card rounded-2xl border shadow-lg p-8">
               <div className="mb-6">
                 <h2 className="text-2xl font-bold mb-1">Adicione a sua primeira propriedade</h2>
@@ -682,7 +767,6 @@ export const OnboardingPage: React.FC = () => {
                 </p>
               </div>
               <form onSubmit={step2Form.handleSubmit(handleStep2Submit)} className="space-y-4">
-                {/* Nome */}
                 <div>
                   <Label htmlFor="nome_edificio">Nome da Propriedade</Label>
                   <Input
@@ -697,7 +781,6 @@ export const OnboardingPage: React.FC = () => {
                   )}
                 </div>
 
-                {/* Tipo de Propriedade */}
                 <div>
                   <Label htmlFor="tipo_propriedade">Tipo de Propriedade</Label>
                   <Select
@@ -722,7 +805,6 @@ export const OnboardingPage: React.FC = () => {
                   )}
                 </div>
 
-                {/* Código Postal */}
                 <div>
                   <Label htmlFor="codigo_postal">Código Postal</Label>
                   <Input
@@ -738,7 +820,6 @@ export const OnboardingPage: React.FC = () => {
                   )}
                 </div>
 
-                {/* Morada */}
                 <div>
                   <Label htmlFor="morada">Morada</Label>
                   <div className="relative">
@@ -757,7 +838,6 @@ export const OnboardingPage: React.FC = () => {
                   )}
                 </div>
 
-                {/* Total de Unidades — hidden and auto-set to 1 for Moradia */}
                 <div className={`transition-all duration-300 overflow-hidden ${isMoradia ? 'opacity-0 max-h-0 pointer-events-none' : 'opacity-100 max-h-40'}`}>
                   <Label htmlFor="num_fracoes">Total de Unidades</Label>
                   <Input
@@ -774,23 +854,36 @@ export const OnboardingPage: React.FC = () => {
                   )}
                 </div>
 
-                <Button type="submit" className="w-full" disabled={submitting}>
-                  {submitting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                <Button type="submit" className="w-full">
                   Adicionar Propriedade
                   <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    setFormData(prev => ({ ...prev, step2: null }));
+                    finalizarOnboarding(); // Salta tudo e vai gravar
+                  }}
+                  className="w-full mt-2 text-muted-foreground hover:text-foreground"
+                >
+                  Agora não, seguir em frente
                 </Button>
               </form>
             </div>
           )}
 
-          {/* Step 3 — Quick Win Path Selection */}
-          {step === 3 && (
+          {/* PASSO 5 — Acão Rápida */}
+          {step === 5 && (
             <div className="bg-card rounded-2xl border shadow-lg p-8">
               <div className="mb-6">
-                <div className="inline-flex items-center gap-2 text-sm text-primary bg-primary/10 px-3 py-1 rounded-full mb-3">
-                  <Building2 className="h-3.5 w-3.5" />
-                  {stepData.condominioNome}
-                </div>
+                {stepData.condominioNome && (
+                  <div className="inline-flex items-center gap-2 text-sm text-primary bg-primary/10 px-3 py-1 rounded-full mb-3">
+                    <Building2 className="h-3.5 w-3.5" />
+                    {stepData.condominioNome}
+                  </div>
+                )}
                 <h2 className="text-2xl font-bold mb-1">
                   Qual é a sua prioridade para esta propriedade?
                 </h2>
@@ -799,16 +892,14 @@ export const OnboardingPage: React.FC = () => {
                 </p>
               </div>
 
-              {/* Selection cards — always visible, mutually exclusive */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
                 <button
                   type="button"
                   onClick={() => handlePathSelect('ocorrencia')}
-                  className={`p-6 border-2 rounded-xl text-left transition-all group ${
-                    selectedPath === 'ocorrencia'
+                  className={`p-6 border-2 rounded-xl text-left transition-all group ${selectedPath === 'ocorrencia'
                       ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-500'
                       : 'border-border hover:border-blue-400 hover:bg-blue-50/50 hover:ring-2 hover:ring-blue-400'
-                  }`}
+                    }`}
                 >
                   <ClipboardList className={`h-8 w-8 mb-3 transition-transform group-hover:scale-110 ${selectedPath === 'ocorrencia' ? 'text-blue-600' : 'text-primary'}`} />
                   <p className="font-semibold text-sm">Registar uma ocorrência</p>
@@ -817,17 +908,29 @@ export const OnboardingPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handlePathSelect('documento')}
-                  className={`p-6 border-2 rounded-xl text-left transition-all group ${
-                    selectedPath === 'documento'
+                  className={`p-6 border-2 rounded-xl text-left transition-all group ${selectedPath === 'documento'
                       ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-500'
                       : 'border-border hover:border-blue-400 hover:bg-blue-50/50 hover:ring-2 hover:ring-blue-400'
-                  }`}
+                    }`}
                 >
                   <FileUp className={`h-8 w-8 mb-3 transition-transform group-hover:scale-110 ${selectedPath === 'documento' ? 'text-blue-600' : 'text-primary'}`} />
                   <p className="font-semibold text-sm">Importar um documento</p>
                   <p className="text-xs text-muted-foreground mt-1">Seguro, inspeção ou contrato — extraímos os prazos automaticamente.</p>
                 </button>
               </div>
+
+              {!selectedPath && (
+                <div className="mt-6 flex justify-center">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => finalizarOnboarding()}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    Agora não, seguir em frente
+                  </Button>
+                </div>
+              )}
 
               {/* Ocorrência mini-form */}
               <AnimatePresence>
@@ -839,13 +942,12 @@ export const OnboardingPage: React.FC = () => {
                     exit={{ opacity: 0, y: -6 }}
                     transition={{ duration: 0.22, ease: 'easeOut' }}
                     onSubmit={ocorrenciaForm.handleSubmit(handleOcorrenciaSubmit)}
-                    className="space-y-4 border-t pt-4"
+                    className="space-y-4 border-t pt-4 mt-4"
                   >
                     <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                       <ClipboardList className="h-4 w-4 text-blue-600" /> Nova Ocorrência
                     </p>
 
-                    {/* Título + AI classify button */}
                     <div>
                       <Label htmlFor="oc_titulo">Nome da Ocorrência</Label>
                       <Input
@@ -864,7 +966,6 @@ export const OnboardingPage: React.FC = () => {
                         </p>
                       )}
 
-                      {/* Classify button — only visible when 5+ chars */}
                       <AnimatePresence>
                         {(watchedTitulo?.trim().length ?? 0) >= 5 && (
                           <motion.div
@@ -886,12 +987,9 @@ export const OnboardingPage: React.FC = () => {
                                   A classificar...
                                 </>
                               ) : (
-                                <>
-                                  ✦ Classificar com IA
-                                </>
+                                <>✦ Classificar com IA</>
                               )}
                             </button>
-
                             {classifySuccess && (
                               <p className="flex items-center gap-1 text-xs text-green-600">
                                 <Check className="h-3.5 w-3.5" />
@@ -908,7 +1006,6 @@ export const OnboardingPage: React.FC = () => {
                       </AnimatePresence>
                     </div>
 
-                    {/* Categoria — controlled, pre-filled by AI */}
                     <div>
                       <Label>Categoria</Label>
                       <Select
@@ -932,7 +1029,6 @@ export const OnboardingPage: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Prioridade — controlled, pre-filled by AI */}
                     <div>
                       <Label>Prioridade</Label>
                       <Select
@@ -966,8 +1062,7 @@ export const OnboardingPage: React.FC = () => {
                       >
                         Voltar
                       </Button>
-                      <Button type="submit" className="flex-1" disabled={submitting || isClassifying}>
-                        {submitting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                      <Button type="submit" className="flex-1">
                         Continuar
                       </Button>
                     </div>
@@ -977,19 +1072,17 @@ export const OnboardingPage: React.FC = () => {
 
               {/* Documento upload mini-form */}
               {selectedPath === 'documento' && (
-                <div className="space-y-4 border-t pt-4">
+                <div className="space-y-4 border-t pt-4 mt-4">
                   <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                     <FileUp className="h-4 w-4 text-blue-600" /> Importar Documento
                   </p>
 
-                  {/* Drop zone */}
                   <label
                     htmlFor="doc_upload"
-                    className={`flex flex-col items-center justify-center gap-2 w-full border-2 border-dashed rounded-xl p-8 cursor-pointer transition-colors ${
-                      uploadedFile
+                    className={`flex flex-col items-center justify-center gap-2 w-full border-2 border-dashed rounded-xl p-8 cursor-pointer transition-colors ${uploadedFile
                         ? 'border-blue-400 bg-blue-50'
                         : 'border-border hover:border-blue-400 hover:bg-blue-50/40'
-                    }`}
+                      }`}
                   >
                     <FileUp className={`h-8 w-8 ${uploadedFile ? 'text-blue-500' : 'text-muted-foreground'}`} />
                     {uploadedFile ? (
@@ -1032,8 +1125,8 @@ export const OnboardingPage: React.FC = () => {
             </div>
           )}
 
-          {/* Step 4 — Magic Resolution */}
-          {step === 4 && (
+          {/* PASSO 6 — Resultado (Sugestões de Técnicos ou Info de Documento) */}
+          {step === 6 && (
             <div className="bg-card rounded-2xl border shadow-lg p-8">
               {stepData.quickWinPath === 'ocorrencia' && (
                 <>
@@ -1041,7 +1134,7 @@ export const OnboardingPage: React.FC = () => {
                     <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
                       <ClipboardList className="h-6 w-6 text-primary" />
                     </div>
-                    <h2 className="text-2xl font-bold mb-1">Ocorrência registada!</h2>
+                    <h2 className="text-2xl font-bold mb-1">Ocorrência pronta a gravar!</h2>
                     <p className="text-muted-foreground text-sm">
                       Sugerimos os seguintes técnicos para a sua ocorrência:
                     </p>
@@ -1097,7 +1190,7 @@ export const OnboardingPage: React.FC = () => {
                   </div>
                   <h2 className="text-2xl font-bold mb-1">Documento recebido!</h2>
                   <p className="text-muted-foreground text-sm mb-4">
-                    Iremos analisar o ficheiro e extrair os prazos automaticamente. Receberá uma notificação quando estiver pronto.
+                    Iremos analisar o ficheiro e extrair os prazos automaticamente assim que concluir a configuração.
                   </p>
                   {stepData.createdItemData?.nome && (
                     <div className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-xl text-sm">
@@ -1108,18 +1201,19 @@ export const OnboardingPage: React.FC = () => {
                 </div>
               )}
 
-              <Button onClick={handleGoToDashboard} className="w-full mt-2">
-                Ver o meu Dashboard →
+              {/* AQUI ACIONAMOS A GRAVAÇÃO FINAL DE TUDO */}
+              <Button onClick={() => finalizarOnboarding()} className="w-full mt-2 text-lg h-12">
+                Concluir e ir para o Dashboard →
               </Button>
             </div>
           )}
 
-          {/* Step 5 — Loading → Dashboard */}
-          {step === 5 && (
+          {/* PASSO 7 — Loading Final (Gravar na BD) */}
+          {step === 7 && (
             <div className="bg-card rounded-2xl border shadow-lg p-8 text-center">
               <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto mb-4" />
-              <h2 className="text-2xl font-bold mb-2">A preparar o seu painel...</h2>
-              <p className="text-muted-foreground text-sm">Só um momento!</p>
+              <h2 className="text-2xl font-bold mb-2">A configurar o seu espaço...</h2>
+              <p className="text-muted-foreground text-sm">Estamos a guardar os seus dados. Só um momento!</p>
             </div>
           )}
         </div>
