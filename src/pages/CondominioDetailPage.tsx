@@ -24,6 +24,8 @@ import { useToast } from '@/hooks/use-toast';
 import { computeNextMaintenanceDate } from '@/utils/maintenanceDates';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
+import { MembrosTab } from '@/components/MembrosTab/MembrosTab';
+import { membershipsApi, type MembershipRole } from '@/api/memberships';
 import {
   ArrowLeft,
   Building2,
@@ -52,6 +54,9 @@ import {
   Layers,
   ChevronRight,
   Eye,
+  Link2,
+  Copy,
+  Check,
 } from 'lucide-react';
 
 const tipoDocOptions = [
@@ -106,6 +111,32 @@ export const CondominioDetailPage: React.FC = () => {
   const [editFormOpen, setEditFormOpen] = useState(false);
   const [ativoFormOpen, setAtivoFormOpen] = useState(false);
   const [ocorrenciaFormOpen, setOcorrenciaFormOpen] = useState(false);
+
+  // Quick invite links
+  const [inviteRole, setInviteRole] = useState<MembershipRole>('residente');
+  const [inviteLink, setInviteLink] = useState<string | null>(null);
+  const [inviteGenerating, setInviteGenerating] = useState(false);
+  const [inviteCopied, setInviteCopied] = useState(false);
+
+  const handleGenerateInvite = async () => {
+    setInviteGenerating(true);
+    setInviteLink(null);
+    try {
+      const token = await membershipsApi.createInviteToken(condominioId, inviteRole);
+      setInviteLink(`${window.location.origin}/join/${token}`);
+    } catch (e: any) {
+      toast({ title: 'Erro', description: e?.message ?? 'Não foi possível gerar link', variant: 'destructive' });
+    } finally {
+      setInviteGenerating(false);
+    }
+  };
+
+  const handleCopyInvite = async () => {
+    if (!inviteLink) return;
+    await navigator.clipboard.writeText(inviteLink);
+    setInviteCopied(true);
+    setTimeout(() => setInviteCopied(false), 2000);
+  };
 
   useEffect(() => {
     if (!condominioId || condominioId <= 0) return;
@@ -314,6 +345,47 @@ export const CondominioDetailPage: React.FC = () => {
         </div>
       </div>
 
+      {/* ── Invite bar ─────────────────────────────────── */}
+      <div className="px-6 lg:px-8 pb-4">
+        <div className="rounded-xl border border-slate-200/60 bg-white px-5 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Link2 className="h-4 w-4 text-slate-400" />
+            <span className="text-sm font-semibold text-slate-700">Convidar</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-400">Função:</span>
+            <Select value={inviteRole} onValueChange={(v) => { setInviteRole(v as MembershipRole); setInviteLink(null); }}>
+              <SelectTrigger className="h-8 w-32 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="residente">Residente</SelectItem>
+                <SelectItem value="tecnico">Técnico</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <Button size="sm" variant="outline" className="text-xs gap-1.5 h-8 flex-shrink-0" onClick={handleGenerateInvite} disabled={inviteGenerating}>
+            {inviteGenerating
+              ? <><span className="h-3 w-3 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" /> A gerar...</>
+              : <><Link2 className="h-3.5 w-3.5" /> Gerar link</>}
+          </Button>
+          {inviteLink ? (
+            <div className="flex-1 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 min-w-0">
+              <p className="text-xs font-mono text-slate-700 truncate flex-1">{inviteLink}</p>
+              <button
+                onClick={handleCopyInvite}
+                className="flex-shrink-0 p-1 rounded hover:bg-slate-200 transition-colors text-slate-500"
+                title="Copiar link"
+              >
+                {inviteCopied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+              </button>
+            </div>
+          ) : (
+            <p className="text-xs text-slate-400">Válido 7 dias · uso único · o convidado recebe um formulário de registo</p>
+          )}
+        </div>
+      </div>
+
       {/* ── Tabs ───────────────────────────────────────── */}
       <div className="px-6 lg:px-8 pb-8">
         <Tabs defaultValue="info" className="space-y-5">
@@ -327,6 +399,9 @@ export const CondominioDetailPage: React.FC = () => {
             </TabsTrigger>
             <TabsTrigger value="documentos" className="text-xs rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white">
               Documentos <span className="ml-1 text-[10px] opacity-60">{docs.length}</span>
+            </TabsTrigger>
+            <TabsTrigger value="membros" className="text-xs rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white">
+              Membros
             </TabsTrigger>
           </TabsList>
 
@@ -378,6 +453,7 @@ export const CondominioDetailPage: React.FC = () => {
                   ))}
                 </div>
               </div>
+
             </div>
           </TabsContent>
 
@@ -556,6 +632,11 @@ export const CondominioDetailPage: React.FC = () => {
               </div>
             </div>
           </TabsContent>
+          {/* ── Tab: Membros ────────────────────────────── */}
+          <TabsContent value="membros">
+            <MembrosTab condominioId={condominioId} />
+          </TabsContent>
+
         </Tabs>
       </div>
 

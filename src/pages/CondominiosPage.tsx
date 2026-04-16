@@ -88,7 +88,7 @@ export const CondominiosPage: React.FC = () => {
 
   if (!user) return <div>Necessita de autenticação.</div>;
 
-  const activeCount = filteredCondominios.filter(c => (c as any).is_active !== false).length;
+  const activeCount = filteredCondominios.filter(c => c.is_active !== false).length;
   const totalCount = filteredCondominios.length;
 
   return (

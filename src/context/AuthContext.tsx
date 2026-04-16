@@ -71,11 +71,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const fetchProfile = async (id: string) => {
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from('users')
       .select('*')
       .eq('id_user', id)
       .single<Profile>();
+
+    // Se o perfil não existe na tabela public.users, cria-o agora.
+    if (error && error.code === 'PGRST116') {
+      const { data: authData } = await supabase.auth.getUser();
+      const u = authData.user;
+      if (u) {
+        await supabase.from('users').insert({
+          id_user: id,
+          primeiro_nome: u.user_metadata?.primeiro_nome || u.email?.split('@')[0] || 'Conta',
+          ultimo_nome: u.user_metadata?.ultimo_nome || '',
+          empresa: u.user_metadata?.empresa || 'Empresa',
+          plano: 'starter',
+        });
+        
+        const retry = await supabase.from('users').select('*').eq('id_user', id).single<Profile>();
+        data = retry.data;
+        error = retry.error;
+      }
+    }
 
     if (error) {
       setProfile(null);

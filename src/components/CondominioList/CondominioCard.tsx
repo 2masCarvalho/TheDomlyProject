@@ -4,7 +4,13 @@ import { Condominio } from '@/api/condominios';
 import { ativosApi } from '@/api/ativos';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Building2, MapPin, Hash, Pencil, Package, ArrowRight, Mail, Users, Power } from 'lucide-react';
+
+const roleBadgeLabel: Record<string, string> = {
+  residente: 'Residente',
+  tecnico: 'Técnico',
+};
 
 interface CondominioCardProps {
   condominio: Condominio;
@@ -31,7 +37,7 @@ export const CondominioCard: React.FC<CondominioCardProps> = ({ condominio, onEd
 
   return (
     <Card
-      className={`h-full hover:shadow-md hover:border-slate-300 transition-all duration-200 cursor-pointer group ${(condominio as any).is_active === false ? 'opacity-60' : ''}`}
+      className={`h-full hover:shadow-md hover:border-slate-300 transition-all duration-200 cursor-pointer group ${condominio.is_active === false ? 'opacity-60' : ''}`}
       onClick={() => navigate(`/condominios/${condominio.id_comdominio}`)}
     >
       <CardHeader className="pb-3">
@@ -46,7 +52,12 @@ export const CondominioCard: React.FC<CondominioCardProps> = ({ condominio, onEd
         )}
         <CardTitle className="flex items-center gap-2 text-base">
           <Building2 className="h-4 w-4 text-blue-500 flex-shrink-0" />
-          {condominio.nome}
+          <span className="flex-1 truncate">{condominio.nome}</span>
+          {condominio.memberRole && (
+            <Badge variant="outline" className="text-[10px] font-medium bg-emerald-50 text-emerald-700 border-emerald-200 flex-shrink-0">
+              {roleBadgeLabel[condominio.memberRole] ?? condominio.memberRole}
+            </Badge>
+          )}
         </CardTitle>
       </CardHeader>
 
@@ -84,20 +95,22 @@ export const CondominioCard: React.FC<CondominioCardProps> = ({ condominio, onEd
         </div>
       </div>
 
-      <CardFooter className="gap-2 pt-2" onClick={(e) => e.stopPropagation()}>
-        <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={() => onEdit(condominio)}>
-          <Pencil className="h-3.5 w-3.5 mr-1" /> Editar
-        </Button>
-        {(condominio as any).is_active === false ? (
-          <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={() => onReactivate(condominio)}>
-            <Power className="h-3.5 w-3.5 mr-1" /> Reativar
+      {!condominio.memberRole && (
+        <CardFooter className="gap-2 pt-2" onClick={(e) => e.stopPropagation()}>
+          <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={() => onEdit(condominio)}>
+            <Pencil className="h-3.5 w-3.5 mr-1" /> Editar
           </Button>
-        ) : (
-          <Button variant="outline" size="sm" className="flex-1 text-xs text-red-500 hover:text-red-600 hover:bg-red-50" onClick={() => onDeactivate(condominio)}>
-            <Power className="h-3.5 w-3.5 mr-1" /> Desativar
-          </Button>
-        )}
-      </CardFooter>
+          {condominio.is_active === false ? (
+            <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={() => onReactivate(condominio)}>
+              <Power className="h-3.5 w-3.5 mr-1" /> Reativar
+            </Button>
+          ) : (
+            <Button variant="outline" size="sm" className="flex-1 text-xs text-red-500 hover:text-red-600 hover:bg-red-50" onClick={() => onDeactivate(condominio)}>
+              <Power className="h-3.5 w-3.5 mr-1" /> Desativar
+            </Button>
+          )}
+        </CardFooter>
+      )}
     </Card>
   );
 };

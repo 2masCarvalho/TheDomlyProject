@@ -108,6 +108,27 @@ export const AtivoForm: React.FC<AtivoFormProps> = ({
         </DialogHeader>
 
         <form onSubmit={handleSubmit(handleFormSubmit, (err) => console.log("Erros Ativos:", err))} className="space-y-4">
+
+          <div className="space-y-2">
+            <Label>Tipo de ativo *</Label>
+            <Select
+              value={tipoAtivo || ''}
+              onValueChange={(v) => setValue('tipo_ativo', v as AtivoFormData['tipo_ativo'])}
+            >
+              <SelectTrigger><SelectValue placeholder="Selecione o tipo de ativo" /></SelectTrigger>
+              <SelectContent>
+                {assetTypeOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {rule && (
+              <p className="text-xs text-muted-foreground">{rule.legalReference}</p>
+            )}
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="nome">Nome *</Label>
@@ -230,22 +251,6 @@ export const AtivoForm: React.FC<AtivoFormProps> = ({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Tipo (regra preventiva)</Label>
-              <Select
-                value={tipoAtivo || ''}
-                onValueChange={(v) => setValue('tipo_ativo', v as AtivoFormData['tipo_ativo'])}
-              >
-                <SelectTrigger><SelectValue placeholder="Selecione o tipo" /></SelectTrigger>
-                <SelectContent>
-                  {assetTypeOptions.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
               <Label>Estado da Licença</Label>
               <Select
                 value={estadoLicenca || ''}
@@ -261,16 +266,6 @@ export const AtivoForm: React.FC<AtivoFormProps> = ({
               </Select>
             </div>
           </div>
-
-          {rule && (
-            <div className="rounded-lg border bg-muted/20 p-3">
-              <p className="text-sm font-medium">Regra sugerida</p>
-              <p className="text-sm text-muted-foreground">
-                Frequência: <span className="font-medium text-foreground">{rule.frequencyMonths} meses</span>
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">{rule.legalReference}</p>
-            </div>
-          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">

@@ -52,6 +52,17 @@ const tipoAtivoLabels: Record<string, string> = {
 
 const stepLabels = ['Plano', 'Conta', 'Pagamento', 'Propriedade', 'Ação', 'Resultado'];
 
+const DRAFT_KEY = 'domly_onboarding_draft';
+
+type OnboardingDraft = {
+  step: number;
+  plano: string;
+  step1: Omit<Step1Form, 'password'> | null;
+  step2: Step2Form | null;
+  ocorrencia: OcorrenciaForm | null;
+  selectedPath: QuickWinPath | null;
+};
+
 const step1Schema = z.object({
   nome_completo: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
   empresa: z.string().min(1, 'Empresa é obrigatória'),
@@ -221,6 +232,7 @@ export const OnboardingPage: React.FC = () => {
   const [selectedPath, setSelectedPath] = useState<QuickWinPath | null>(null);
   const [suggestedTecnicos, setSuggestedTecnicos] = useState<Tecnico[]>([]);
   const [loadingTecnicos, setLoadingTecnicos] = useState(false);
+  const [draftRestored, setDraftRestored] = useState(false);
 
   const step1Form = useForm<Step1Form>({ resolver: zodResolver(step1Schema) });
   const step2Form = useForm<Step2Form>({ resolver: zodResolver(step2Schema) });
@@ -231,6 +243,59 @@ export const OnboardingPage: React.FC = () => {
   const watchedCategoria = ocorrenciaForm.watch('categoria');
   const watchedPrioridade = ocorrenciaForm.watch('prioridade');
   const watchedTitulo = ocorrenciaForm.watch('titulo');
+
+  // Restore draft on mount
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const draft: OnboardingDraft = JSON.parse(raw);
+      const savedStep = draft.step ?? 1;
+      if (savedStep < 2) return;
+
+      if (draft.plano && !planFromUrl) {
+        setFormData(prev => ({ ...prev, plano: draft.plano }));
+      }
+      if (draft.step1) {
+        const noPassword = { nome_completo: draft.step1.nome_completo, empresa: draft.step1.empresa, email: draft.step1.email };
+        step1Form.reset({ ...noPassword, password: '' });
+        setFormData(prev => ({ ...prev, step1: { ...noPassword, password: '' } }));
+      }
+      if (draft.step2) {
+        step2Form.reset(draft.step2);
+        setFormData(prev => ({ ...prev, step2: draft.step2 }));
+        setStepData(prev => ({ ...prev, condominioNome: draft.step2!.nome }));
+      }
+      if (draft.ocorrencia) {
+        ocorrenciaForm.reset(draft.ocorrencia);
+        setFormData(prev => ({ ...prev, ocorrencia: draft.ocorrencia }));
+      }
+      if (draft.selectedPath) setSelectedPath(draft.selectedPath);
+
+      if (savedStep >= 3) {
+        setStep(Math.min(savedStep, 6));
+        setDraftRestored(true);
+      }
+    } catch {
+      localStorage.removeItem(DRAFT_KEY);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Save draft on every meaningful change
+  useEffect(() => {
+    if (step < 2 || step >= 7) return;
+    const draft: OnboardingDraft = {
+      step,
+      plano: formData.plano,
+      step1: formData.step1
+        ? { nome_completo: formData.step1.nome_completo, empresa: formData.step1.empresa, email: formData.step1.email }
+        : null,
+      step2: formData.step2,
+      ocorrencia: formData.ocorrencia,
+      selectedPath,
+    };
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+  }, [step, formData, selectedPath]);
 
   useEffect(() => {
     const hash = window.location.hash;
@@ -462,6 +527,7 @@ export const OnboardingPage: React.FC = () => {
         });
       }
 
+      localStorage.removeItem(DRAFT_KEY);
       navigate('/dashboard?onboarding=1');
 
     } catch (error: any) {
@@ -469,6 +535,17 @@ export const OnboardingPage: React.FC = () => {
       alert("Ocorreu um erro a finalizar o registo: " + error.message);
       setStep(6); 
     }
+  };
+
+  const handleClearDraft = () => {
+    localStorage.removeItem(DRAFT_KEY);
+    setDraftRestored(false);
+    setStep(hasPreSelectedPlan ? 2 : 1);
+    setFormData({ plano: planFromUrl || '', step1: null, step2: null, ocorrencia: null, documento: null });
+    setSelectedPath(null);
+    step1Form.reset();
+    step2Form.reset();
+    ocorrenciaForm.reset();
   };
 
   const getPlanPrice = (plan: string) => {
@@ -489,6 +566,18 @@ export const OnboardingPage: React.FC = () => {
     >
       <div className="w-full max-w-lg">
         {step < 7 && <ProgressBar step={step} onStepClick={setStep} hasPreSelectedPlan={hasPreSelectedPlan} />}
+
+        {draftRestored && step < 7 && (
+          <div className="mb-4 flex items-center justify-between text-xs text-white/70 bg-white/5 rounded-lg px-4 py-2.5 border border-white/10">
+            <span>Sessão anterior restaurada · Os seus dados foram guardados</span>
+            <button
+              onClick={handleClearDraft}
+              className="underline underline-offset-2 hover:text-white transition-colors ml-4 flex-shrink-0"
+            >
+              Recomeçar
+            </button>
+          </div>
+        )}
 
         <div key={step} className="animate-slide-in-left">
 
@@ -784,6 +873,7 @@ export const OnboardingPage: React.FC = () => {
                 <div>
                   <Label htmlFor="tipo_propriedade">Tipo de Propriedade</Label>
                   <Select
+                    value={tipoPropriedade || ''}
                     onValueChange={(v) => {
                       step2Form.setValue('tipo_propriedade', v as TipoPropriedade, { shouldValidate: true });
                       if (v === 'moradia') step2Form.setValue('num_fracoes', 1);
