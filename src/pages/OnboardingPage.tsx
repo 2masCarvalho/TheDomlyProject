@@ -110,7 +110,7 @@ const ProgressBar: React.FC<{ step: number; onStepClick: (s: number) => void; ha
   // Ajustamos os labels e a contagem se o plano já veio pré-selecionado (saltamos o label "Plano")
   const displayLabels = hasPreSelectedPlan ? stepLabels.slice(1) : stepLabels;
   const displayStep = hasPreSelectedPlan ? step - 1 : step;
-  
+
   const total = displayLabels.length;
   const progressPct = ((Math.min(displayStep, total) - 1) / (total - 1)) * 100;
 
@@ -126,7 +126,7 @@ const ProgressBar: React.FC<{ step: number; onStepClick: (s: number) => void; ha
       {displayLabels.map((label, i) => {
         const visualStepNum = i + 1;
         const actualStepNum = hasPreSelectedPlan ? visualStepNum + 1 : visualStepNum;
-        
+
         const isActive = visualStepNum === displayStep;
         const isCompleted = visualStepNum < displayStep;
 
@@ -137,10 +137,10 @@ const ProgressBar: React.FC<{ step: number; onStepClick: (s: number) => void; ha
             )}
             <div
               className={`absolute inset-0 rounded-full transition-colors duration-300 delay-[400ms] ${isCompleted
-                  ? 'bg-green-500'
-                  : isActive
-                    ? 'bg-blue-500'
-                    : 'bg-[#1B2A4A] ring-2 ring-white/15'
+                ? 'bg-green-500'
+                : isActive
+                  ? 'bg-blue-500'
+                  : 'bg-[#1B2A4A] ring-2 ring-white/15'
                 }`}
             />
             {isActive && (
@@ -177,10 +177,10 @@ const ProgressBar: React.FC<{ step: number; onStepClick: (s: number) => void; ha
             )}
             <span
               className={`text-xs mt-1.5 hidden sm:block transition-colors duration-300 delay-[400ms] ${isCompleted
-                  ? 'text-green-400 font-medium'
-                  : isActive
-                    ? 'text-blue-400 font-medium'
-                    : 'text-white/40'
+                ? 'text-green-400 font-medium'
+                : isActive
+                  ? 'text-blue-400 font-medium'
+                  : 'text-white/40'
                 }`}
             >
               {label}
@@ -195,16 +195,16 @@ const ProgressBar: React.FC<{ step: number; onStepClick: (s: number) => void; ha
 export const OnboardingPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  
+
   // Lê o plano do URL (ex: ?plan=starter, ?plan=growth, ?plan=pro)
   const urlParams = new URLSearchParams(window.location.search);
   const planFromUrl = urlParams.get('plan');
-  
+
   const [hasPreSelectedPlan] = useState(!!planFromUrl);
 
   // Se tem plano no URL, começa no Passo 2 (Conta). Senão, começa no Passo 1 (Escolher Plano)
   const [step, setStep] = useState(hasPreSelectedPlan ? 2 : 1);
-  
+
   const [formData, setFormData] = useState({
     plano: planFromUrl || '',
     step1: null as Step1Form | null,
@@ -222,7 +222,7 @@ export const OnboardingPage: React.FC = () => {
     createdItemId: null,
     createdItemData: null,
   });
-  
+
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -342,7 +342,7 @@ export const OnboardingPage: React.FC = () => {
 
   const handlePlanSelection = (plano: string) => {
     setFormData(prev => ({ ...prev, plano }));
-    setStep(2); 
+    setStep(2);
   };
 
   const handleStep1Submit = async (data: Step1Form) => {
@@ -373,7 +373,7 @@ export const OnboardingPage: React.FC = () => {
   const handleOcorrenciaSubmit = async (data: OcorrenciaForm) => {
     setFormData(prev => ({ ...prev, ocorrencia: data }));
     setStepData(prev => ({ ...prev, quickWinPath: 'ocorrencia' }));
-    
+
     setLoadingTecnicos(true);
     try {
       const tecnicos = await tecnicosApi.getAll();
@@ -476,18 +476,18 @@ export const OnboardingPage: React.FC = () => {
             data: { primeiro_nome, ultimo_nome, empresa: formData.step1.empresa ?? '' },
           },
         });
-        
+
         if (error) throw error;
-        
+
         if (!signUpData.session) {
           setSavedEmail(formData.step1.email);
           setEmailSent(true);
-          setStep(2); 
-          return; 
+          setStep(2);
+          return;
         }
-        
+
         currentUserId = signUpData.user?.id;
-        
+
         if (currentUserId) {
           await supabase.from('users').insert({
             id_user: currentUserId,
@@ -533,7 +533,7 @@ export const OnboardingPage: React.FC = () => {
     } catch (error: any) {
       console.error("Erro no submit master:", error);
       alert("Ocorreu um erro a finalizar o registo: " + error.message);
-      setStep(6); 
+      setStep(6);
     }
   };
 
@@ -762,7 +762,7 @@ export const OnboardingPage: React.FC = () => {
                         </p>
                       )}
                     </div>
-                    
+
                     <Button type="submit" className="w-full" disabled={submitting}>
                       Continuar
                       <ChevronRight className="h-4 w-4 ml-1" />
@@ -804,44 +804,119 @@ export const OnboardingPage: React.FC = () => {
                 </p>
               </div>
 
-              <form onSubmit={handlePaymentSimulationSubmit} className="space-y-4">
-                <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl mb-6 flex justify-between items-center">
+              {/* Resumo do plano */}
+              <div className="bg-gradient-to-r from-blue-50 to-blue-100/60 border border-blue-200 rounded-xl p-4 mb-6">
+                <div className="flex justify-between items-start">
                   <div>
-                    <p className="font-semibold text-blue-900">
-                      Plano {formData.plano.charAt(0).toUpperCase() + formData.plano.slice(1)}
+                    <p className="text-xs text-blue-600 font-semibold uppercase tracking-wide mb-1">Plano selecionado</p>
+                    <p className="font-bold text-blue-900 text-lg">
+                      {formData.plano.charAt(0).toUpperCase() + formData.plano.slice(1)}
                     </p>
-                    <p className="text-xs text-blue-700/80">Faturação Mensal</p>
+                    <p className="text-xs text-blue-700/70 mt-0.5">Faturação mensal · Cancele a qualquer momento</p>
                   </div>
-                  <p className="font-bold text-xl text-blue-700">
-                    {getPlanPrice(formData.plano)}
-                  </p>
+                  <div className="text-right">
+                    <p className="font-extrabold text-2xl text-blue-700">{getPlanPrice(formData.plano)}</p>
+                    <p className="text-xs text-blue-600/70">/mês</p>
+                  </div>
                 </div>
+                <div className="border-t border-blue-200 mt-3 pt-3 flex justify-between text-xs text-blue-700">
+                  <span>Primeiro pagamento hoje</span>
+                  <span className="font-semibold">{getPlanPrice(formData.plano)}</span>
+                </div>
+              </div>
 
+              <form onSubmit={handlePaymentSimulationSubmit} className="space-y-4">
+                {/* Nome no cartão */}
                 <div>
                   <Label>Nome no Cartão</Label>
                   <Input placeholder="Ex: João Miguel Silva" required />
                 </div>
+
+                {/* Número do cartão */}
                 <div>
                   <Label>Número do Cartão</Label>
                   <div className="relative">
                     <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input placeholder="0000 0000 0000 0000" maxLength={19} className="pl-9" required />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Validade</Label>
-                    <Input placeholder="MM/AA" maxLength={5} required />
-                  </div>
-                  <div>
-                    <Label>CVC</Label>
-                    <Input placeholder="123" maxLength={3} type="password" required />
+                    <Input
+                      placeholder="0000 0000 0000 0000"
+                      maxLength={19}
+                      className="pl-9 tracking-widest font-mono"
+                      required
+                      onChange={(e) => {
+                        // Formata automaticamente com espaços a cada 4 dígitos
+                        const raw = e.target.value.replace(/\D/g, '').slice(0, 16);
+                        e.target.value = raw.replace(/(.{4})/g, '$1 ').trim();
+                      }}
+                    />
+                    {/* Ícones das redes de cartão */}
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex gap-1 opacity-40">
+                      <svg viewBox="0 0 38 24" className="h-4 w-auto"><rect width="38" height="24" rx="4" fill="#1A1F71" /><path d="M14.5 16.5h-2l1.25-8h2L14.5 16.5zm7.1-7.8c-.4-.15-1.05-.3-1.85-.3-2.05 0-3.5 1.05-3.5 2.55-.05 1.1 1.05 1.7 1.85 2.1.8.35 1.1.6 1.1.95-.05.5-.65.75-1.25.75-.85 0-1.3-.1-2-.4l-.25-.1-.3 1.7c.5.2 1.4.4 2.35.4 2.2 0 3.6-1.05 3.65-2.65 0-.9-.55-1.55-1.75-2.1-.75-.35-1.2-.6-1.2-.95 0-.3.4-.65 1.25-.65.7 0 1.2.15 1.6.3l.2.1.3-1.7zm5.3-.2h-1.55c-.5 0-.85.15-1.05.65l-2.95 7.35h2.1l.42-1.15h2.55l.25 1.15h1.85l-1.62-8zm-2.45 5.15l.8-2.1.45 2.1h-1.25zm-12.1-5.15l-2.05 5.45-.2-1.05c-.4-1.3-1.6-2.7-2.95-3.4l1.85 6.95h2.1l3.1-7.95h-1.85z" fill="#fff" /></svg>
+                      <svg viewBox="0 0 38 24" className="h-4 w-auto"><rect width="38" height="24" rx="4" fill="#EB001B" fillOpacity=".1" /><circle cx="15" cy="12" r="7" fill="#EB001B" /><circle cx="23" cy="12" r="7" fill="#F79E1B" /><path d="M19 7.3a7 7 0 0 1 0 9.4A7 7 0 0 1 19 7.3z" fill="#FF5F00" /></svg>
+                    </div>
                   </div>
                 </div>
 
-                <Button type="submit" className="w-full mt-4">
-                  Confirmar Pagamento <ChevronRight className="h-4 w-4 ml-1" />
+                {/* Validade + CVC */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Validade</Label>
+                    <Input
+                      placeholder="MM/AA"
+                      maxLength={5}
+                      required
+                      onChange={(e) => {
+                        const raw = e.target.value.replace(/\D/g, '').slice(0, 4);
+                        e.target.value = raw.length > 2 ? raw.slice(0, 2) + '/' + raw.slice(2) : raw;
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <Label>CVC</Label>
+                    <div className="relative">
+                      <Input placeholder="•••" maxLength={3} type="password" required className="pr-9" />
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/50">
+                        <svg viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current" strokeWidth={1.5}>
+                          <rect x="2" y="5" width="20" height="14" rx="2" />
+                          <path d="M2 10h20" />
+                          <circle cx="17" cy="15" r="1.5" fill="currentColor" stroke="none" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Email de faturação */}
+                <div>
+                  <Label>Email de Faturação</Label>
+                  <Input
+                    type="email"
+                    placeholder="joao@empresa.pt"
+                    defaultValue={formData.step1?.email ?? ''}
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Os recibos serão enviados para este email.</p>
+                </div>
+
+                {/* Segurança */}
+                <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/40 rounded-lg px-3 py-2.5">
+                  <svg viewBox="0 0 24 24" className="h-4 w-4 flex-shrink-0 text-green-500 fill-none stroke-current" strokeWidth={2}>
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    <path d="m9 12 2 2 4-4" />
+                  </svg>
+                  <span>Pagamento seguro com encriptação SSL de 256 bits. Os seus dados bancários nunca são armazenados.</span>
+                </div>
+
+                <Button type="submit" className="w-full h-11 text-base mt-2">
+                  Confirmar Pagamento · {getPlanPrice(formData.plano)}
+                  <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
+
+                <p className="text-center text-xs text-muted-foreground">
+                  Ao confirmar, aceita os nossos{' '}
+                  <a href="/terms" className="underline underline-offset-2 hover:text-foreground">Termos de Serviço</a>
+                  {' '}e{' '}
+                  <a href="/privacy" className="underline underline-offset-2 hover:text-foreground">Política de Privacidade</a>.
+                </p>
               </form>
             </div>
           )}
@@ -987,8 +1062,8 @@ export const OnboardingPage: React.FC = () => {
                   type="button"
                   onClick={() => handlePathSelect('ocorrencia')}
                   className={`p-6 border-2 rounded-xl text-left transition-all group ${selectedPath === 'ocorrencia'
-                      ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-500'
-                      : 'border-border hover:border-blue-400 hover:bg-blue-50/50 hover:ring-2 hover:ring-blue-400'
+                    ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-500'
+                    : 'border-border hover:border-blue-400 hover:bg-blue-50/50 hover:ring-2 hover:ring-blue-400'
                     }`}
                 >
                   <ClipboardList className={`h-8 w-8 mb-3 transition-transform group-hover:scale-110 ${selectedPath === 'ocorrencia' ? 'text-blue-600' : 'text-primary'}`} />
@@ -999,8 +1074,8 @@ export const OnboardingPage: React.FC = () => {
                   type="button"
                   onClick={() => handlePathSelect('documento')}
                   className={`p-6 border-2 rounded-xl text-left transition-all group ${selectedPath === 'documento'
-                      ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-500'
-                      : 'border-border hover:border-blue-400 hover:bg-blue-50/50 hover:ring-2 hover:ring-blue-400'
+                    ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-500'
+                    : 'border-border hover:border-blue-400 hover:bg-blue-50/50 hover:ring-2 hover:ring-blue-400'
                     }`}
                 >
                   <FileUp className={`h-8 w-8 mb-3 transition-transform group-hover:scale-110 ${selectedPath === 'documento' ? 'text-blue-600' : 'text-primary'}`} />
@@ -1170,8 +1245,8 @@ export const OnboardingPage: React.FC = () => {
                   <label
                     htmlFor="doc_upload"
                     className={`flex flex-col items-center justify-center gap-2 w-full border-2 border-dashed rounded-xl p-8 cursor-pointer transition-colors ${uploadedFile
-                        ? 'border-blue-400 bg-blue-50'
-                        : 'border-border hover:border-blue-400 hover:bg-blue-50/40'
+                      ? 'border-blue-400 bg-blue-50'
+                      : 'border-border hover:border-blue-400 hover:bg-blue-50/40'
                       }`}
                   >
                     <FileUp className={`h-8 w-8 ${uploadedFile ? 'text-blue-500' : 'text-muted-foreground'}`} />
