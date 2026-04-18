@@ -33,18 +33,7 @@ export type CreateDocumentoData = {
 
 const BUCKET_ID = 'condominio-documents';
 
-console.log('[upload] update payload:', {
-  tipo_documento: extraction.tipo_documento || 'outro',
-  categoria: extraction.categoria || 'outro',
-  resumo: extraction.resumo,
-  data_expiracao: extraction.data_expiracao,
-  data_inicio: extraction.data_inicio,
-  valor_monetario: extraction.valor_monetario,
-  entidade: extraction.entidade,
-  dados_extraidos: extraction,
-  estado_processamento: 'concluido',
-  processado_em: new Date().toISOString(),
-});
+
 
 export const documentosApi = {
   listByCondominio: async (id_condominio: number): Promise<Documento[]> => {
