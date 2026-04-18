@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -8,9 +8,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CreateOcorrenciaData, Ocorrencia } from '@/api/ocorrencias';
+import { CreateOcorrenciaData, Ocorrencia, ocorrenciasApi } from '@/api/ocorrencias';
 import { useCondominios } from '@/context/CondominiosContext';
 import { suggestFromTitulo } from '@/utils/ocorrenciaAutofill';
+import { ImagePlus, X, Loader2 } from 'lucide-react';
 
 const ocorrenciaSchema = z.object({
   id_condominio: z.number({ required_error: 'Selecione um condomínio' }),
@@ -47,6 +48,12 @@ export const OcorrenciaForm: React.FC<OcorrenciaFormProps> = ({
   prefillCondominioId,
 }) => {
   const { condominios } = useCondominios();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Photo state
+  const [selectedPhotos, setSelectedPhotos] = useState<File[]>([]);
+  const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
+  const [uploadingPhotos, setUploadingPhotos] = useState(false);
 
   const {
     register,
@@ -67,6 +74,7 @@ export const OcorrenciaForm: React.FC<OcorrenciaFormProps> = ({
   const prioridade = watch('prioridade');
   const condominioId = watch('id_condominio');
 
+  // Auto-suggest from title
   useEffect(() => {
     if (!open) return;
     const t = (titulo || '').trim();
@@ -84,6 +92,7 @@ export const OcorrenciaForm: React.FC<OcorrenciaFormProps> = ({
     }
   }, [titulo, open, getValues, setValue]);
 
+  // Reset form on open/close
   useEffect(() => {
     if (open) {
       if (initialData) {
@@ -106,17 +115,58 @@ export const OcorrenciaForm: React.FC<OcorrenciaFormProps> = ({
           notas: '',
         });
       }
+      setSelectedPhotos([]);
+      setPhotoPreviews([]);
     }
   }, [initialData, open, reset, prefillCondominioId]);
 
+  // Generate previews when photos change
+  useEffect(() => {
+    const urls = selectedPhotos.map((f) => URL.createObjectURL(f));
+    setPhotoPreviews(urls);
+    return () => urls.forEach((u) => URL.revokeObjectURL(u));
+  }, [selectedPhotos]);
+
+  const handleAddPhotos = (files: FileList | null) => {
+    if (!files) return;
+    const newFiles = Array.from(files).filter((f) => f.type.startsWith('image/'));
+    if (newFiles.length === 0) return;
+    setSelectedPhotos((prev) => [...prev, ...newFiles].slice(0, 5)); // Max 5 photos
+  };
+
+  const handleRemovePhoto = (index: number) => {
+    setSelectedPhotos((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleFormSubmit = async (data: OcorrenciaFormData) => {
     try {
-      await onSubmit(data as CreateOcorrenciaData);
+      let fotoUrls: string[] = [];
+
+      // Upload photos if any
+      if (selectedPhotos.length > 0 && data.id_condominio) {
+        setUploadingPhotos(true);
+        try {
+          fotoUrls = await ocorrenciasApi.uploadPhotos(data.id_condominio, selectedPhotos);
+        } catch (err) {
+          console.error('Erro ao fazer upload das fotos:', err);
+          // Continue without photos — don't block the submission
+        } finally {
+          setUploadingPhotos(false);
+        }
+      }
+
+      await onSubmit({
+        ...data,
+        foto_urls: fotoUrls.length > 0 ? fotoUrls : undefined,
+      } as CreateOcorrenciaData);
+
       onOpenChange(false);
     } catch (error) {
       console.error("Erro ao submeter ocorrência:", error);
     }
   };
+
+  const isBusy = isSubmitting || uploadingPhotos;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -155,6 +205,50 @@ export const OcorrenciaForm: React.FC<OcorrenciaFormProps> = ({
           <div className="space-y-2">
             <Label htmlFor="descricao">Descrição</Label>
             <Textarea id="descricao" {...register('descricao')} rows={3} placeholder="Descreva a ocorrência em detalhe" />
+          </div>
+
+          {/* ── Photo upload ────────────────────────────── */}
+          <div className="space-y-2">
+            <Label>Fotografias</Label>
+            <div className="flex flex-wrap gap-3">
+              {/* Previews */}
+              {photoPreviews.map((url, i) => (
+                <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden border border-slate-200 group">
+                  <img src={url} alt={`Foto ${i + 1}`} className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => handleRemovePhoto(i)}
+                    className="absolute top-1 right-1 p-0.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+
+              {/* Add button */}
+              {selectedPhotos.length < 5 && (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-20 h-20 rounded-lg border-2 border-dashed border-slate-200 hover:border-blue-400 hover:bg-blue-50/50 flex flex-col items-center justify-center gap-1 transition-colors"
+                >
+                  <ImagePlus className="h-5 w-5 text-slate-400" />
+                  <span className="text-[10px] text-slate-400">Adicionar</span>
+                </button>
+              )}
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                handleAddPhotos(e.target.files);
+                e.target.value = '';
+              }}
+            />
+            <p className="text-[11px] text-slate-400">Máximo 5 fotografias · JPG ou PNG</p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -227,8 +321,14 @@ export const OcorrenciaForm: React.FC<OcorrenciaFormProps> = ({
 
           <div className="flex justify-end gap-3 pt-4 border-t">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'A guardar...' : 'Guardar Ocorrência'}
+            <Button type="submit" disabled={isBusy}>
+              {uploadingPhotos ? (
+                <><Loader2 className="h-4 w-4 animate-spin mr-2" /> A enviar fotos...</>
+              ) : isSubmitting ? (
+                'A guardar...'
+              ) : (
+                'Guardar Ocorrência'
+              )}
             </Button>
           </div>
         </form>

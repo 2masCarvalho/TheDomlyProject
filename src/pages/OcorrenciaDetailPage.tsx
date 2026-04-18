@@ -9,8 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
-import { ArrowLeft, ClipboardList, Wrench } from 'lucide-react';
+import { ArrowLeft, ClipboardList, Wrench, Image as ImageIcon, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
@@ -44,6 +45,10 @@ export const OcorrenciaDetailPage: React.FC = () => {
   const [notas, setNotas] = useState('');
   const [newEstado, setNewEstado] = useState<EstadoOcorrencia>('reportada');
   const [saving, setSaving] = useState(false);
+
+  // Lightbox state
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
   useEffect(() => {
     const found = ocorrencias.find((o) => o.id_ocorrencia === parseInt(id || '0'));
@@ -86,6 +91,11 @@ export const OcorrenciaDetailPage: React.FC = () => {
     navigate(`/trabalhos/novo?ocorrencia=${ocorrencia.id_ocorrencia}&condominio=${ocorrencia.id_condominio}&titulo=${encodeURIComponent(ocorrencia.titulo)}`);
   };
 
+  const fotos = ocorrencia?.foto_urls?.filter(Boolean) || [];
+
+  const handlePrevPhoto = () => setLightboxIndex((i) => (i > 0 ? i - 1 : fotos.length - 1));
+  const handleNextPhoto = () => setLightboxIndex((i) => (i < fotos.length - 1 ? i + 1 : 0));
+
   if (loading) return <LoadingSpinner />;
   if (!ocorrencia) return (
     <div className="p-6">
@@ -118,16 +128,47 @@ export const OcorrenciaDetailPage: React.FC = () => {
             {ocorrencia.reportado_por && ` · Reportado por: ${ocorrencia.reportado_por}`}
           </p>
         </div>
-        <Button onClick={handleCreateTrabalho} variant="outline">
-          <Wrench className="h-4 w-4 mr-2" />
-          Criar Trabalho
-        </Button>
+        {ocorrencia.estado !== 'fechada' && (
+          <Button onClick={handleCreateTrabalho} variant="outline">
+            <Wrench className="h-4 w-4 mr-2" />
+            Criar Trabalho
+          </Button>
+        )}
       </div>
 
       {ocorrencia.descricao && (
         <Card>
           <CardHeader><CardTitle className="text-base">Descrição</CardTitle></CardHeader>
           <CardContent><p className="text-sm">{ocorrencia.descricao}</p></CardContent>
+        </Card>
+      )}
+
+      {/* ── Fotografias ────────────────────────────────── */}
+      {fotos.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <ImageIcon className="h-4 w-4" /> Fotografias ({fotos.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {fotos.map((url, i) => (
+                <button
+                  key={i}
+                  onClick={() => { setLightboxIndex(i); setLightboxOpen(true); }}
+                  className="relative aspect-square rounded-lg overflow-hidden border border-slate-200 hover:border-blue-400 hover:shadow-md transition-all group cursor-pointer"
+                >
+                  <img
+                    src={url}
+                    alt={`Foto ${i + 1}`}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                </button>
+              ))}
+            </div>
+          </CardContent>
         </Card>
       )}
 
@@ -179,6 +220,55 @@ export const OcorrenciaDetailPage: React.FC = () => {
           </Button>
         </CardContent>
       </Card>
+
+      {/* ── Lightbox ───────────────────────────────────── */}
+      <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
+        <DialogContent className="max-w-[95vw] w-full h-[90vh] p-0 bg-black/95 border-none flex flex-col items-center justify-center overflow-hidden">
+          <DialogHeader className="absolute top-4 left-4 z-50">
+            <DialogTitle className="text-white/70 font-normal text-sm">
+              Foto {lightboxIndex + 1} de {fotos.length}
+            </DialogTitle>
+          </DialogHeader>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-4 right-4 text-white hover:bg-white/20 z-50"
+            onClick={() => setLightboxOpen(false)}
+          >
+            <X className="h-6 w-6" />
+          </Button>
+
+          <div className="relative w-full h-full flex items-center justify-center p-4">
+            {fotos.length > 1 && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute left-4 z-50 text-white hover:bg-white/20 rounded-full h-12 w-12"
+                  onClick={(e) => { e.stopPropagation(); handlePrevPhoto(); }}
+                >
+                  <ChevronLeft className="h-8 w-8" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-4 z-50 text-white hover:bg-white/20 rounded-full h-12 w-12"
+                  onClick={(e) => { e.stopPropagation(); handleNextPhoto(); }}
+                >
+                  <ChevronRight className="h-8 w-8" />
+                </Button>
+              </>
+            )}
+
+            <img
+              src={fotos[lightboxIndex]}
+              alt={`Foto ${lightboxIndex + 1}`}
+              className="max-w-full max-h-full object-contain shadow-2xl transition-all duration-300"
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

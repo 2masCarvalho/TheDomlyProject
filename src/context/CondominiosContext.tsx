@@ -59,21 +59,21 @@ export const CondominiosProvider: React.FC<{ children: ReactNode }> = ({ childre
   }, [includeInactive]);
 
   const filteredCondominios = condominios.filter(c =>
-    c.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.morada.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.cidade.toLowerCase().includes(searchTerm.toLowerCase())
+    (c.nome || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (c.morada || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (c.cidade || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const createCondominio = async (data: CreateCondominioData) => {
-    try { 
-      await condominiosApi.create(data); 
-      await loadCondominios(); 
-      toast({ title: 'Sucesso', description: 'Condomínio criado com sucesso' }); 
+    try {
+      await condominiosApi.create(data);
+      await loadCondominios();
+      toast({ title: 'Sucesso', description: 'Condomínio criado com sucesso' });
     }
-    catch (error: any) { 
+    catch (error: any) {
       const errorMsg = error?.message || error?.details || JSON.stringify(error);
-      toast({ title: 'Erro', description: `Não foi possível criar. Erro: ${errorMsg}`, variant: 'destructive' }); 
-      throw error; 
+      toast({ title: 'Erro', description: `Não foi possível criar. Erro: ${errorMsg}`, variant: 'destructive' });
+      throw error;
     }
   };
 

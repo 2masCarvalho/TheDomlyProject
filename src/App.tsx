@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { CondominiosProvider } from "@/context/CondominiosContext";
 import { AtivosProvider } from "@/context/AtivosContext";
 import { OcorrenciasProvider } from "@/context/OcorrenciasContext";
@@ -17,6 +18,7 @@ import { LoginPage } from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import { CondominiosPage } from "./pages/CondominiosPage";
 import { CondominioDetailPage } from "./pages/CondominioDetailPage";
+import { CondominioDocumentosPage } from "./pages/CondominioDocumentosPage";
 import { AtivosPage } from "./pages/AtivosPage";
 import { AtivoDetailPage } from "./pages/AtivoDetailPage";
 import { CalendarPage } from './pages/CalendarPage';
@@ -35,76 +37,93 @@ import { ConformidadePage } from "./pages/ConformidadePage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { SuportePage } from "./pages/SuportePage";
 import { JoinPage } from "./pages/JoinPage";
+import { TemplatesPage } from "./pages/TemplatesPage";
+import { GerarDocumentoPage } from "./pages/GerarDocumentoPage";
+import { UtilizadoresPage } from "./pages/UtilizadoresPage";
 
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <LanguageProvider>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/signup" element={<SignupPage />} />
-              <Route path="/onboarding" element={<OnboardingPage />} />
-              <Route path="/t/:token" element={<TrabalhoPublicoPage />} />
-              <Route path="/join/:token" element={<JoinPage />} />
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <LanguageProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/signup" element={<SignupPage />} />
+                <Route path="/onboarding" element={<OnboardingPage />} />
+                <Route path="/t/:token" element={<TrabalhoPublicoPage />} />
+                <Route path="/join/:token" element={<JoinPage />} />
 
-              {/* Rotas protegidas */}
-              <Route
-                element={
-                  <ProtectedRoute>
-                    <CondominiosProvider>
-                      <AtivosProvider>
-                        <OcorrenciasProvider>
-                          <TrabalhosProvider>
-                            <TecnicosProvider>
-                              <AppLayout />
-                            </TecnicosProvider>
-                          </TrabalhosProvider>
-                        </OcorrenciasProvider>
-                      </AtivosProvider>
-                    </CondominiosProvider>
-                  </ProtectedRoute>
-                }
-              >
-                <Route path="/condominios" element={<CondominiosPage />} />
-                <Route path="/condominios/:id" element={<CondominioDetailPage />} /> {/* <-- ROTA ADICIONADA AQUI */}
-                <Route path="/condominios/:id/ativos" element={<AtivosPage />} />
-                <Route path="/condominios/:condominioId/ativos/:ativoId" element={<AtivoDetailPage />} />
-                
-                <Route path="/calendario" element={<CalendarPage />} />
-                <Route path="/alertas" element={<AlertsPage />} />
-                <Route path="/manutencao" element={<MaintenancePage />} />
-                <Route path="/dashboard" element={<DashboardPage />} />
-                
-                {/* Feature 2: Occurrences */}
-                <Route path="/ocorrencias" element={<OcorrenciasPage />} />
-                <Route path="/ocorrencias/:id" element={<OcorrenciaDetailPage />} />
-                
-                {/* Feature 1: Jobs + Technicians */}
-                <Route path="/trabalhos" element={<TrabalhosPage />} />
-                <Route path="/trabalhos/novo" element={<TrabalhosPage />} />
-                <Route path="/trabalhos/:id" element={<TrabalhoDetailPage />} />
-                <Route path="/tecnicos" element={<TecnicosPage />} />
-                
-                <Route path="/conformidade" element={<ConformidadePage />} />
-                <Route path="/configuracoes" element={<SettingsPage />} />
-                <Route path="/suporte" element={<SuportePage />} />
-              </Route>
+                {/* Rotas protegidas */}
+                <Route
+                  element={
+                    <ProtectedRoute>
+                      <CondominiosProvider>
+                        <AtivosProvider>
+                          <OcorrenciasProvider>
+                            <TrabalhosProvider>
+                              <TecnicosProvider>
+                                <ErrorBoundary>
+                                  <AppLayout />
+                                </ErrorBoundary>
+                              </TecnicosProvider>
+                            </TrabalhosProvider>
+                          </OcorrenciasProvider>
+                        </AtivosProvider>
+                      </CondominiosProvider>
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route path="/dashboard" element={<DashboardPage />} />
 
-              {/* Catch-all */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
-    </LanguageProvider>
-  </QueryClientProvider>
+                  {/* Condomínios */}
+                  <Route path="/condominios" element={<CondominiosPage />} />
+                  <Route path="/condominios/:id" element={<CondominioDetailPage />} />
+                  <Route path="/condominios/:id/documentos" element={<CondominioDocumentosPage />} />
+                  <Route path="/condominios/:id/ativos" element={<AtivosPage />} />
+                  <Route path="/condominios/:condominioId/ativos/:ativoId" element={<AtivoDetailPage />} />
+
+                  {/* Calendário & Alertas */}
+                  <Route path="/calendario" element={<CalendarPage />} />
+                  <Route path="/alertas" element={<AlertsPage />} />
+                  <Route path="/manutencao" element={<MaintenancePage />} />
+
+                  {/* Ocorrências */}
+                  <Route path="/ocorrencias" element={<OcorrenciasPage />} />
+                  <Route path="/ocorrencias/:id" element={<OcorrenciaDetailPage />} />
+
+                  {/* Trabalhos & Técnicos */}
+                  <Route path="/trabalhos" element={<TrabalhosPage />} />
+                  <Route path="/trabalhos/novo" element={<TrabalhosPage />} />
+                  <Route path="/trabalhos/:id" element={<TrabalhoDetailPage />} />
+                  <Route path="/tecnicos" element={<TecnicosPage />} />
+
+                  {/* Documentos & Templates */}
+                  <Route path="/templates" element={<TemplatesPage />} />
+                  <Route path="/gerar-documento" element={<GerarDocumentoPage />} />
+
+                  {/* Gestão */}
+                  <Route path="/utilizadores" element={<UtilizadoresPage />} />
+                  <Route path="/conformidade" element={<ConformidadePage />} />
+                  <Route path="/configuracoes" element={<SettingsPage />} />
+                  <Route path="/suporte" element={<SuportePage />} />
+                </Route>
+
+                {/* Catch-all */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthProvider>
+      </LanguageProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

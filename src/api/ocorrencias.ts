@@ -5,6 +5,8 @@ export type ResponsabilidadeOcorrencia = 'condominio' | 'fracao';
 export type PrioridadeOcorrencia = 'critica' | 'alta' | 'media' | 'baixa';
 export type EstadoOcorrencia = 'reportada' | 'triagem' | 'em_progresso' | 'resolvida' | 'fechada';
 
+const FOTOS_BUCKET = 'ocorrencia-fotos';
+
 export interface Ocorrencia {
   id_ocorrencia: number;
   id_condominio: number;
@@ -17,6 +19,7 @@ export interface Ocorrencia {
   reportado_por?: string;
   id_trabalho_manutencao?: number;
   notas?: string;
+  foto_urls?: string[];
   created_at: string;
   updated_at: string;
   resolved_at?: string;
@@ -31,6 +34,7 @@ export interface CreateOcorrenciaData {
   prioridade: PrioridadeOcorrencia;
   reportado_por?: string;
   notas?: string;
+  foto_urls?: string[];
 }
 
 export const ocorrenciasApi = {
@@ -106,5 +110,38 @@ export const ocorrenciasApi = {
       .single();
     if (error) throw error;
     return data;
+  },
+
+  // ── Photo upload ────────────────────────────────────────────────
+
+  uploadPhoto: async (condominioId: number, file: File): Promise<string> => {
+    const fileExt = file.name.split('.').pop() || 'jpg';
+    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+    const filePath = `condominios/${condominioId}/${fileName}`;
+
+    const { error } = await supabase.storage
+      .from(FOTOS_BUCKET)
+      .upload(filePath, file, { upsert: false });
+    if (error) throw error;
+
+    const { data } = supabase.storage.from(FOTOS_BUCKET).getPublicUrl(filePath);
+    return data.publicUrl;
+  },
+
+  uploadPhotos: async (condominioId: number, files: File[]): Promise<string[]> => {
+    const urls: string[] = [];
+    for (const file of files) {
+      const url = await ocorrenciasApi.uploadPhoto(condominioId, file);
+      urls.push(url);
+    }
+    return urls;
+  },
+
+  getPhotoSignedUrl: async (storagePath: string): Promise<string> => {
+    const { data, error } = await supabase.storage
+      .from(FOTOS_BUCKET)
+      .createSignedUrl(storagePath, 3600);
+    if (error) throw error;
+    return data.signedUrl;
   },
 };

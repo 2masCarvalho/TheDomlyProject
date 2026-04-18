@@ -22,10 +22,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { computeNextMaintenanceDate } from '@/utils/maintenanceDates';
+import { DocumentUploadZone } from '@/components/DocumentUploadZone/DocumentUploadZone';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
-import { MembrosTab } from '@/components/MembrosTab/MembrosTab';
-import { membershipsApi, type MembershipRole } from '@/api/memberships';
 import {
   ArrowLeft,
   Building2,
@@ -54,9 +53,6 @@ import {
   Layers,
   ChevronRight,
   Eye,
-  Link2,
-  Copy,
-  Check,
 } from 'lucide-react';
 
 const tipoDocOptions = [
@@ -111,32 +107,6 @@ export const CondominioDetailPage: React.FC = () => {
   const [editFormOpen, setEditFormOpen] = useState(false);
   const [ativoFormOpen, setAtivoFormOpen] = useState(false);
   const [ocorrenciaFormOpen, setOcorrenciaFormOpen] = useState(false);
-
-  // Quick invite links
-  const [inviteRole, setInviteRole] = useState<MembershipRole>('residente');
-  const [inviteLink, setInviteLink] = useState<string | null>(null);
-  const [inviteGenerating, setInviteGenerating] = useState(false);
-  const [inviteCopied, setInviteCopied] = useState(false);
-
-  const handleGenerateInvite = async () => {
-    setInviteGenerating(true);
-    setInviteLink(null);
-    try {
-      const token = await membershipsApi.createInviteToken(condominioId, inviteRole);
-      setInviteLink(`${window.location.origin}/join/${token}`);
-    } catch (e: any) {
-      toast({ title: 'Erro', description: e?.message ?? 'Não foi possível gerar link', variant: 'destructive' });
-    } finally {
-      setInviteGenerating(false);
-    }
-  };
-
-  const handleCopyInvite = async () => {
-    if (!inviteLink) return;
-    await navigator.clipboard.writeText(inviteLink);
-    setInviteCopied(true);
-    setTimeout(() => setInviteCopied(false), 2000);
-  };
 
   useEffect(() => {
     if (!condominioId || condominioId <= 0) return;
@@ -345,47 +315,6 @@ export const CondominioDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ── Invite bar ─────────────────────────────────── */}
-      <div className="px-6 lg:px-8 pb-4">
-        <div className="rounded-xl border border-slate-200/60 bg-white px-5 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <Link2 className="h-4 w-4 text-slate-400" />
-            <span className="text-sm font-semibold text-slate-700">Convidar</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400">Função:</span>
-            <Select value={inviteRole} onValueChange={(v) => { setInviteRole(v as MembershipRole); setInviteLink(null); }}>
-              <SelectTrigger className="h-8 w-32 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="residente">Residente</SelectItem>
-                <SelectItem value="tecnico">Técnico</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <Button size="sm" variant="outline" className="text-xs gap-1.5 h-8 flex-shrink-0" onClick={handleGenerateInvite} disabled={inviteGenerating}>
-            {inviteGenerating
-              ? <><span className="h-3 w-3 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" /> A gerar...</>
-              : <><Link2 className="h-3.5 w-3.5" /> Gerar link</>}
-          </Button>
-          {inviteLink ? (
-            <div className="flex-1 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 min-w-0">
-              <p className="text-xs font-mono text-slate-700 truncate flex-1">{inviteLink}</p>
-              <button
-                onClick={handleCopyInvite}
-                className="flex-shrink-0 p-1 rounded hover:bg-slate-200 transition-colors text-slate-500"
-                title="Copiar link"
-              >
-                {inviteCopied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
-              </button>
-            </div>
-          ) : (
-            <p className="text-xs text-slate-400">Válido 7 dias · uso único · o convidado recebe um formulário de registo</p>
-          )}
-        </div>
-      </div>
-
       {/* ── Tabs ───────────────────────────────────────── */}
       <div className="px-6 lg:px-8 pb-8">
         <Tabs defaultValue="info" className="space-y-5">
@@ -399,9 +328,6 @@ export const CondominioDetailPage: React.FC = () => {
             </TabsTrigger>
             <TabsTrigger value="documentos" className="text-xs rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white">
               Documentos <span className="ml-1 text-[10px] opacity-60">{docs.length}</span>
-            </TabsTrigger>
-            <TabsTrigger value="membros" className="text-xs rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white">
-              Membros
             </TabsTrigger>
           </TabsList>
 
@@ -453,7 +379,6 @@ export const CondominioDetailPage: React.FC = () => {
                   ))}
                 </div>
               </div>
-
             </div>
           </TabsContent>
 
@@ -557,50 +482,36 @@ export const CondominioDetailPage: React.FC = () => {
 
           {/* ── Tab: Documentos ─────────────────────────── */}
           <TabsContent value="documentos">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-              {/* Upload */}
+            <div className="space-y-5">
+              {/* Bulk upload with AI */}
               <div className="rounded-xl border border-slate-200/60 bg-white overflow-hidden">
                 <div className="px-5 py-4 border-b border-slate-100">
-                  <h3 className="text-[15px] font-semibold text-slate-800 flex items-center gap-2">
-                    <Upload className="h-4 w-4 text-slate-400" /> Carregar documento
-                  </h3>
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-1.5 rounded-lg bg-violet-50">
+                      <Upload className="h-4 w-4 text-violet-500" />
+                    </div>
+                    <div>
+                      <h3 className="text-[15px] font-semibold text-slate-800">Importar documentos</h3>
+                      <p className="text-[11px] text-slate-400">Arraste ficheiros — a IA extrai datas, valores e tipo automaticamente</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="p-5 space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <Label className="text-xs">Tipo</Label>
-                      <Select value={docTipo} onValueChange={setDocTipo}>
-                        <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {tipoDocOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-xs">Categoria</Label>
-                      <Select value={docCategoria} onValueChange={setDocCategoria}>
-                        <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {categoriaDocOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Ficheiro</Label>
-                    <Input type="file" className="text-xs h-9" onChange={(e) => setDocFile(e.target.files?.[0] ?? null)} />
-                  </div>
-                  <Button size="sm" className="w-full text-xs" onClick={handleDocUpload} disabled={uploading || !docFile}>
-                    {uploading ? 'A carregar...' : 'Carregar documento'}
-                  </Button>
+                <div className="p-5">
+                  <DocumentUploadZone
+                    condominioId={condominioId}
+                    onDocumentsProcessed={(newDocs) => {
+                      // Reload the full list
+                      documentosApi.listByCondominio(condominioId).then(setDocs).catch(() => {});
+                    }}
+                  />
                 </div>
               </div>
 
-              {/* List */}
+              {/* Existing documents list */}
               <div className="rounded-xl border border-slate-200/60 bg-white overflow-hidden">
                 <div className="px-5 py-4 border-b border-slate-100">
                   <h3 className="text-[15px] font-semibold text-slate-800 flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-teal-500" /> Documentos ({docs.length})
+                    <FileText className="h-4 w-4 text-teal-500" /> Documentos guardados ({docs.length})
                   </h3>
                 </div>
                 {docsLoading ? (
@@ -608,35 +519,52 @@ export const CondominioDetailPage: React.FC = () => {
                 ) : docs.length === 0 ? (
                   <div className="p-8 text-center">
                     <FileText className="h-8 w-8 text-slate-200 mx-auto mb-2" />
-                    <p className="text-sm text-slate-400">Sem documentos</p>
+                    <p className="text-sm text-slate-400">Sem documentos — use a zona acima para importar</p>
                   </div>
                 ) : (
-                  <div className="divide-y divide-slate-50 max-h-[400px] overflow-y-auto">
-                    {docs.map((d) => (
-                      <div key={d.id_documento} className="flex items-center gap-3 px-5 py-3 hover:bg-slate-50/50 transition-colors">
-                        <div className="p-1.5 rounded-md bg-slate-50"><FileText className="h-3.5 w-3.5 text-slate-400" /></div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-slate-800 truncate">{d.nome}</p>
-                          <p className="text-[11px] text-slate-400">{d.tipo_documento}{d.categoria ? ` · ${d.categoria}` : ''}</p>
+                  <div className="divide-y divide-slate-50 max-h-[500px] overflow-y-auto">
+                    {docs.map((d) => {
+                      const hasExpiry = !!d.data_expiracao;
+                      const isExpired = hasExpiry && new Date(d.data_expiracao!) < new Date();
+                      return (
+                        <div key={d.id_documento} className={`flex items-center gap-3 px-5 py-3.5 hover:bg-slate-50/50 transition-colors ${isExpired ? 'bg-red-50/30' : ''}`}>
+                          <div className={`p-1.5 rounded-md flex-shrink-0 ${d.estado_processamento === 'concluido' ? 'bg-emerald-50' : d.estado_processamento === 'erro' ? 'bg-red-50' : 'bg-slate-50'}`}>
+                            <FileText className={`h-3.5 w-3.5 ${d.estado_processamento === 'concluido' ? 'text-emerald-500' : d.estado_processamento === 'erro' ? 'text-red-400' : 'text-slate-400'}`} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-slate-800 truncate">{d.nome}</p>
+                            <p className="text-[11px] text-slate-400">
+                              {d.tipo_documento}{d.categoria ? ` · ${d.categoria}` : ''}
+                              {d.entidade && <> · {d.entidade}</>}
+                            </p>
+                            {d.resumo && (
+                              <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">{d.resumo}</p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            {d.valor_monetario != null && (
+                              <span className="text-[10px] font-medium text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">{d.valor_monetario}€</span>
+                            )}
+                            {hasExpiry && (
+                              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${isExpired ? 'bg-red-50 text-red-600 border-red-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200'}`}>
+                                {isExpired ? 'Expirado' : d.data_expiracao}
+                              </span>
+                            )}
+                            <span className="text-[11px] text-slate-400">
+                              {new Date(d.data_upload || d.created_at || Date.now()).toLocaleDateString('pt-PT')}
+                            </span>
+                            <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => handleDocDownload(d)}>
+                              <Download className="h-3.5 w-3.5 text-slate-400" />
+                            </Button>
+                          </div>
                         </div>
-                        <span className="text-[11px] text-slate-400">
-                          {new Date(d.data_upload || d.created_at || Date.now()).toLocaleDateString('pt-PT')}
-                        </span>
-                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => handleDocDownload(d)}>
-                          <Download className="h-3.5 w-3.5 text-slate-400" />
-                        </Button>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
             </div>
           </TabsContent>
-          {/* ── Tab: Membros ────────────────────────────── */}
-          <TabsContent value="membros">
-            <MembrosTab condominioId={condominioId} />
-          </TabsContent>
-
         </Tabs>
       </div>
 

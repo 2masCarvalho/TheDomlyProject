@@ -1,14 +1,25 @@
 import { supabase } from '@/supabase-client';
 
+export type EstadoProcessamento = 'pendente' | 'a_processar' | 'concluido' | 'erro';
+
 export type Documento = {
-  id_documento: string;
+  id_documento: number;
   id_condominio: number;
   nome: string;
   tipo_documento: string;
   categoria?: string | null;
-  url: string; // storage path (bucket: condominio-documents)
+  url: string;
   data_upload?: string | null;
   created_at?: string;
+  // AI extraction fields
+  estado_processamento?: EstadoProcessamento;
+  dados_extraidos?: any | null;
+  data_expiracao?: string | null;
+  data_inicio?: string | null;
+  valor_monetario?: number | null;
+  entidade?: string | null;
+  resumo?: string | null;
+  processado_em?: string | null;
 };
 
 export type CreateDocumentoData = {
@@ -16,10 +27,13 @@ export type CreateDocumentoData = {
   nome: string;
   tipo_documento: string;
   categoria?: string | null;
-  url: string; // storage path
+  url: string;
+  estado_processamento?: EstadoProcessamento;
 };
 
 const BUCKET_ID = 'condominio-documents';
+
+
 
 export const documentosApi = {
   listByCondominio: async (id_condominio: number): Promise<Documento[]> => {
@@ -50,10 +64,20 @@ export const documentosApi = {
     return data as Documento;
   },
 
+  update: async (id: number, payload: Partial<Documento>): Promise<Documento> => {
+    const { data, error } = await supabase
+      .from('documentos')
+      .update(payload)
+      .eq('id_documento', id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data as Documento;
+  },
+
   getSignedDownloadUrl: async (storagePath: string, expiresInSeconds = 60): Promise<string> => {
     const { data, error } = await supabase.storage.from(BUCKET_ID).createSignedUrl(storagePath, expiresInSeconds);
     if (error) throw error;
     return data.signedUrl;
   },
 };
-
