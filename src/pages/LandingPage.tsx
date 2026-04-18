@@ -266,7 +266,7 @@ export const LandingPage: React.FC = () => {
             <h3 className="text-2xl font-bold text-foreground mb-2">{t("pricing.starter")}</h3>
             <p className="text-sm text-muted-foreground mb-6">{t("pricing.starter.desc")}</p>
             <div className="mb-6">
-              <span className="text-5xl font-bold text-foreground">€39</span>
+              <span className="text-5xl font-bold text-foreground">€49</span>
               <span className="text-muted-foreground">{t("pricing.month")}</span>
             </div>
             <ul className="space-y-3 mb-8">
@@ -291,7 +291,6 @@ export const LandingPage: React.FC = () => {
                 <span className="text-foreground">{t("pricing.emailSupport")}</span>
               </li>
             </ul>
-            {/* FIX: passa ?plan=starter para o onboarding */}
             <Button variant="outline" className="w-full btn-hover-lift" onClick={() => navigate('/onboarding?plan=starter')}>
               {t("pricing.getStarted")}
             </Button>
@@ -305,7 +304,7 @@ export const LandingPage: React.FC = () => {
             <h3 className="text-2xl font-bold mb-2">{t("pricing.growth")}</h3>
             <p className="text-sm text-primary-foreground/80 mb-6">{t("pricing.growth.desc")}</p>
             <div className="mb-6">
-              <span className="text-5xl font-bold">€99</span>
+              <span className="text-5xl font-bold">€109</span>
               <span className="text-primary-foreground/80">{t("pricing.month")}</span>
             </div>
             <ul className="space-y-3 mb-8">
@@ -334,7 +333,6 @@ export const LandingPage: React.FC = () => {
                 <span>{t("pricing.prioritySupport")}</span>
               </li>
             </ul>
-            {/* FIX: passa ?plan=growth para o onboarding */}
             <Button variant="secondary" className="w-full bg-background text-foreground hover:bg-background/90 btn-hover-lift btn-hover-glow" onClick={() => navigate('/onboarding?plan=growth')}>
               {t("pricing.getStarted")}
             </Button>
@@ -374,10 +372,25 @@ export const LandingPage: React.FC = () => {
                 <span className="text-foreground">{t("pricing.predictiveFinancial")}</span>
               </li>
             </ul>
-            {/* FIX: passa ?plan=pro para o onboarding */}
             <Button variant="outline" className="w-full btn-hover-lift" onClick={() => navigate('/onboarding?plan=pro')}>
               {t("pricing.getStarted")}
             </Button>
+          </div>
+        </div>
+
+        {/* Enterprise Tier */}
+        <div className="max-w-6xl mx-auto mt-8">
+          <div className="bg-card border-2 border-dashed border-border rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 hover:shadow-lg transition-all duration-300">
+            <div className="flex-1 text-center md:text-left">
+              <h3 className="text-2xl font-bold text-foreground mb-1">{t("pricing.enterprise")}</h3>
+              <p className="text-sm text-muted-foreground mb-3">{t("pricing.enterprise.desc")}</p>
+              <p className="text-base text-foreground">{t("pricing.enterprise.body")}</p>
+            </div>
+            <div className="flex-shrink-0">
+              <Button className="btn-hover-lift px-8" onClick={() => window.location.href = 'mailto:hello@domly.pt'}>
+                {t("pricing.enterprise.cta")}
+              </Button>
+            </div>
           </div>
         </div>
       </section>
