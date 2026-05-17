@@ -23,6 +23,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { computeNextMaintenanceDate } from '@/utils/maintenanceDates';
 import { DocumentUploadZone } from '@/components/DocumentUploadZone/DocumentUploadZone';
+import { MembrosTab } from '@/components/MembrosTab/MembrosTab';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import {
@@ -329,6 +330,9 @@ export const CondominioDetailPage: React.FC = () => {
             <TabsTrigger value="documentos" className="text-xs rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white">
               Documentos <span className="ml-1 text-[10px] opacity-60">{docs.length}</span>
             </TabsTrigger>
+            <TabsTrigger value="membros" className="text-xs rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white">
+              Membros
+            </TabsTrigger>
           </TabsList>
 
           {/* ── Tab: Informações ────────────────────────── */}
@@ -564,6 +568,11 @@ export const CondominioDetailPage: React.FC = () => {
                 )}
               </div>
             </div>
+          </TabsContent>
+
+          {/* ── Tab: Membros ────────────────────────────── */}
+          <TabsContent value="membros">
+            <MembrosTab condominioId={condominio.id_comdominio} />
           </TabsContent>
         </Tabs>
       </div>

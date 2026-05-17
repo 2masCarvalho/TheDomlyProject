@@ -20,7 +20,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, refreshRole } = useAuth();
   const [isLoading, setIsLoading] = React.useState(false);
 
   const { register, handleSubmit, formState: { errors } } =
@@ -30,8 +30,9 @@ export const LoginPage: React.FC = () => {
     setIsLoading(true);
     try {
       await login(data.email, data.password);
+      const snapshot = await refreshRole();
       toast({ title: 'Login efetuado', description: 'Bem-vindo de volta!' });
-      navigate('/condominios');
+      navigate(snapshot.isResident ? '/portal' : '/condominios');
     } catch (error: any) {
       toast({
         title: 'Erro ao entrar',

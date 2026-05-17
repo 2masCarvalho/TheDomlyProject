@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -21,13 +21,25 @@ import { membershipsApi, type InviteTokenInfo } from '@/lib/api/memberships';
 
 export default function JoinScreen() {
   const { user, profile, signOut } = useAuth();
-  const { refresh, setActiveCondoId } = useActiveCondo();
+  const { memberships, loading: membershipsLoading, refresh, setActiveCondoId } = useActiveCondo();
   const router = useRouter();
 
   const [token, setToken] = useState('');
   const [info, setInfo] = useState<InviteTokenInfo | null>(null);
   const [validating, setValidating] = useState(false);
   const [claiming, setClaiming] = useState(false);
+
+  // Residentes already in a building should not be able to redeem more invites.
+  // First-time invitees (memberships.length === 0) still reach this screen via
+  // (tabs)/_layout's redirect — guard only fires once memberships have loaded.
+  useEffect(() => {
+    if (membershipsLoading) return;
+    if (memberships.length === 0) return;
+    const hasTecnico = memberships.some((m) => m.role === 'tecnico');
+    if (!hasTecnico) {
+      router.replace('/(tabs)');
+    }
+  }, [memberships, membershipsLoading, router]);
 
   async function onValidate() {
     const trimmed = token.trim();

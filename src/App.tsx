@@ -42,6 +42,7 @@ import { GerarDocumentoPage } from "./pages/GerarDocumentoPage";
 import { UtilizadoresPage } from "./pages/UtilizadoresPage";
 import { RelatoriosPage } from "./pages/RelatoriosPage";
 import { RelatorioDetailPage } from "./pages/RelatorioDetailPage";
+import { PortalResidentePage } from "./pages/PortalResidentePage";
 
 const queryClient = new QueryClient();
 
@@ -62,10 +63,33 @@ const App = () => (
                 <Route path="/t/:token" element={<TrabalhoPublicoPage />} />
                 <Route path="/join/:token" element={<JoinPage />} />
 
-                {/* Rotas protegidas */}
+                {/* Portal do residente — acesso restrito */}
                 <Route
                   element={
-                    <ProtectedRoute>
+                    <ProtectedRoute requireRole="resident">
+                      <CondominiosProvider>
+                        <AtivosProvider>
+                          <OcorrenciasProvider>
+                            <TrabalhosProvider>
+                              <TecnicosProvider>
+                                <ErrorBoundary>
+                                  <AppLayout />
+                                </ErrorBoundary>
+                              </TecnicosProvider>
+                            </TrabalhosProvider>
+                          </OcorrenciasProvider>
+                        </AtivosProvider>
+                      </CondominiosProvider>
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route path="/portal" element={<PortalResidentePage />} />
+                </Route>
+
+                {/* Rotas protegidas — apenas gestores */}
+                <Route
+                  element={
+                    <ProtectedRoute requireRole="owner">
                       <CondominiosProvider>
                         <AtivosProvider>
                           <OcorrenciasProvider>

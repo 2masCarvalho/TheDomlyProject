@@ -1,7 +1,10 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { supabase } from '@/supabase-client';
 import type { User } from '@supabase/supabase-js';
 import type { SignupForm } from '@/pages/SignupPage';
+import { membershipsApi } from '@/api/memberships';
+import { condominiosApi } from '@/api/condominios';
+import type { Condominio } from '@/api/condominios';
 
 type Profile = {
   id_user: string;
@@ -11,11 +14,29 @@ type Profile = {
   created_at?: string;
 };
 
+export type AuthMembership = {
+  condominio: Condominio;
+  role: 'residente' | 'tecnico';
+};
+
+export type RoleSnapshot = {
+  isOwner: boolean;
+  isResident: boolean;
+  residentMembership: AuthMembership | null;
+};
+
 type AuthContextType = {
   user: User | null;
   profile: Profile | null;
   avatarUrl: string | null;
   loading: boolean;
+  roleLoading: boolean;
+  memberships: AuthMembership[];
+  isOwner: boolean;
+  isResident: boolean;
+  residentMembership: AuthMembership | null;
+  refreshRole: () => Promise<RoleSnapshot>;
+  getRoleSnapshot: () => RoleSnapshot;
   login: (email: string, password: string) => Promise<void>;
   signup: (payload: SignupForm) => Promise<void>;
   logout: () => Promise<void>;
@@ -31,11 +52,24 @@ export const useAuth = () => {
   return ctx;
 };
 
+const computeSnapshot = (memberships: AuthMembership[], ownsAny: boolean): RoleSnapshot => {
+  const isOwner = ownsAny;
+  const residentMembership = memberships.find((m) => m.role === 'residente') ?? null;
+  const isResident = !isOwner && residentMembership !== null;
+  return { isOwner, isResident, residentMembership };
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [memberships, setMemberships] = useState<AuthMembership[]>([]);
+  const [ownsAnyCondominio, setOwnsAnyCondominio] = useState<boolean>(false);
+  const [roleLoading, setRoleLoading] = useState<boolean>(true);
+
+  // Synchronous mirror so callers can read the latest snapshot without waiting for re-render.
+  const snapshotRef = useRef<RoleSnapshot>({ isOwner: false, isResident: false, residentMembership: null });
 
   useEffect(() => {
     const init = async () => {
@@ -46,6 +80,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await fetchProfile(session.user.id);
         const { data } = supabase.storage.from('avatars').getPublicUrl(`${session.user.id}/avatar`);
         setAvatarUrl(data.publicUrl);
+        await fetchRoleData();
+      } else {
+        setRoleLoading(false);
       }
 
       setLoading(false);
@@ -59,9 +96,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         fetchProfile(session.user.id);
         const { data } = supabase.storage.from('avatars').getPublicUrl(`${session.user.id}/avatar`);
         setAvatarUrl(data.publicUrl);
+        fetchRoleData();
       } else {
         setProfile(null);
         setAvatarUrl(null);
+        setMemberships([]);
+        setOwnsAnyCondominio(false);
+        snapshotRef.current = { isOwner: false, isResident: false, residentMembership: null };
+        setRoleLoading(false);
       }
     });
 
@@ -89,7 +131,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           empresa: u.user_metadata?.empresa || 'Empresa',
           plano: 'starter',
         });
-        
+
         const retry = await supabase.from('users').select('*').eq('id_user', id).single<Profile>();
         data = retry.data;
         error = retry.error;
@@ -103,9 +145,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setProfile(data);
   };
 
+  const fetchRoleData = async (): Promise<RoleSnapshot> => {
+    setRoleLoading(true);
+    try {
+      const [memberRows, owned] = await Promise.all([
+        membershipsApi.getMemberCondominios().catch(() => []),
+        condominiosApi.getAll({ includeInactive: true }).catch(() => []),
+      ]);
+      const ms: AuthMembership[] = memberRows.map((r) => ({ condominio: r.condominio, role: r.role }));
+      const ownsAny = owned.length > 0;
+      setMemberships(ms);
+      setOwnsAnyCondominio(ownsAny);
+      const snapshot = computeSnapshot(ms, ownsAny);
+      snapshotRef.current = snapshot;
+      return snapshot;
+    } finally {
+      setRoleLoading(false);
+    }
+  };
+
   const refreshProfile = async () => {
     if (user) await fetchProfile(user.id);
   };
+
+  const refreshRole = async (): Promise<RoleSnapshot> => fetchRoleData();
+  const getRoleSnapshot = (): RoleSnapshot => snapshotRef.current;
 
   const login = async (email: string, password: string) => {
     setLoading(true);
@@ -157,10 +221,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await supabase.auth.signOut();
     setUser(null);
     setProfile(null);
+    setMemberships([]);
+    setOwnsAnyCondominio(false);
+    snapshotRef.current = { isOwner: false, isResident: false, residentMembership: null };
   };
 
+  const snapshot = computeSnapshot(memberships, ownsAnyCondominio);
+
   return (
-    <AuthContext.Provider value={{ user, profile, avatarUrl, loading, login, signup, logout, refreshProfile, setAvatarUrl }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        profile,
+        avatarUrl,
+        loading,
+        roleLoading,
+        memberships,
+        isOwner: snapshot.isOwner,
+        isResident: snapshot.isResident,
+        residentMembership: snapshot.residentMembership,
+        refreshRole,
+        getRoleSnapshot,
+        login,
+        signup,
+        logout,
+        refreshProfile,
+        setAvatarUrl,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

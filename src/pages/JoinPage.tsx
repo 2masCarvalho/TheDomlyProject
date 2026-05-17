@@ -5,10 +5,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { supabase } from '@/supabase-client';
 import { membershipsApi, type InviteTokenInfo } from '@/api/memberships';
+import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Building2, CheckCircle2, Loader2, UserPlus, LogIn, AlertTriangle } from 'lucide-react';
+import { Building2, CheckCircle2, Loader2, UserPlus, LogIn, AlertTriangle, ShieldAlert } from 'lucide-react';
 
 // ── Form schemas ───────────────────────────────────────────────────────────────
 
@@ -33,11 +34,12 @@ const roleLabel = (role: string) =>
 
 // ── Page ───────────────────────────────────────────────────────────────────────
 
-type View = 'loading' | 'invalid' | 'register' | 'login' | 'verify_email' | 'claiming' | 'success';
+type View = 'loading' | 'invalid' | 'register' | 'login' | 'verify_email' | 'claiming' | 'success' | 'self_invite';
 
 export const JoinPage: React.FC = () => {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
+  const { refreshRole } = useAuth();
 
   const [view, setView] = useState<View>('loading');
   const [tokenInfo, setTokenInfo] = useState<InviteTokenInfo | null>(null);
@@ -54,8 +56,10 @@ export const JoinPage: React.FC = () => {
     setView('claiming');
     try {
       await membershipsApi.claimInvite(token, { nome, email });
+      const snapshot = await refreshRole();
       setView('success');
-      setTimeout(() => navigate('/dashboard'), 2500);
+      const destination = snapshot.isResident ? '/portal' : '/dashboard';
+      setTimeout(() => navigate(destination), 2500);
     } catch (err: any) {
       setErrorMsg(err?.message ?? 'Erro ao aceitar convite.');
       setView('invalid');
@@ -81,9 +85,17 @@ export const JoinPage: React.FC = () => {
       }
       setTokenInfo(info);
 
-      // 2. If the user is already authenticated, claim immediately
+      // 2. If the user is already authenticated, claim immediately —
+      //    unless they are the person who created the invite (e.g. testing
+      //    their own link from the same session). In that case, show a
+      //    self-invite warning instead of silently adding them as a member
+      //    of their own condomínio.
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
+        if (info.token.created_by === session.user.id) {
+          setView('self_invite');
+          return;
+        }
         const nome = session.user.user_metadata?.primeiro_nome
           ? `${session.user.user_metadata.primeiro_nome} ${session.user.user_metadata.ultimo_nome ?? ''}`.trim()
           : session.user.email ?? '';
@@ -184,8 +196,10 @@ export const JoinPage: React.FC = () => {
         : data.email;
 
       await membershipsApi.claimInvite(token, { nome, email: data.email });
+      const snapshot = await refreshRole();
       setView('success');
-      setTimeout(() => navigate('/dashboard'), 2500);
+      const destination = snapshot.isResident ? '/portal' : '/dashboard';
+      setTimeout(() => navigate(destination), 2500);
     } catch (err: any) {
       setErrorMsg(err?.message ?? 'Email ou password incorretos.');
     } finally {
@@ -209,6 +223,35 @@ export const JoinPage: React.FC = () => {
             <p className="text-slate-600 text-sm">
               {view === 'claiming' ? 'A aceitar convite...' : 'A verificar convite...'}
             </p>
+          </div>
+        )}
+
+        {/* ── Self invite (creator clicked own link while logged in) ── */}
+        {view === 'self_invite' && tokenInfo && (
+          <div className="bg-white rounded-2xl border shadow-lg p-8 text-center">
+            <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <ShieldAlert className="h-6 w-6 text-amber-600" />
+            </div>
+            <h2 className="text-xl font-bold mb-2 text-slate-900">Este é o seu próprio convite</h2>
+            <p className="text-slate-500 text-sm mb-2">
+              Está sessão iniciada como o criador deste link para <strong>{tokenInfo.condominio.nome}</strong>.
+            </p>
+            <p className="text-slate-500 text-sm mb-6">
+              Para testar a experiência do residente, abra este link num browser anónimo ou termine sessão e crie uma nova conta.
+            </p>
+            <div className="flex flex-col gap-2">
+              <Button
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  window.location.reload();
+                }}
+              >
+                Terminar sessão e testar como residente
+              </Button>
+              <Button variant="outline" onClick={() => navigate('/dashboard')}>
+                Voltar ao dashboard
+              </Button>
+            </div>
           </div>
         )}
 

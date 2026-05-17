@@ -11,6 +11,7 @@ export default function ProfileScreen() {
   const { user, profile, signOut } = useAuth();
   const { memberships, active, setActiveCondoId } = useActiveCondo();
   const router = useRouter();
+  const canJoinMore = memberships.some((m) => m.role === 'tecnico');
 
   return (
     <Screen>
@@ -55,7 +56,9 @@ export default function ProfileScreen() {
               );
             })
           )}
-          <Button label="Adicionar outro edifício" variant="secondary" onPress={() => router.push('/join')} />
+          {canJoinMore && (
+            <Button label="Adicionar outro edifício" variant="secondary" onPress={() => router.push('/join')} />
+          )}
         </View>
 
         <View style={styles.section}>

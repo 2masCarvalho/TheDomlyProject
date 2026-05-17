@@ -27,7 +27,7 @@ interface AppSidebarProps {
 }
 
 export function AppSidebar({ expanded, onExpandChange }: AppSidebarProps) {
-  const { user, profile, logout } = useAuth();
+  const { user, profile, logout, isResident } = useAuth();
   const { ativos } = useAtivos();
   const { ocorrencias } = useOcorrencias();
   const navigate = useNavigate();
@@ -56,23 +56,29 @@ export function AppSidebar({ expanded, onExpandChange }: AppSidebarProps) {
     section?: string;
   }
 
-  const menuItems: MenuItem[] = [
-    { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, section: "principal" },
-    { title: "Condomínios", url: "/condominios", icon: Building2, section: "principal" },
-    { title: "Ocorrências", url: "/ocorrencias", icon: ClipboardList, badge: openOcorrencias, section: "operações" },
-    { title: "Trabalhos", url: "/trabalhos", icon: Wrench, section: "operações" },
-    { title: "Técnicos", url: "/tecnicos", icon: Users, section: "operações" },
-    { title: "Conformidade", url: "/conformidade", icon: ShieldCheck, section: "gestão" },
-    { title: "Calendário", url: "/calendario", icon: Calendar, section: "gestão" },
-    { title: "Alertas", url: "/alertas", icon: Shield, badge: pendingCount, section: "gestão" },
-    { title: "Manutenção", url: "/manutencao", icon: Camera, section: "gestão" },
-    { title: "Relatórios", url: "/relatorios", icon: FileText, section: "gestão" },
-  ];
+  const menuItems: MenuItem[] = isResident
+    ? [
+        { title: "Reportar ocorrência", url: "/portal", icon: ClipboardList, section: "principal" },
+      ]
+    : [
+        { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, section: "principal" },
+        { title: "Condomínios", url: "/condominios", icon: Building2, section: "principal" },
+        { title: "Ocorrências", url: "/ocorrencias", icon: ClipboardList, badge: openOcorrencias, section: "operações" },
+        { title: "Trabalhos", url: "/trabalhos", icon: Wrench, section: "operações" },
+        { title: "Técnicos", url: "/tecnicos", icon: Users, section: "operações" },
+        { title: "Conformidade", url: "/conformidade", icon: ShieldCheck, section: "gestão" },
+        { title: "Calendário", url: "/calendario", icon: Calendar, section: "gestão" },
+        { title: "Alertas", url: "/alertas", icon: Shield, badge: pendingCount, section: "gestão" },
+        { title: "Manutenção", url: "/manutencao", icon: Camera, section: "gestão" },
+        { title: "Relatórios", url: "/relatorios", icon: FileText, section: "gestão" },
+      ];
 
-  const bottomItems: MenuItem[] = [
-    { title: "Suporte", url: "/suporte", icon: MessageSquare },
-    { title: "Definições", url: "/configuracoes", icon: Settings },
-  ];
+  const bottomItems: MenuItem[] = isResident
+    ? []
+    : [
+        { title: "Suporte", url: "/suporte", icon: MessageSquare },
+        { title: "Definições", url: "/configuracoes", icon: Settings },
+      ];
 
   const getInitials = () => {
     if (profile?.primeiro_nome && profile?.ultimo_nome) {

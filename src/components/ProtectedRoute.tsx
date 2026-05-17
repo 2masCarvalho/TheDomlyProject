@@ -1,4 +1,3 @@
-//este codigo foi escrito assim pq estamos a usar sem backend, com o backend o codigo que deve ser usado está em baixo em comentário.
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -6,12 +5,13 @@ import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
+  requireRole?: 'owner' | 'resident';
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { user, loading } = useAuth() as { user: any; loading?: boolean };
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireRole }) => {
+  const { user, loading, roleLoading, isOwner, isResident } = useAuth();
 
-  if (loading) {
+  if (loading || roleLoading) {
     return <LoadingSpinner text="A carregar sessão..." />;
   }
 
@@ -19,36 +19,13 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
 
-  return <>{children}</>;
-};
+  if (requireRole === 'owner' && isResident && !isOwner) {
+    return <Navigate to="/portal" replace />;
+  }
 
-
-
-
-
-
-/*
-
-import React from 'react';
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
-
-interface ProtectedRouteProps {
-  children: React.ReactNode;
-}
-
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { isAuthenticated } = useAuth();
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+  if (requireRole === 'resident' && !isResident) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;
 };
-
-
-
-*/
-
-
