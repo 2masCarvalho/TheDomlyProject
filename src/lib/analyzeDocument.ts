@@ -1,4 +1,4 @@
-// src/lib/analyzeDocument.ts
+import { supabase } from '@/supabase-client';
 
 export type DocumentExtraction = {
   tipo_documento: string;
@@ -31,103 +31,27 @@ function getMediaType(file: File): string {
   return file.type || 'application/octet-stream';
 }
 
-const PROMPT = `Analisa este documento de gestão de condomínios em Portugal e extrai informação estruturada.
-
-Responde APENAS com JSON válido neste formato exato (sem texto adicional, sem markdown, sem backticks):
-{
-  "tipo_documento": "seguro",
-  "categoria": "legal",
-  "resumo": "Apólice de seguro multirriscos do edifício, válida até dezembro 2025.",
-  "data_inicio": "2024-01-15",
-  "data_expiracao": "2025-12-31",
-  "valor_monetario": 1250.00,
-  "entidade": "Fidelidade Seguros",
-  "alertas_sugeridos": [
-    {
-      "titulo": "Renovação do seguro multirriscos",
-      "data": "2025-11-30",
-      "tipo": "renovacao"
-    }
-  ]
-}
-
-Regras:
-- tipo_documento: um de [contrato, seguro, ata, fatura, inspecao, licenca, certificado, orcamento, outro]
-- categoria: um de [legal, financeiro, manutencao, comunicacao, outro]
-- resumo: máximo 2 frases em português
-- Datas em formato ISO (YYYY-MM-DD). Se não encontrares, usa null.
-- valor_monetario: em euros, sem símbolo. Se não encontrares, usa null.
-- entidade: nome da empresa/seguradora/entidade principal. Se não encontrares, usa null.
-- alertas_sugeridos: sugere alertas úteis baseados nas datas encontradas (ex: renovação 30 dias antes da expiração). Array vazio se não houver datas relevantes.
-- Se o documento estiver ilegível ou não for relacionado com gestão de condomínios, preenche o que conseguires e coloca "outro" nos campos de tipo/categoria.`;
-
 export async function analyzeDocument(file: File): Promise<DocumentExtraction> {
-  const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
-  if (!apiKey) throw new Error('VITE_ANTHROPIC_API_KEY não configurada');
-
-  console.log('[analyzeDoc] Processing:', file.name, file.type, `${(file.size / 1024).toFixed(0)} KB`);
-
-  const base64 = await fileToBase64(file);
+  const fileBase64 = await fileToBase64(file);
   const mediaType = getMediaType(file);
 
-  // Claude suporta PDF e imagens nativamente como "document" ou "image"
-  const isImage = mediaType.startsWith('image/');
-
-  const contentBlock = isImage
-    ? {
-        type: 'image',
-        source: { type: 'base64', media_type: mediaType, data: base64 },
-      }
-    : {
-        type: 'document',
-        source: { type: 'base64', media_type: 'application/pdf', data: base64 },
-      };
-
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',
-    },
-    body: JSON.stringify({
-      model: 'claude-opus-4-5',
-      max_tokens: 1024,
-      messages: [
-        {
-          role: 'user',
-          content: [
-            contentBlock,
-            { type: 'text', text: PROMPT },
-          ],
-        },
-      ],
-    }),
+  const { data, error } = await supabase.functions.invoke('analyze-document', {
+    body: { fileBase64, mediaType, fileName: file.name },
   });
 
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    throw new Error(`Anthropic API error ${response.status}: ${err?.error?.message ?? response.statusText}`);
-  }
+  // supabase.functions.invoke does NOT throw on non-2xx; it resolves with
+  // { data: null, error }. AND a 200 with { error } body resolves with
+  // { data: { error }, error: null }. Both must be guarded explicitly.
+  if (error) throw new Error(`analyze-document failed: ${error.message}`);
+  if (data?.error) throw new Error(data.error);
+  if (!data?.extraction) throw new Error('A IA não devolveu uma extração válida.');
 
-  const data = await response.json();
-  const responseText = data.content?.map((b: any) => b.text ?? '').join('') ?? '';
-
-  console.log('[analyzeDoc] Raw response:', responseText);
-
-  const match = responseText.match(/\{[\s\S]*\}/);
-  if (!match) throw new Error('A IA não devolveu dados estruturados válidos.');
-
-  const parsed = JSON.parse(match[0]) as DocumentExtraction;
-  console.log('[analyzeDoc] Parsed:', parsed);
-
-  return parsed;
+  return data.extraction as DocumentExtraction;
 }
 
 export async function analyzeDocumentBatch(
   files: File[],
-  onProgress?: (index: number, total: number, fileName: string, status: 'processing' | 'done' | 'error') => void
+  onProgress?: (index: number, total: number, fileName: string, status: 'processing' | 'done' | 'error') => void,
 ): Promise<Array<{ file: File; result?: DocumentExtraction; error?: string }>> {
   const results: Array<{ file: File; result?: DocumentExtraction; error?: string }> = [];
 

@@ -1,0 +1,65 @@
+{
+  "expo": {
+    "name": "Domly",
+    "slug": "domly",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "domly",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.domly.residents",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Domly precisa de aceder à câmara para tirar fotografias das ocorrências reportadas.",
+        "NSPhotoLibraryUsageDescription": "Domly precisa de aceder às fotografias para anexar imagens às ocorrências reportadas."
+      }
+    },
+    "android": {
+      "package": "com.domly.residents",
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_MEDIA_IMAGES"
+      ]
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff",
+          "dark": {
+            "backgroundColor": "#000000"
+          }
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Domly precisa de aceder às fotografias para anexar imagens às ocorrências.",
+          "cameraPermission": "Domly precisa de aceder à câmara para tirar fotografias das ocorrências."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}

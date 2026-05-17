@@ -53,8 +53,8 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
         return valid;
       })
       .filter(f => {
-        if (f.size > 10 * 1024 * 1024) {
-          toast({ title: 'Ficheiro muito grande', description: `${f.name} excede 10 MB`, variant: 'destructive' });
+        if (f.size > 6 * 1024 * 1024) {
+          toast({ title: 'Ficheiro muito grande', description: `${f.name} excede 6 MB`, variant: 'destructive' });
           return false;
         }
         return true;
@@ -217,7 +217,7 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
             Arraste ficheiros ou clique para selecionar
           </p>
           <p className="text-xs text-slate-400 mt-1">
-            PDF ou imagens · máx. 10 MB por ficheiro · múltiplos ficheiros
+            PDF ou imagens · máx. 6 MB por ficheiro · múltiplos ficheiros
           </p>
         </div>
         <input

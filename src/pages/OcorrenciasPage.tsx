@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { OcorrenciaForm } from '@/components/OcorrenciaForm/OcorrenciaForm';
 import { ConfirmModal } from '@/components/ConfirmModal/ConfirmModal';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { CardListSkeleton } from '@/components/skeletons/CardListSkeleton';
 import {
   Plus, ClipboardList, AlertTriangle, Eye, Edit, Trash2,
   LayoutList, Columns, ChevronLeft, ChevronRight, Archive,
@@ -20,6 +21,7 @@ import {
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
+import { EmptyState } from '@/components/EmptyState';
 
 const prioridadeConfig: Record<string, { label: string; color: string; dotColor: string }> = {
   critica: { label: 'Crítica', color: 'bg-red-100 text-red-700 border-red-300', dotColor: 'bg-red-500' },
@@ -147,7 +149,13 @@ export const OcorrenciasPage: React.FC = () => {
     setFilterResponsabilidade('all');
   };
 
-  if (loading) return <LoadingSpinner />;
+  if (loading) {
+    return (
+      <div className="p-6">
+        <CardListSkeleton rows={5} />
+      </div>
+    );
+  }
 
   // ── Render helpers ────────────────────────────────────
 
@@ -250,11 +258,17 @@ export const OcorrenciasPage: React.FC = () => {
   );
 
   const renderEmpty = (message: string) => (
-    <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground border-2 border-dashed rounded-lg bg-muted/30">
-      <ClipboardList className="h-12 w-12 mb-3 opacity-50" />
-      <h3 className="text-lg font-medium">Sem ocorrências</h3>
-      <p className="text-sm">{message}</p>
-    </div>
+    <EmptyState
+      icon={ClipboardList}
+      title="Sem ocorrências"
+      message={message}
+      cta={
+        <Button onClick={handleCreate} className="gap-2">
+          <Plus className="h-4 w-4" />
+          Registar ocorrência
+        </Button>
+      }
+    />
   );
 
   const renderKanban = () => (
@@ -306,7 +320,9 @@ export const OcorrenciasPage: React.FC = () => {
                   );
                 })}
                 {colItems.length === 0 && (
-                  <div className="border-2 border-dashed rounded-lg p-4 text-center text-xs text-muted-foreground">Sem ocorrências</div>
+                  <div className="border-2 border-dashed border-border rounded-lg p-4 text-center text-sm text-muted-foreground bg-muted/30">
+                    Sem ocorrências
+                  </div>
                 )}
               </div>
             </div>

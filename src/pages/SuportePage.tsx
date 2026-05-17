@@ -1,35 +1,33 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/supabase-client';
-import { useCondominios } from '@/context/CondominiosContext';
-import { useAtivos } from '@/context/AtivosContext';
-import { useOcorrencias } from '@/context/OcorrenciasContext';
 import { Button } from '@/components/ui/button';
 import { Bot, Send, User } from 'lucide-react';
+
+import { ChatActionButtons } from '@/components/chat/ChatActionButtons';
+import type { ChatAction } from '@/lib/chatActions';
 
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
+  actions?: ChatAction[];
 }
 
 const SUGGESTIONS = [
-  'Como adiciono um novo condomínio?',
-  'Como reporto uma ocorrência?',
-  'Como atribuo um técnico a um trabalho?',
-  'Como vejo os alertas pendentes?',
+  'Quantos edifícios tenho?',
+  'Quando é a próxima manutenção?',
+  'Mostra-me as ocorrências em aberto',
+  'Gera o relatório do mês passado',
 ];
 
 const INITIAL_MESSAGE: Message = {
   id: '0',
   role: 'assistant',
-  content: 'Olá! Sou o assistente Domly. Posso ajudar com questões sobre a plataforma, gestão de condomínios, ativos, ocorrências, ou qualquer outra dúvida. Como posso ajudar?',
+  content:
+    'Olá! Sou o assistente Domly. Posso responder a perguntas sobre os teus condomínios, ativos, ocorrências e trabalhos — e gerar relatórios e PDFs por ti. Como posso ajudar?',
 };
 
 export const SuportePage: React.FC = () => {
-  const { condominios } = useCondominios();
-  const { ativos } = useAtivos();
-  const { ocorrencias } = useOcorrencias();
-
   const [messages, setMessages] = useState<Message[]>([INITIAL_MESSAGE]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -39,10 +37,6 @@ export const SuportePage: React.FC = () => {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
-
-  const openOcorrencias = ocorrencias.filter(
-    (o) => !['resolvida', 'fechada'].includes(o.estado)
-  ).length;
 
   const sendMessage = async (text: string) => {
     const trimmed = text.trim();
@@ -61,31 +55,46 @@ export const SuportePage: React.FC = () => {
         .map(({ role, content }) => ({ role, content }));
 
       const { data, error } = await supabase.functions.invoke('chat', {
-        body: {
-          messages: history,
-          context: {
-            condominios: condominios.length,
-            ativos: ativos.length,
-            openOcorrencias,
-          },
-        },
+        body: { messages: history },
       });
 
-      if (error) throw error;
+      if (error) {
+        // Surface the underlying error message (FunctionsHttpError has a `.context.response` we can read)
+        let detail = error.message ?? 'Erro desconhecido.';
+        const ctx = (error as any).context;
+        if (ctx && typeof ctx.json === 'function') {
+          try {
+            const body = await ctx.json();
+            if (body?.error) detail = body.error;
+          } catch {
+            /* ignore parse failure */
+          }
+        }
+        throw new Error(detail);
+      }
+      if (data?.error) throw new Error(data.error);
+
+      // Server returns { text, actions } (legacy clients also see `reply`)
+      const replyText: string = data?.text ?? data?.reply ?? 'Não consegui obter uma resposta. Tenta novamente.';
+      const actions: ChatAction[] | undefined = Array.isArray(data?.actions) ? data.actions : undefined;
 
       const assistantMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: data.reply ?? 'Não consegui obter uma resposta. Tenta novamente.',
+        content: replyText,
+        actions,
       };
       setMessages((prev) => [...prev, assistantMsg]);
-    } catch {
+    } catch (err: any) {
+      console.error('[chat] failed', err);
       setMessages((prev) => [
         ...prev,
         {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
-          content: 'Ocorreu um erro ao contactar o assistente. Por favor tenta novamente.',
+          content:
+            'Ocorreu um erro ao contactar o assistente.' +
+            (err?.message ? `\n\nDetalhe: ${err.message}` : ''),
         },
       ]);
     } finally {
@@ -110,7 +119,9 @@ export const SuportePage: React.FC = () => {
         </div>
         <div>
           <h1 className="font-semibold text-base leading-tight">Assistente Domly</h1>
-          <p className="text-xs text-muted-foreground">Suporte inteligente para a sua plataforma</p>
+          <p className="text-xs text-muted-foreground">
+            Pergunta sobre os teus dados ou pede um relatório
+          </p>
         </div>
       </div>
 
@@ -134,6 +145,9 @@ export const SuportePage: React.FC = () => {
               }`}
             >
               {msg.content}
+              {msg.role === 'assistant' && msg.actions ? (
+                <ChatActionButtons actions={msg.actions} />
+              ) : null}
             </div>
             {msg.role === 'user' && (
               <div className="flex-shrink-0 p-1.5 rounded-full bg-muted mb-0.5">

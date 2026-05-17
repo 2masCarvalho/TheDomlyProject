@@ -11,7 +11,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { TrabalhoForm } from '@/components/TrabalhoForm/TrabalhoForm';
 import { ConfirmModal } from '@/components/ConfirmModal/ConfirmModal';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
-import { Wrench, Plus, Eye, Edit, Trash2 } from 'lucide-react';
+import { CardListSkeleton } from '@/components/skeletons/CardListSkeleton';
+import { Wrench, Plus, Eye, Edit, Trash2, Search } from 'lucide-react';
+import { EmptyState } from '@/components/EmptyState';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 
@@ -84,7 +86,13 @@ export const TrabalhosPage: React.FC = () => {
 
   const getCondominioNome = (id: number) => condominios.find((c) => c.id_comdominio === id)?.nome || '—';
 
-  if (loading) return <LoadingSpinner />;
+  if (loading) {
+    return (
+      <div className="p-6">
+        <CardListSkeleton rows={5} />
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -106,12 +114,15 @@ export const TrabalhosPage: React.FC = () => {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
-        <Input
-          placeholder="Pesquisar por título..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-xs"
-        />
+        <div className="relative max-w-xs w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <Input
+            placeholder="Pesquisar por título..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9"
+          />
+        </div>
         <Select value={filterEstado} onValueChange={setFilterEstado}>
           <SelectTrigger className="w-36"><SelectValue placeholder="Estado" /></SelectTrigger>
           <SelectContent>
@@ -155,11 +166,17 @@ export const TrabalhosPage: React.FC = () => {
 
       {/* List */}
       {filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground border-2 border-dashed rounded-lg bg-muted/30">
-          <Wrench className="h-12 w-12 mb-3 opacity-50" />
-          <h3 className="text-lg font-medium">Sem trabalhos encontrados</h3>
-          <Button variant="link" onClick={handleCreate} className="mt-1">Criar primeiro trabalho</Button>
-        </div>
+        <EmptyState
+          icon={Wrench}
+          title="Sem trabalhos encontrados"
+          message="Crie um trabalho para agendar manutenções ou intervenções."
+          cta={
+            <Button onClick={handleCreate} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Criar primeiro trabalho
+            </Button>
+          }
+        />
       ) : (
         <div className="space-y-3">
           {filtered.map((t) => {

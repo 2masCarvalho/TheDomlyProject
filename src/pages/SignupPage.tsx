@@ -7,9 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import DomlyRound from '@/assets/DomlyRound.png';
 
 const signupSchema = z.object({
   primeiro_nome: z.string().min(1, 'Obrigatório'),
@@ -57,11 +58,16 @@ export const SignupPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 flex flex-col items-center justify-center p-4">
+      <div className="max-w-md text-center mb-6">
+        <p className="text-sm text-muted-foreground">
+          Junte-se a centenas de gestores que automatizaram a sua gestão diária com a Domly.
+        </p>
+      </div>
+      <Card className="w-full max-w-md border-l-4 border-l-primary shadow-2xl">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <Building2 className="h-12 w-12 text-primary" />
+            <img src={DomlyRound} alt="Domly" className="h-14 w-14" />
           </div>
           <CardTitle className="text-2xl">Criar Conta na Domly</CardTitle>
           <CardDescription>Introduz os teus dados para criar a conta</CardDescription>
@@ -116,7 +122,14 @@ export const SignupPage: React.FC = () => {
                 Cancelar
               </Button>
               <Button type="submit" className="w-1/2" disabled={isLoading}>
-                {isLoading ? "A criar..." : "Criar Conta"}
+                {isLoading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    A criar...
+                  </span>
+                ) : (
+                  'Criar Conta'
+                )}
               </Button>
             </div>
           </form>

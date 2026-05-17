@@ -5,6 +5,7 @@ import { useAtivos } from '@/context/AtivosContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Plus, Bell, PackageOpen } from 'lucide-react';
+import { EmptyState } from '@/components/EmptyState';
 import { AtivosList } from '@/components/AtivosList/AtivosList';
 import { AtivoForm } from '@/components/AtivoForm/AtivoForm';
 import { AtivoFormData } from '@/components/AtivoForm/validation';
@@ -233,14 +234,17 @@ export const AtivosPage: React.FC = () => {
         {ativosLoading ? (
           <LoadingSpinner />
         ) : ativos.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground border-2 border-dashed rounded-lg bg-muted/30">
-            <PackageOpen className="h-12 w-12 mb-3 opacity-50" />
-            <h3 className="text-lg font-medium">Sem ativos registados</h3>
-            <p className="text-sm">Este condomínio ainda não tem equipamentos ou ativos.</p>
-            <Button variant="link" onClick={handleCreate} className="mt-2">
-              Adicionar o primeiro ativo
-            </Button>
-          </div>
+          <EmptyState
+            icon={PackageOpen}
+            title="Sem ativos registados"
+            message="Este condomínio ainda não tem equipamentos ou ativos."
+            cta={
+              <Button onClick={handleCreate} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Adicionar o primeiro ativo
+              </Button>
+            }
+          />
         ) : (
           // se houver ativos mostrar a lista
           <AtivosList
