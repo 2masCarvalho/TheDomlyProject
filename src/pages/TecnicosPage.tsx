@@ -9,6 +9,7 @@ import { TecnicoForm } from '@/components/TecnicoForm/TecnicoForm';
 import { ConfirmModal } from '@/components/ConfirmModal/ConfirmModal';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Users, Plus, Star, Phone, Mail, MapPin, Edit, Trash2 } from 'lucide-react';
+import { EmptyState } from '@/components/EmptyState';
 
 const disponibilidadeConfig: Record<string, { label: string; color: string }> = {
   disponivel: { label: 'Disponível', color: 'bg-green-100 text-green-700' },
@@ -78,11 +79,17 @@ export const TecnicosPage: React.FC = () => {
       />
 
       {filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground border-2 border-dashed rounded-lg bg-muted/30">
-          <Users className="h-12 w-12 mb-3 opacity-50" />
-          <h3 className="text-lg font-medium">Sem técnicos registados</h3>
-          <Button variant="link" onClick={handleCreate} className="mt-1">Adicionar o primeiro técnico</Button>
-        </div>
+        <EmptyState
+          icon={Users}
+          title="Sem técnicos registados"
+          message="Adicione técnicos para os atribuir a trabalhos."
+          cta={
+            <Button onClick={handleCreate} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Adicionar o primeiro técnico
+            </Button>
+          }
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((tecnico) => {

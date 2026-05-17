@@ -24,3 +24,15 @@ dist-ssr
 *.sw?
 .env
 env
+
+# Expo / Mobile (mobile/ directory)
+mobile/node_modules
+mobile/.expo
+mobile/.expo-shared
+mobile/dist
+mobile/web-build
+mobile/ios
+mobile/android
+mobile/*.tsbuildinfo
+mobile/.env.local
+mobile/.env.*.local

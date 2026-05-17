@@ -40,6 +40,8 @@ import { JoinPage } from "./pages/JoinPage";
 import { TemplatesPage } from "./pages/TemplatesPage";
 import { GerarDocumentoPage } from "./pages/GerarDocumentoPage";
 import { UtilizadoresPage } from "./pages/UtilizadoresPage";
+import { RelatoriosPage } from "./pages/RelatoriosPage";
+import { RelatorioDetailPage } from "./pages/RelatorioDetailPage";
 
 const queryClient = new QueryClient();
 
@@ -107,6 +109,10 @@ const App = () => (
                   {/* Documentos & Templates */}
                   <Route path="/templates" element={<TemplatesPage />} />
                   <Route path="/gerar-documento" element={<GerarDocumentoPage />} />
+
+                  {/* Relatórios mensais */}
+                  <Route path="/relatorios" element={<RelatoriosPage />} />
+                  <Route path="/relatorios/:id" element={<RelatorioDetailPage />} />
 
                   {/* Gestão */}
                   <Route path="/utilizadores" element={<UtilizadoresPage />} />

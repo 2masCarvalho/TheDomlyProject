@@ -30,22 +30,22 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
 
 const propertyTypes = [
-  { id: "multi-family", label: "Multi-Family" },
-  { id: "single-family", label: "Single-Family" },
-  { id: "commercial", label: "Commercial" },
-  { id: "student-housing", label: "Student Housing" },
-  { id: "short-term-rentals", label: "Short-Term Rentals" },
-  { id: "other", label: "Other" },
+  { id: "multi-family", label: "Edifícios Multifamiliares" },
+  { id: "single-family", label: "Moradias" },
+  { id: "commercial", label: "Comercial" },
+  { id: "student-housing", label: "Residências de Estudantes" },
+  { id: "short-term-rentals", label: "Alojamento Local" },
+  { id: "other", label: "Outro" },
 ] as const;
 
 const formSchema = z.object({
-  firstName: z.string().trim().min(1, "First name is required").max(50),
-  lastName: z.string().trim().min(1, "Last name is required").max(50),
-  email: z.string().trim().email("Invalid email address").max(255),
-  companyName: z.string().trim().min(1, "Company name is required").max(100),
-  unitsManaged: z.string().min(1, "Please select the number of units"),
-  propertyTypes: z.array(z.string()).min(1, "Select at least one property type"),
-  aiFeature: z.string().min(1, "Please select an AI feature"),
+  firstName: z.string().trim().min(1, "O primeiro nome é obrigatório").max(50),
+  lastName: z.string().trim().min(1, "O apelido é obrigatório").max(50),
+  email: z.string().trim().email("Email inválido").max(255),
+  companyName: z.string().trim().min(1, "O nome da empresa é obrigatório").max(100),
+  unitsManaged: z.string().min(1, "Selecione o número de unidades"),
+  propertyTypes: z.array(z.string()).min(1, "Selecione pelo menos um tipo de propriedade"),
+  aiFeature: z.string().min(1, "Selecione uma funcionalidade de IA"),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -84,8 +84,8 @@ export function DemoBookingModal({ open, onOpenChange }: DemoBookingModalProps) 
     form.reset();
     
     toast({
-      title: "Thank you!",
-      description: "Our team will contact you shortly to schedule your demo.",
+      title: "Obrigado!",
+      description: "A nossa equipa entrará em contacto consigo brevemente para agendar a sua demonstração.",
     });
   };
 
@@ -93,10 +93,10 @@ export function DemoBookingModal({ open, onOpenChange }: DemoBookingModalProps) 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl">Book Your Personalized AI Demo</DialogTitle>
+          <DialogTitle className="text-2xl">Agende a sua Demonstração Personalizada</DialogTitle>
           <DialogDescription className="text-base">
-            You're one step away. Fill out the form, and we'll show you exactly how our AI can
-            streamline your operations, reduce costs, and save you time.
+            Está a um passo. Preencha o formulário e mostramos-lhe como a nossa IA pode
+            simplificar as suas operações, reduzir custos e poupar-lhe tempo.
           </DialogDescription>
         </DialogHeader>
 
@@ -108,9 +108,9 @@ export function DemoBookingModal({ open, onOpenChange }: DemoBookingModalProps) 
                 name="firstName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>First Name *</FormLabel>
+                    <FormLabel>Primeiro Nome *</FormLabel>
                     <FormControl>
-                      <Input placeholder="John" {...field} />
+                      <Input placeholder="João" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -122,9 +122,9 @@ export function DemoBookingModal({ open, onOpenChange }: DemoBookingModalProps) 
                 name="lastName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Last Name *</FormLabel>
+                    <FormLabel>Apelido *</FormLabel>
                     <FormControl>
-                      <Input placeholder="Doe" {...field} />
+                      <Input placeholder="Silva" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -137,9 +137,9 @@ export function DemoBookingModal({ open, onOpenChange }: DemoBookingModalProps) 
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Work Email *</FormLabel>
+                  <FormLabel>Email Profissional *</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="john.doe@company.com" {...field} />
+                    <Input type="email" placeholder="joao.silva@empresa.com" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -151,9 +151,9 @@ export function DemoBookingModal({ open, onOpenChange }: DemoBookingModalProps) 
               name="companyName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Company Name *</FormLabel>
+                  <FormLabel>Nome da Empresa *</FormLabel>
                   <FormControl>
-                    <Input placeholder="Your Company" {...field} />
+                    <Input placeholder="A sua Empresa" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -165,18 +165,18 @@ export function DemoBookingModal({ open, onOpenChange }: DemoBookingModalProps) 
               name="unitsManaged"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>How many units do you manage? *</FormLabel>
+                  <FormLabel>Quantas unidades gere? *</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select range" />
+                        <SelectValue placeholder="Selecione um intervalo" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="1-10">1 - 10 units</SelectItem>
-                      <SelectItem value="11-50">11 - 50 units</SelectItem>
-                      <SelectItem value="51-250">51 - 250 units</SelectItem>
-                      <SelectItem value="250+">250+ units</SelectItem>
+                      <SelectItem value="1-10">1 - 10 unidades</SelectItem>
+                      <SelectItem value="11-50">11 - 50 unidades</SelectItem>
+                      <SelectItem value="51-250">51 - 250 unidades</SelectItem>
+                      <SelectItem value="250+">250+ unidades</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -189,7 +189,7 @@ export function DemoBookingModal({ open, onOpenChange }: DemoBookingModalProps) 
               name="propertyTypes"
               render={() => (
                 <FormItem>
-                  <FormLabel>What types of properties do you manage? *</FormLabel>
+                  <FormLabel>Que tipos de propriedades gere? *</FormLabel>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
                     {propertyTypes.map((type) => (
                       <FormField
@@ -231,20 +231,20 @@ export function DemoBookingModal({ open, onOpenChange }: DemoBookingModalProps) 
               name="aiFeature"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Which AI feature are you most interested in? *</FormLabel>
+                  <FormLabel>Que funcionalidade de IA mais lhe interessa? *</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a feature" />
+                        <SelectValue placeholder="Selecione uma funcionalidade" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="chatbot">24/7 AI Tenant Support Chatbot</SelectItem>
-                      <SelectItem value="maintenance">Predictive Maintenance Insights</SelectItem>
-                      <SelectItem value="screening">AI-Powered Tenant Screening</SelectItem>
-                      <SelectItem value="reporting">Automated Financial Reporting</SelectItem>
-                      <SelectItem value="pricing">Dynamic Rental Pricing</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
+                      <SelectItem value="chatbot">Assistente IA 24/7 para Residentes</SelectItem>
+                      <SelectItem value="maintenance">Manutenção Preditiva</SelectItem>
+                      <SelectItem value="screening">Triagem de Inquilinos com IA</SelectItem>
+                      <SelectItem value="reporting">Relatórios Financeiros Automatizados</SelectItem>
+                      <SelectItem value="pricing">Definição Dinâmica de Rendas</SelectItem>
+                      <SelectItem value="other">Outro</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -253,7 +253,7 @@ export function DemoBookingModal({ open, onOpenChange }: DemoBookingModalProps) 
             />
 
             <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
-              {isSubmitting ? "Submitting..." : "Book My Demo"}
+              {isSubmitting ? "A enviar..." : "Agendar Demonstração"}
             </Button>
           </form>
         </Form>

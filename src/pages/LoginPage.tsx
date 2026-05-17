@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Mail, Lock } from 'lucide-react';
+import { Mail, Lock, Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import DomlyLogo from '@/assets/domly-final-logo.png';
@@ -51,7 +51,7 @@ export const LoginPage: React.FC = () => {
         backgroundSize: "400% 400%",
       }}
     >
-      <div className="w-full max-w-md bg-white/90 backdrop-blur-md rounded-2xl shadow-2xl p-10">
+      <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-10 border border-white/20 border-l-4 border-l-primary">
 
         {/* Logo */}
         <div className="flex justify-center mb-6">
@@ -107,7 +107,14 @@ export const LoginPage: React.FC = () => {
           </div>
 
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? 'A entrar...' : 'Entrar'}
+            {isLoading ? (
+              <span className="flex items-center justify-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                A entrar...
+              </span>
+            ) : (
+              'Entrar'
+            )}
           </Button>
 
           <p className="text-center text-sm text-gray-500">

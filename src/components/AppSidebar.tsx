@@ -12,6 +12,7 @@ import {
   ClipboardList,
   Users,
   ShieldCheck,
+  FileText,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -65,6 +66,7 @@ export function AppSidebar({ expanded, onExpandChange }: AppSidebarProps) {
     { title: "Calendário", url: "/calendario", icon: Calendar, section: "gestão" },
     { title: "Alertas", url: "/alertas", icon: Shield, badge: pendingCount, section: "gestão" },
     { title: "Manutenção", url: "/manutencao", icon: Camera, section: "gestão" },
+    { title: "Relatórios", url: "/relatorios", icon: FileText, section: "gestão" },
   ];
 
   const bottomItems: MenuItem[] = [
@@ -280,10 +282,9 @@ export function AppSidebar({ expanded, onExpandChange }: AppSidebarProps) {
             }}
           >
             {getInitials()}
-            {/* Online dot */}
+            {/* Online dot — always visible, signals "live" presence */}
             <div
-              className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-[#0a1128]"
-              style={{ display: expanded ? "block" : "none" }}
+              className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-[#0a1128] shadow-[0_0_0_0_rgba(52,211,153,0.7)] animate-pulse"
             />
           </div>
 

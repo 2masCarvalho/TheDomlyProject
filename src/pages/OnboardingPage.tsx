@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import confetti from 'canvas-confetti';
 import classifyOccurrence from '@/lib/classifyOccurrence';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -528,7 +529,8 @@ export const OnboardingPage: React.FC = () => {
       }
 
       localStorage.removeItem(DRAFT_KEY);
-      navigate('/dashboard?onboarding=1');
+      confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+      setTimeout(() => navigate('/dashboard?onboarding=1'), 350);
 
     } catch (error: any) {
       console.error("Erro no submit master:", error);
@@ -1377,8 +1379,8 @@ export const OnboardingPage: React.FC = () => {
           {step === 7 && (
             <div className="bg-card rounded-2xl border shadow-lg p-8 text-center">
               <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto mb-4" />
-              <h2 className="text-2xl font-bold mb-2">A configurar o seu espaço...</h2>
-              <p className="text-muted-foreground text-sm">Estamos a guardar os seus dados. Só um momento!</p>
+              <h2 className="text-2xl font-bold mb-2">A preparar o seu espaço de trabalho...</h2>
+              <p className="text-muted-foreground text-sm">Estamos quase. Aguarde só um momento!</p>
             </div>
           )}
         </div>

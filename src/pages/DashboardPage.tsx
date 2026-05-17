@@ -23,9 +23,11 @@ import { useNavigate } from 'react-router-dom';
 import { useCondominios } from '@/context/CondominiosContext';
 import { useAtivos } from '@/context/AtivosContext';
 import { useOcorrencias } from '@/context/OcorrenciasContext';
+import { useAuth } from '@/context/AuthContext';
 import { manutencoesApi } from '@/api/ativos';
 import { getExpiryStatus } from '@/api/ativos';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { CardListSkeleton, KpiGridSkeleton } from '@/components/skeletons/CardListSkeleton';
 import { format, addDays } from 'date-fns';
 import { pt } from 'date-fns/locale';
 
@@ -40,6 +42,7 @@ export const DashboardPage = () => {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const [showBanner, setShowBanner] = useState(false);
+    const { profile } = useAuth();
     const { condominios, loading: condoLoading } = useCondominios();
     const { ativos, loading: ativosLoading } = useAtivos();
     const { ocorrencias, loading: ocorrenciasLoading } = useOcorrencias();
@@ -122,7 +125,21 @@ export const DashboardPage = () => {
         [ativos]
     );
 
-    if (loading || condoLoading || ativosLoading || ocorrenciasLoading) return <LoadingSpinner />;
+    if (loading || condoLoading || ativosLoading || ocorrenciasLoading) {
+        return (
+            <div className="p-6 lg:p-8 space-y-6 min-h-screen bg-[#fafbfc]">
+                <div className="space-y-2">
+                    <div className="h-7 w-64 rounded bg-slate-200/70 animate-pulse" />
+                    <div className="h-4 w-40 rounded bg-slate-200/50 animate-pulse" />
+                </div>
+                <KpiGridSkeleton count={4} className="grid-cols-2 lg:grid-cols-4" />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                    <CardListSkeleton rows={3} />
+                    <CardListSkeleton rows={3} />
+                </div>
+            </div>
+        );
+    }
 
     const kpis = [
         { label: 'Condomínios', value: condominios.length, icon: Building2, accent: 'from-blue-500/10 to-blue-600/5', iconColor: 'text-blue-500', ringColor: 'ring-blue-500/10' },
@@ -141,15 +158,35 @@ export const DashboardPage = () => {
         <div className="p-6 lg:p-8 space-y-6 min-h-screen bg-[#fafbfc]">
 
             {/* ── Header ───────────────────────────────────── */}
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 animate-slide-in-left">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-slate-900">Painel de controlo</h1>
-                    <p className="text-sm text-slate-500 mt-0.5">{format(new Date(), "EEEE, dd 'de' MMMM", { locale: pt })}</p>
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+                        {profile?.primeiro_nome
+                            ? `Bem-vindo de volta, ${profile.primeiro_nome}!`
+                            : 'Painel de controlo'}
+                    </h1>
+                    <p className="text-sm text-slate-500 mt-0.5 capitalize">{format(new Date(), "EEEE, dd 'de' MMMM", { locale: pt })}</p>
                 </div>
                 <Button variant="outline" size="sm" className="text-xs gap-1.5 self-start sm:self-auto" onClick={() => navigate('/manutencao')}>
                     <Wrench className="h-3.5 w-3.5" /> Nova manutenção
                 </Button>
             </div>
+
+            {/* ── Get started CTA (empty state) ───────────── */}
+            {condominios.length === 0 && (
+                <div className="rounded-2xl border-2 border-dashed border-blue-200 bg-gradient-to-br from-blue-50/80 to-white p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 animate-slide-in-right">
+                    <div className="p-3 rounded-xl bg-blue-100/70 ring-1 ring-blue-200">
+                        <Building2 className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div className="flex-1">
+                        <h2 className="text-base font-semibold text-slate-900">Comece por adicionar o seu primeiro condomínio</h2>
+                        <p className="text-sm text-slate-500 mt-0.5">Depois pode registar ativos, ocorrências e trabalhos.</p>
+                    </div>
+                    <Button onClick={() => navigate('/condominios')} className="gap-2 self-stretch sm:self-auto">
+                        Adicionar agora <ArrowRight className="h-4 w-4" />
+                    </Button>
+                </div>
+            )}
 
             {/* Onboarding banner */}
             {showBanner && (
@@ -163,7 +200,7 @@ export const DashboardPage = () => {
             )}
 
             {/* ── KPI Grid — 2×2 ──────────────────────────── */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 animate-slide-in-right">
                 {kpis.map((kpi) => (
                     <div key={kpi.label} className="relative overflow-hidden rounded-xl border border-slate-200/60 bg-white p-5 hover:border-slate-300/80 hover:shadow-sm transition-all duration-200">
                         <div className={`absolute inset-0 bg-gradient-to-br ${kpi.accent} opacity-60 pointer-events-none`} />

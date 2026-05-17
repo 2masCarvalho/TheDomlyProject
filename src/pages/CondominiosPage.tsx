@@ -7,9 +7,11 @@ import { CondominioList } from '@/components/CondominioList/CondominioList';
 import { CondominioForm } from '@/components/CondominioForm/CondominioForm';
 import { ConfirmModal } from '@/components/ConfirmModal/ConfirmModal';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { CardListSkeleton } from '@/components/skeletons/CardListSkeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Building2, Plus, Upload, Search, Eye, EyeOff, MoreVertical } from 'lucide-react';
+import { Building2, Plus, Upload, Search, Eye, EyeOff, MoreVertical, Lock } from 'lucide-react';
+import { EmptyState } from '@/components/EmptyState';
 import { CondominioFormData } from '@/components/CondominioForm/validation';
 import { CreateCondominioData } from '@/api/condominios';
 import { CondominioImportModal } from '@/components/CondominioImportModal/CondominioImportModal';
@@ -86,7 +88,21 @@ export const CondominiosPage: React.FC = () => {
     }
   };
 
-  if (!user) return <div>Necessita de autenticação.</div>;
+  if (!user) {
+    return (
+      <div className="p-8 min-h-screen bg-[#fafbfc] flex items-center justify-center">
+        <EmptyState
+          icon={Lock}
+          title="Necessita de iniciar sessão"
+          message="Inicie sessão para aceder à gestão de condomínios."
+          cta={
+            <Button onClick={() => navigate('/login')}>Iniciar sessão</Button>
+          }
+          className="max-w-md w-full bg-white"
+        />
+      </div>
+    );
+  }
 
   const activeCount = filteredCondominios.filter(c => c.is_active !== false).length;
   const totalCount = filteredCondominios.length;
@@ -171,7 +187,7 @@ export const CondominiosPage: React.FC = () => {
 
       {/* ── Content ──────────────────────────────────── */}
       {loading ? (
-        <LoadingSpinner />
+        <CardListSkeleton rows={5} />
       ) : (
         <CondominioList
           condominios={filteredCondominios}

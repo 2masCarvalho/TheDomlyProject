@@ -120,7 +120,7 @@ export const LandingPage: React.FC = () => {
         align: "start",
         loop: true
       }} plugins={[Autoplay({
-        delay: 2000,
+        delay: 3000,
         stopOnInteraction: false
       })]} className="w-full max-w-5xl mx-auto">
           <CarouselContent className="-ml-4">
@@ -136,22 +136,10 @@ export const LandingPage: React.FC = () => {
           }, {
             name: "Startup Portugal",
             logo: startupPortugalLogo
-          }, {
-            name: "Vanguard Properties",
-            logo: vanguardLogo
-          }, {
-            name: "Sierra Sonae",
-            logo: sierraLogo
-          }, {
-            name: "JLL",
-            logo: jllLogo
-          }, {
-            name: "Startup Portugal",
-            logo: startupPortugalLogo
           }].map((partner, index) => <CarouselItem key={index} className="pl-4 basis-1/2 md:basis-1/3 lg:basis-1/4">
                 <div className="flex items-center justify-center p-6">
                   <div className="flex items-center justify-center h-20 opacity-50 hover:opacity-80 transition-opacity">
-                    <img src={partner.logo} alt={partner.name} className="max-h-16 max-w-full object-contain grayscale" />
+                    <img src={partner.logo} alt={partner.name} className="max-h-16 max-w-full object-contain grayscale hover:grayscale-0 transition-all duration-300" />
                   </div>
                 </div>
               </CarouselItem>)}
@@ -411,15 +399,15 @@ export const LandingPage: React.FC = () => {
                 {[1, 2, 3, 4, 5].map(i => <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />)}
               </div>
               <p className="text-foreground mb-6 italic">
-                "Domly cut our administrative time by 50%. The automatic alerts for insurance renewals are a lifesaver."
+                "A Domly reduziu o nosso tempo administrativo em 50%. Os alertas automáticos para renovações de seguros são uma salvação."
               </p>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-                  <span className="text-lg font-semibold text-foreground">MC</span>
+                  <span className="text-lg font-semibold text-foreground">JS</span>
                 </div>
                 <div>
-                  <p className="font-semibold text-foreground">Michael Chen</p>
-                  <p className="text-sm text-muted-foreground">Property Manager</p>
+                  <p className="font-semibold text-foreground">João Silva</p>
+                  <p className="text-sm text-muted-foreground">Gestor de Condomínios</p>
                 </div>
               </div>
             </div>
@@ -429,16 +417,15 @@ export const LandingPage: React.FC = () => {
                 {[1, 2, 3, 4, 5].map(i => <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />)}
               </div>
               <p className="text-foreground mb-6 italic">
-                "We finally have true visibility into our costs. The financial dashboard is transparent and a
-                game-changer for budgeting."
+                "Finalmente temos visibilidade total sobre os nossos custos. O painel financeiro é transparente e revolucionou a nossa gestão de orçamentos."
               </p>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-                  <span className="text-lg font-semibold text-foreground">SJ</span>
+                  <span className="text-lg font-semibold text-foreground">SA</span>
                 </div>
                 <div>
-                  <p className="font-semibold text-foreground">Sarah Johnson</p>
-                  <p className="text-sm text-muted-foreground">Condo Board Member</p>
+                  <p className="font-semibold text-foreground">Sara Antunes</p>
+                  <p className="text-sm text-muted-foreground">Membro do Conselho de Administração</p>
                 </div>
               </div>
             </div>
@@ -448,15 +435,15 @@ export const LandingPage: React.FC = () => {
                 {[1, 2, 3, 4, 5].map(i => <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />)}
               </div>
               <p className="text-foreground mb-6 italic">
-                "Reporting a broken light took 30 seconds on the app, and I saw exactly when it was fixed. Amazing."
+                "Reportar uma luz fundida demorou 30 segundos na app, e vi exatamente quando foi reparada. Espetacular."
               </p>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
                   <span className="text-lg font-semibold text-foreground">DM</span>
                 </div>
                 <div>
-                  <p className="font-semibold text-foreground">David Martinez</p>
-                  <p className="text-sm text-muted-foreground">Resident</p>
+                  <p className="font-semibold text-foreground">Diogo Martins</p>
+                  <p className="text-sm text-muted-foreground">Residente</p>
                 </div>
               </div>
             </div>

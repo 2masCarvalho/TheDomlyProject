@@ -1,1 +1,6 @@
-project_id = "igfjgzaxbmdspcpjatug"
+project_id = "uszdiqdlwempkjqjlvaq"
+
+# OnboardingPage.tsx invokes classify-occurrence BEFORE supabase.auth.signUp,
+# so the caller has no JWT yet. Allow anonymous invocation for this function only.
+[functions.classify-occurrence]
+verify_jwt = false
